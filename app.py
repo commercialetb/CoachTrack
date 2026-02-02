@@ -248,7 +248,7 @@ with c2:
         colorscale=colorscale,
         nbinsx=nbins_x,
         nbinsy=nbins_y,
-        colorbar=dict(title="Densità<br>posizioni", titleside='right')
+        colorbar=dict(title="Densità")
     ))
     
     # Add court lines on top
