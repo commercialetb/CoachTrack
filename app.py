@@ -59,7 +59,7 @@ st.markdown("""
 
 st.title('🏀 Basketball Tracking MVP - Enhanced Edition')
 st.caption('Dataset include dropout e outlier NLOS per simulare condizioni reali indoor.')
-st.caption('📱 **Responsive Design** + 🤖 **AI Analysis** + 🎯 **Zone Tracking**')
+st.caption('📱 Responsive Design + AI Analysis + Zone Tracking')
 
 # Basketball court drawing function
 def draw_basketball_court():
@@ -71,47 +71,47 @@ def draw_basketball_court():
 
     # Court outline
     shapes.append(dict(type="rect", x0=0, y0=0, x1=court_length, y1=court_width,
-                       line=dict(color="white", width=3), fillcolor="rgba(0,0,0,0)"))
+                      line=dict(color="white", width=3), fillcolor="rgba(0,0,0,0)"))
 
     # Center line
     shapes.append(dict(type="line", x0=court_length/2, y0=0, x1=court_length/2, y1=court_width,
-                       line=dict(color="white", width=2)))
+                      line=dict(color="white", width=2)))
 
     # Center circle
     shapes.append(dict(type="circle", xref="x", yref="y",
-                       x0=court_length/2-1.8, y0=court_width/2-1.8,
-                       x1=court_length/2+1.8, y1=court_width/2+1.8,
-                       line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
+                      x0=court_length/2-1.8, y0=court_width/2-1.8,
+                      x1=court_length/2+1.8, y1=court_width/2+1.8,
+                      line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
 
     # 3-point line (arc) - left side
     shapes.append(dict(type="path",
-                       path=f"M 0,{court_width/2-6.75} Q 6.75,{court_width/2} 0,{court_width/2+6.75}",
-                       line=dict(color="white", width=2)))
+                      path=f"M 0,{court_width/2-6.75} Q 6.75,{court_width/2} 0,{court_width/2+6.75}",
+                      line=dict(color="white", width=2)))
 
     # 3-point line (arc) - right side
     shapes.append(dict(type="path",
-                       path=f"M {court_length},{court_width/2-6.75} Q {court_length-6.75},{court_width/2} {court_length},{court_width/2+6.75}",
-                       line=dict(color="white", width=2)))
+                      path=f"M {court_length},{court_width/2-6.75} Q {court_length-6.75},{court_width/2} {court_length},{court_width/2+6.75}",
+                      line=dict(color="white", width=2)))
 
     # Free throw circles - left
     shapes.append(dict(type="circle", x0=5.8-1.8, y0=court_width/2-1.8,
-                       x1=5.8+1.8, y1=court_width/2+1.8,
-                       line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
+                      x1=5.8+1.8, y1=court_width/2+1.8,
+                      line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
 
     # Free throw circles - right
     shapes.append(dict(type="circle", x0=court_length-5.8-1.8, y0=court_width/2-1.8,
-                       x1=court_length-5.8+1.8, y1=court_width/2+1.8,
-                       line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
+                      x1=court_length-5.8+1.8, y1=court_width/2+1.8,
+                      line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
 
     # Restricted area - left
     shapes.append(dict(type="rect", x0=0, y0=court_width/2-1.25,
-                       x1=1.25, y1=court_width/2+1.25,
-                       line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
+                      x1=1.25, y1=court_width/2+1.25,
+                      line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
 
     # Restricted area - right
     shapes.append(dict(type="rect", x0=court_length-1.25, y0=court_width/2-1.25,
-                       x1=court_length, y1=court_width/2+1.25,
-                       line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
+                      x1=court_length, y1=court_width/2+1.25,
+                      line=dict(color="white", width=2), fillcolor="rgba(0,0,0,0)"))
 
     return shapes
 
@@ -122,103 +122,223 @@ def classify_zone(x, y):
     court_width = 15.0
 
     # Paint area: within 5.8m from basket (free throw line)
-    # Left basket
     if x <= 5.8 and (court_width/2 - 2.45) <= y <= (court_width/2 + 2.45):
         return 'Paint'
-    # Right basket
     if x >= (court_length - 5.8) and (court_width/2 - 2.45) <= y <= (court_width/2 + 2.45):
         return 'Paint'
 
     # 3-point zone: beyond 6.75m from basket
-    # Left side
     left_basket_x, left_basket_y = 1.575, court_width/2
     dist_left = np.sqrt((x - left_basket_x)**2 + (y - left_basket_y)**2)
     if dist_left >= 6.75:
         return '3-Point'
 
-    # Right side
     right_basket_x, right_basket_y = court_length - 1.575, court_width/2
     dist_right = np.sqrt((x - right_basket_x)**2 + (y - right_basket_y)**2)
     if dist_right >= 6.75:
         return '3-Point'
 
-    # Everything else is mid-range
     return 'Mid-Range'
 
-# AI Analysis function (uses Groq API if available)
-def generate_ai_insights(kpi_df, zone_df=None):
-    """Generate AI insights using Groq API or fallback to rule-based.
-    Returns ALWAYS: (insights_text, is_ai_active)
-    """
-    # Caso limite: nessun dato
-    if kpi_df is None or kpi_df.empty:
-        return "Nessun dato KPI disponibile (dopo i filtri).", False
 
-    # Prova Groq (se installato + key presente)
+@st.cache_data
+def calculate_zone_stats_for_ai(uwb_data_with_zone):
+    zone_stats = (uwb_data_with_zone.groupby(["player_id", "zone"])
+                  .size()
+                  .reset_index(name="count"))
+    totals = zone_stats.groupby("player_id")["count"].transform("sum")
+    zone_stats["percentage"] = (zone_stats["count"] / totals * 100).round(1)
+    return zone_stats[["player_id", "zone", "percentage"]]
+
+
+def generate_ai_insights(kpi_df, zone_df=None):
+    """AI potenziata (7 sezioni). Return ALWAYS (html_text, is_ai_active)."""
+
+    if kpi_df is None or kpi_df.empty:
+        return "<b>Nessun dato KPI disponibile</b> (dopo i filtri).", False
+
+    # ===== Try Groq if available =====
     try:
         import groq
-
         api_key = st.secrets.get("GROQ_API_KEY", None)
+
         if api_key:
             client = groq.Groq(api_key=api_key)
 
-            data_summary = f"""
-Analizza questi dati di performance basket:
+            zone_summary = ""
+            if zone_df is not None and not zone_df.empty:
+                zone_summary = "\n\nZone (%):\n" + zone_df.to_string(index=False)
 
-KPI Giocatori:
+            prompt = f"""
+Sei un performance analyst di basket.
+Genera un report in italiano in 7 sezioni (con titoli), sintetico ma actionable:
+
+1) Overview squadra con benchmark completi
+2) Top 3 performers con % confronto vs media squadra
+3) Area miglioramento con gap specifici
+4) Analisi velocità (picchi, range, consistenza)
+5) Raccomandazioni tattiche per coach
+6) Anomalie rilevate (quality critica, distanze anomale)
+7) Prossimi step actionable (3 bullet)
+
+KPI:
 {kpi_df.to_string(index=False)}
-
-Fornisci insights brevi e actionable in italiano (max 3 punti).
+{zone_summary}
 """
 
             response = client.chat.completions.create(
                 model="llama-3.1-70b-versatile",
-                messages=[{"role": "user", "content": data_summary}],
-                max_tokens=300,
-                temperature=0.7
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1000,
+                temperature=0.6
             )
 
             text = (response.choices[0].message.content or "").strip()
             if not text:
                 text = "AI attiva ma risposta vuota (riprovare)."
-            return text, True
+
+            html = "<br>".join(text.splitlines())
+            return html, True
 
     except Exception:
-        # Se groq non è installato, key non valida, o API call fallisce
         pass
 
-    # Fallback rule-based insights
-    insights = []
+    # ===== Rule-based fallback (7 sezioni) =====
+    df = kpi_df.copy()
 
-    # Top performer
-    if "distance_m" in kpi_df.columns and kpi_df["distance_m"].notna().any():
-        top_player = kpi_df.loc[kpi_df["distance_m"].idxmax()]
-        insights.append(
-            f"🏆 Top Performer: {top_player['player_id']} ha percorso {float(top_player['distance_m']):.0f}m - il più attivo!"
-        )
-    else:
-        insights.append("🏆 Top Performer: distanza non disponibile o non valida.")
+    def safe_mean(col):
+        return float(df[col].mean()) if col in df.columns and df[col].notna().any() else np.nan
 
-    # Speed analysis
-    if "max_speed_kmh" in kpi_df.columns and kpi_df["max_speed_kmh"].notna().any():
-        fastest = kpi_df.loc[kpi_df["max_speed_kmh"].idxmax()]
-        insights.append(
-            f"⚡ Velocità Massima: {fastest['player_id']} ha raggiunto {float(fastest['max_speed_kmh']):.1f} km/h!"
-        )
-    else:
-        insights.append("⚡ Velocità Massima: metrica non disponibile o non valida.")
+    def safe_max_row(col):
+        if col in df.columns and df[col].notna().any():
+            return df.loc[df[col].idxmax()]
+        return None
 
-    # Quality check
-    if "avg_quality" in kpi_df.columns and kpi_df["avg_quality"].notna().any():
-        avg_quality = float(kpi_df["avg_quality"].mean())
-        if avg_quality < 60:
-            insights.append(f"⚠️ Attenzione: Quality factor medio basso ({avg_quality:.0f}) - possibili interferenze NLOS")
-        else:
-            insights.append(f"✅ Tracking Quality: ottima ({avg_quality:.0f}/100) - dati affidabili!")
-    else:
-        insights.append("ℹ️ Tracking Quality: metrica non disponibile.")
+    def safe_min_row(col):
+        if col in df.columns and df[col].notna().any():
+            return df.loc[df[col].idxmin()]
+        return None
 
-    return "\n\n".join(insights), False
+    team_avg_dist = safe_mean("distance_m")
+    team_avg_avgspd = safe_mean("avg_speed_kmh")
+    team_avg_maxspd = safe_mean("max_speed_kmh")
+    team_avg_q = safe_mean("avg_quality")
+
+    # 1) Overview
+    overview = []
+    if np.isfinite(team_avg_dist):
+        overview.append(f"Media distanza: {team_avg_dist:.0f} m")
+    if np.isfinite(team_avg_avgspd):
+        overview.append(f"Media velocità: {team_avg_avgspd:.1f} km/h")
+    if np.isfinite(team_avg_maxspd):
+        overview.append(f"Picco velocità (media dei picchi): {team_avg_maxspd:.1f} km/h")
+    if np.isfinite(team_avg_q):
+        overview.append(f"Quality medio: {team_avg_q:.0f}/100")
+    if not overview:
+        overview.append("Dati non sufficienti per benchmark squadra.")
+
+    # 2) Top 3 performers (distanza) con % vs media
+    top3_html = "<i>KPI distanza non disponibile.</i>"
+    if "distance_m" in df.columns and df["distance_m"].notna().any() and np.isfinite(team_avg_dist) and team_avg_dist > 0:
+        top3 = df.sort_values("distance_m", ascending=False).head(3)
+        rows = []
+        for _, r in top3.iterrows():
+            pct = (float(r["distance_m"]) / team_avg_dist - 1) * 100
+            rows.append(f"<li>{r['player_id']}: {float(r['distance_m']):.0f} m ({pct:+.0f}% vs media)</li>")
+        top3_html = "<ul>" + "".join(rows) + "</ul>"
+
+    # 3) Area miglioramento (gap)
+    improve = []
+    worst_dist = safe_min_row("distance_m")
+    best_dist = safe_max_row("distance_m")
+    if worst_dist is not None and best_dist is not None:
+        gap = float(best_dist["distance_m"]) - float(worst_dist["distance_m"])
+        improve.append(f"Gap distanza: <b>{worst_dist['player_id']}</b> è a -{gap:.0f} m rispetto a {best_dist['player_id']}.")
+
+    worst_q = safe_min_row("avg_quality")
+    if worst_q is not None and float(worst_q["avg_quality"]) < 60:
+        improve.append(f"Qualità bassa: <b>{worst_q['player_id']}</b> ha avg_quality {float(worst_q['avg_quality']):.0f}/100 (possibili NLOS).")
+
+    if not improve:
+        improve.append("Nessun gap critico evidente dai KPI (con i filtri attuali).")
+
+    # 4) Analisi velocità
+    speed = []
+    best_max = safe_max_row("max_speed_kmh")
+    worst_avg = safe_min_row("avg_speed_kmh")
+    if best_max is not None:
+        speed.append(f"Picco migliore: <b>{best_max['player_id']}</b> {float(best_max['max_speed_kmh']):.1f} km/h.")
+    if worst_avg is not None and np.isfinite(team_avg_avgspd) and team_avg_avgspd > 0:
+        pct = (float(worst_avg["avg_speed_kmh"]) / team_avg_avgspd - 1) * 100
+        speed.append(f"Ritmo basso: <b>{worst_avg['player_id']}</b> avg {float(worst_avg['avg_speed_kmh']):.1f} km/h ({pct:+.0f}% vs media).")
+    if not speed:
+        speed.append("Metriche velocità non disponibili.")
+
+    # 5) Raccomandazioni tattiche
+    tactics = []
+    if zone_df is not None and not zone_df.empty and {"player_id", "zone", "percentage"}.issubset(zone_df.columns):
+        z = zone_df.copy()
+        z3 = z[z["zone"] == "3-Point"].sort_values("percentage", ascending=False)
+        if not z3.empty:
+            p = z3.iloc[0]
+            tactics.append(f"Spaziature: <b>{p['player_id']}</b> in 3PT {float(p['percentage']):.1f}% → utile per allargare il campo.")
+        zpaint = z[z["zone"] == "Paint"].sort_values("percentage", ascending=False)
+        if not zpaint.empty:
+            p = zpaint.iloc[0]
+            tactics.append(f"Attacco al ferro: <b>{p['player_id']}</b> in Paint {float(p['percentage']):.1f}% → buono per tagli/roll e rimbalzo.")
+    if not tactics:
+        tactics.append("Attiva/usa Zone Analysis per raccomandazioni più mirate (Paint/3PT).")
+
+    # 6) Anomalie
+    anomalies = []
+    if "avg_quality" in df.columns:
+        lowq = df[df["avg_quality"] < 50]
+        if not lowq.empty:
+            anomalies.append("Quality critica (<50): " + ", ".join(map(str, lowq["player_id"].tolist())) + ".")
+    if "distance_m" in df.columns and df["distance_m"].notna().any():
+        mu = float(df["distance_m"].mean())
+        sigma = float(df["distance_m"].std()) if df["distance_m"].std() == df["distance_m"].std() else 0.0
+        if sigma > 0:
+            hi = df[df["distance_m"] > mu + 2*sigma]
+            lo = df[df["distance_m"] < mu - 2*sigma]
+            if not hi.empty:
+                anomalies.append("Distanze molto alte (outlier): " + ", ".join(map(str, hi["player_id"].tolist())) + ".")
+            if not lo.empty:
+                anomalies.append("Distanze molto basse (outlier): " + ", ".join(map(str, lo["player_id"].tolist())) + ".")
+    if not anomalies:
+        anomalies.append("Nessuna anomalia evidente (con i filtri correnti).")
+
+    # 7) Prossimi step
+    next_steps = [
+        "Verifica periodi con Quality basso e valuta riposizionamento anchors (possibile NLOS).",
+        "Ripeti confronto per quarto (1°–4°) per identificare cali di ritmo.",
+        "Per chi è sotto media distanza/velocità: micro-obiettivo +10% nel prossimo allenamento."
+    ]
+
+    html = f"""
+<h4>1) Overview Squadra</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in overview])}</ul>
+
+<h4>2) Top 3 Performers</h4>
+{top3_html}
+
+<h4>3) Area Miglioramento</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in improve])}</ul>
+
+<h4>4) Analisi Velocità</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in speed])}</ul>
+
+<h4>5) Raccomandazioni Tattiche</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in tactics])}</ul>
+
+<h4>6) Anomalie</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in anomalies])}</ul>
+
+<h4>7) Prossimi Step</h4>
+<ul>{"".join([f"<li>{x}</li>" for x in next_steps])}</ul>
+""".strip()
+
+    return html, False
 
 
 with st.sidebar:
@@ -231,13 +351,8 @@ with st.sidebar:
         imu_file = st.file_uploader('IMU CSV', type=['csv'])
 
     st.header('⏱️ Periodo di Gioco')
-    quarter_labels = [
-        'Intera Partita',
-        '1° Quarto (0-10 min)',
-        '2° Quarto (10-20 min)',
-        '3° Quarto (20-30 min)',
-        '4° Quarto (30-40 min)'
-    ]
+    quarter_labels = ['Intera Partita', '1° Quarto (0-10 min)', '2° Quarto (10-20 min)',
+                      '3° Quarto (20-30 min)', '4° Quarto (30-40 min)']
     quarter = st.selectbox('Seleziona periodo', quarter_labels, index=0)
 
     st.header('🔧 Filtri UWB')
@@ -249,7 +364,7 @@ with st.sidebar:
 
     st.header('🎯 Advanced Features')
     show_zones = st.toggle('Mostra Zone Analysis', value=True)
-    show_comparison = st.toggle('Confronto Heatmap', value=False)
+    show_comparison = st.toggle('Confronto Heatmap (Multi)', value=False)
     show_animation = st.toggle('Animazione Temporale', value=False)
 
 
@@ -304,7 +419,7 @@ uwb['dy'] = uwb.groupby('player_id')['y_m'].diff()
 uwb['dt'] = uwb.groupby('player_id')['timestamp_s'].diff()
 uwb['step_m'] = np.sqrt(uwb['dx']**2 + uwb['dy']**2)
 
-# Evita divisioni per 0 / NaN
+# Safe speed (avoid divide by zero/NaN)
 uwb['speed_ms_calc'] = np.where((uwb['dt'] > 0) & uwb['dt'].notna(), uwb['step_m'] / uwb['dt'], np.nan)
 uwb['speed_kmh_calc'] = (uwb['speed_ms_calc'] * 3.6).clip(upper=max_speed_clip)
 
@@ -332,15 +447,17 @@ st.dataframe(kpi, use_container_width=True)
 
 # AI Insights Section
 if enable_ai:
+    zone_for_ai = calculate_zone_stats_for_ai(uwb[['player_id', 'zone']].copy())
+
     with st.expander('🤖 AI Insights & Recommendations', expanded=True):
         with st.spinner('Analyzing performance data...'):
-            insights, is_ai_active = generate_ai_insights(kpi)
+            insights, is_ai_active = generate_ai_insights(kpi, zone_for_ai)
             st.markdown(f'<div class="ai-insight">{insights}</div>', unsafe_allow_html=True)
 
             if is_ai_active:
-                st.success('✅ AI Attiva: Powered by Groq AI (Llama 3.1 70B)')
+                st.success('✅ AI Attiva: Groq + Llama 3.1 70B (1000 tokens)')
             else:
-                st.info('💡 Rule-Based Mode: fallback senza Groq (configura GROQ_API_KEY per attivare AI).')
+                st.info('💡 Fallback Rule-Based: report 7 sezioni senza Groq.')
 
 # Zone Analysis Section
 if show_zones:
@@ -357,7 +474,6 @@ if show_zones:
 
     zone_stats = calculate_zone_stats(uwb[['player_id', 'zone']].copy())
 
-    # Select player for zone analysis
     zone_player = st.selectbox('Seleziona giocatore per zone analysis',
                                sorted(uwb['player_id'].unique()),
                                key='zone_player_select')
@@ -387,55 +503,78 @@ player_filter = st.multiselect(
     help='Seleziona uno o più giocatori per filtrare le visualizzazioni'
 )
 
-# Apply player filter
-if player_filter:
-    uwb_filtered = uwb[uwb['player_id'].isin(player_filter)].copy()
-else:
-    uwb_filtered = uwb.copy()
+uwb_filtered = uwb[uwb['player_id'].isin(player_filter)].copy() if player_filter else uwb.copy()
 
-# Heatmap Comparison (Side-by-Side)
+# Heatmap Comparison (Multi-Player Overlay)
 if show_comparison and len(all_players) >= 2:
-    st.subheader('🔥 Confronto Heatmap - Side by Side')
+    st.subheader('🔥 Confronto Heatmap - Overlay Multi-Giocatore (colori distinti)')
 
-    col_cmp1, col_cmp2 = st.columns(2)
+    default_players = all_players[:2] if len(all_players) >= 2 else all_players
 
-    with col_cmp1:
-        player_a = st.selectbox('Giocatore A', all_players, index=0, key='cmp_a')
-
-    with col_cmp2:
-        player_b = st.selectbox('Giocatore B', all_players, index=min(1, len(all_players)-1), key='cmp_b')
-
-    # Create side-by-side subplots
-    fig_comparison = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=(f'{player_a}', f'{player_b}'),
-        specs=[[{'type': 'histogram2d'}, {'type': 'histogram2d'}]]
+    cmp_players = st.multiselect(
+        'Seleziona fino a 5 giocatori da confrontare',
+        options=all_players,
+        default=default_players,
+        max_selections=5,
+        key='cmp_players'
     )
 
-    data_a = uwb_filtered[uwb_filtered['player_id'] == player_a]
-    data_b = uwb_filtered[uwb_filtered['player_id'] == player_b]
+    col_hm1, col_hm2 = st.columns([2, 1])
 
-    fig_comparison.add_trace(
-        go.Histogram2d(x=data_a['x_m'], y=data_a['y_m'],
-                       colorscale='Hot', showscale=False,
-                       nbinsx=40, nbinsy=20),
-        row=1, col=1
-    )
+    with col_hm2:
+        st.write("**Impostazioni overlay**")
+        nbinsx_cmp = st.slider('Risoluzione X', 20, 120, 60, 5, key='cmp_binsx')
+        nbinsy_cmp = st.slider('Risoluzione Y', 10, 80, 32, 2, key='cmp_binsy')
+        ncontours = st.slider('Numero contorni', 5, 25, 12, 1, key='cmp_contours')
+        line_w = st.slider('Spessore linee', 1, 6, 3, 1, key='cmp_linew')
+        alpha = st.slider('Opacità linee', 0.1, 1.0, 0.6, 0.1, key='cmp_alpha')
 
-    fig_comparison.add_trace(
-        go.Histogram2d(x=data_b['x_m'], y=data_b['y_m'],
-                       colorscale='Viridis', showscale=True,
-                       nbinsx=40, nbinsy=20),
-        row=1, col=2
-    )
+        st.write("**Legenda colori (fissa)**")
+        st.write("Rosso, Blu, Verde, Giallo, Viola (in ordine di selezione).")
 
-    fig_comparison.update_xaxes(range=[0, 28], row=1, col=1)
-    fig_comparison.update_xaxes(range=[0, 28], row=1, col=2)
-    fig_comparison.update_yaxes(range=[0, 15], row=1, col=1)
-    fig_comparison.update_yaxes(range=[0, 15], row=1, col=2)
+    if not cmp_players:
+        st.info('Seleziona almeno 1 giocatore per il confronto.')
+    else:
+        palette = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6']  # rosso, blu, verde, giallo, viola
+        color_map = {p: palette[i % len(palette)] for i, p in enumerate(cmp_players)}
 
-    fig_comparison.update_layout(height=400, showlegend=False)
-    st.plotly_chart(fig_comparison, use_container_width=True)
+        fig_cmp = go.Figure()
+
+        for p in cmp_players:
+            d = uwb_filtered[uwb_filtered['player_id'] == p]
+            if d.empty:
+                continue
+
+            fig_cmp.add_trace(go.Histogram2dContour(
+                x=d['x_m'],
+                y=d['y_m'],
+                nbinsx=nbinsx_cmp,
+                nbinsy=nbinsy_cmp,
+                ncontours=ncontours,
+                contours=dict(coloring='lines'),
+                line=dict(color=color_map[p], width=line_w),
+                opacity=alpha,
+                showscale=False,
+                name=str(p)
+            ))
+
+        fig_cmp.update_layout(
+            shapes=draw_basketball_court(),
+            xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False, title=''),
+            yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False, title=''),
+            plot_bgcolor='rgba(34,139,34,0.2)',
+            title='Overlay Heatmap (contour) - Giocatori selezionati',
+            height=520,
+            showlegend=True,
+            legend=dict(orientation='h')
+        )
+
+        with col_hm1:
+            st.plotly_chart(fig_cmp, use_container_width=True)
+
+        st.write('**📋 Tabella comparativa KPI (giocatori selezionati)**')
+        kpi_cmp = kpi[kpi['player_id'].isin(cmp_players)].copy()
+        st.dataframe(kpi_cmp, use_container_width=True)
 
 # Temporal Animation
 if show_animation:
@@ -447,7 +586,6 @@ if show_animation:
     anim_data = uwb_filtered[uwb_filtered['player_id'] == anim_player].copy()
 
     if not anim_data.empty:
-        # Create time bins
         min_time = anim_data['timestamp_s'].min()
         max_time = anim_data['timestamp_s'].max()
         time_bins = np.arange(min_time, max_time, time_window)
@@ -475,7 +613,7 @@ if show_animation:
     else:
         st.info('Nessun dato disponibile per questo giocatore')
 
-# Original visualizations (kept from previous version)
+# Original visualizations
 c1, c2 = st.columns([1, 1])
 
 with c1:
@@ -592,11 +730,9 @@ with st.expander('⚙️ Opzioni Grafico Velocità'):
 
 plot_df = uwb_filtered[uwb_filtered['player_id'].isin(speed_players)].copy() if speed_players else uwb_filtered.copy()
 
-fig3 = px.line(
-    plot_df, x='timestamp_s', y='speed_kmh_calc', color='player_id',
-    title=f'Speed (km/h) - {quarter}',
-    labels={'timestamp_s': 'Tempo (secondi)', 'speed_kmh_calc': 'Velocità (km/h)'}
-)
+fig3 = px.line(plot_df, x='timestamp_s', y='speed_kmh_calc', color='player_id',
+               title=f'Speed (km/h) - {quarter}',
+               labels={'timestamp_s': 'Tempo (secondi)', 'speed_kmh_calc': 'Velocità (km/h)'})
 
 if show_avg and not plot_df.empty:
     avg_speed = plot_df['speed_kmh_calc'].mean()
@@ -626,7 +762,7 @@ with col_exp3:
     if st.button('📥 Download Velocità PNG', key='export_speed'):
         st.info('Usa il pulsante 📷 nella toolbar del grafico sopra per salvare come PNG')
 
-st.caption('💡 Tip: Ogni grafico Plotly ha una toolbar interattiva (visibile al passaggio del mouse) con opzioni di export, zoom, pan e reset.')
+st.caption('Tip: Ogni grafico Plotly ha una toolbar interattiva (mouse-over) con export, zoom, pan e reset.')
 
 st.subheader('📉 IMU (con rumore/bias + dropout)')
 if imu is None:
@@ -645,39 +781,26 @@ else:
         psel = st.selectbox('Giocatore IMU', imu_players, key='imu_player')
 
         imu_p = imu[imu['player_id'] == psel].sort_values('timestamp_s')
-        fig4 = px.line(
-            imu_p, x='timestamp_s', y='accel_z_ms2',
-            title=f'Accel Z (m/s²) - {psel} - {quarter}',
-            labels={'timestamp_s': 'Tempo (secondi)', 'accel_z_ms2': 'Accelerazione Z (m/s²)'}
-        )
+        fig4 = px.line(imu_p, x='timestamp_s', y='accel_z_ms2',
+                      title=f'Accel Z (m/s²) - {psel} - {quarter}',
+                      labels={'timestamp_s': 'Tempo (secondi)', 'accel_z_ms2': 'Accelerazione Z (m/s²)'})
 
         if 'jump_detected' in imu_p.columns:
             jump_points = imu_p[imu_p['jump_detected'] == 1]
             if not jump_points.empty:
-                fig4.add_scatter(
-                    x=jump_points['timestamp_s'], y=jump_points['accel_z_ms2'],
-                    mode='markers', marker=dict(color='red', size=10, symbol='star'),
-                    name='Salti rilevati'
-                )
+                fig4.add_scatter(x=jump_points['timestamp_s'], y=jump_points['accel_z_ms2'],
+                               mode='markers', marker=dict(color='red', size=10, symbol='star'),
+                               name='Salti rilevati')
 
         st.plotly_chart(fig4, use_container_width=True)
 
-# Footer with setup instructions
 with st.expander('⚙️ Setup Instructions - AI Features'):
     st.markdown("""
-    ### 🤖 Enable AI Insights with Groq API (FREE)
+    ### Enable AI Insights with Groq API (FREE)
 
     1. Get FREE API key at: [console.groq.com](https://console.groq.com)
     2. Create `.streamlit/secrets.toml` file:
        GROQ_API_KEY = "your_api_key_here"
     3. Restart Streamlit app
     4. AI insights will automatically activate!
-
-    **Benefits:**
-    - ✅ 14,400 free requests/day
-    - ✅ 10x faster than GPT-4
-    - ✅ Llama 3.1 70B model
-    - ✅ Natural language insights
-
-    Without API key, app uses rule-based insights (still useful!).
     """)
