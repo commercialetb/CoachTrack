@@ -256,7 +256,8 @@ with c2:
         shapes=draw_basketball_court(),
         xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False, title=''),
         yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False, title=''),
-        plot_bgcolor='rgba(34,139,34,0.2)',
+        plot_bgcolor='rgba(255,255,255,0)',
+        paper_bgcolor='rgba(255,255,255,0)',
         title=f"Heatmap Densità - {'Tutti' if heatmap_player_all else heatmap_player}",
         height=500
     )
