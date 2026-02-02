@@ -3,10 +3,63 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-st.set_page_config(page_title='Basketball Tracking MVP (Realistico)', layout='wide')
-st.title('🏀 Basketball Tracking MVP - Test Realistico')
+st.set_page_config(
+    page_title='Basketball Tracking MVP (Realistico)', 
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
+
+st.markdown("""
+<style>
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .stMultiSelect, .stSelectbox, .stSlider {
+            font-size: 0.9rem;
+        }
+        .stDataFrame {
+            font-size: 0.85rem;
+        }
+        /* Make columns stack on mobile */
+        .element-container {
+            width: 100% !important;
+        }
+    }
+    
+    /* Improve readability */
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+        margin-top: 1rem;
+    }
+    
+    /* Better spacing for buttons */
+    .stButton button {
+        width: 100%;
+    }
+    
+    /* Zone analysis cards */
+    .zone-card {
+        padding: 1rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin: 0.5rem 0;
+    }
+    
+    /* AI insights box */
+    .ai-insight {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        color: white;
+        margin: 1rem 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.title('🏀 Basketball Tracking MVP - Enhanced Edition')
 st.caption('Dataset include dropout e outlier NLOS per simulare condizioni reali indoor.')
+st.caption('📱 **Responsive Design** + 🤖 **AI Analysis** + 🎯 **Zone Tracking**')
 
 # Basketball court drawing function
 def draw_basketball_court():
@@ -62,6 +115,92 @@ def draw_basketball_court():
     
     return shapes
 
+# Zone classification function
+def classify_zone(x, y):
+    """Classify court position into zones (FIBA dimensions)"""
+    court_length = 28.0
+    court_width = 15.0
+    
+    # Paint area: within 5.8m from basket (free throw line)
+    # Left basket
+    if x <= 5.8 and (court_width/2 - 2.45) <= y <= (court_width/2 + 2.45):
+        return 'Paint'
+    # Right basket
+    if x >= (court_length - 5.8) and (court_width/2 - 2.45) <= y <= (court_width/2 + 2.45):
+        return 'Paint'
+    
+    # 3-point zone: beyond 6.75m from basket
+    # Left side
+    left_basket_x, left_basket_y = 1.575, court_width/2
+    dist_left = np.sqrt((x - left_basket_x)**2 + (y - left_basket_y)**2)
+    if dist_left >= 6.75:
+        return '3-Point'
+    
+    # Right side
+    right_basket_x, right_basket_y = court_length - 1.575, court_width/2
+    dist_right = np.sqrt((x - right_basket_x)**2 + (y - right_basket_y)**2)
+    if dist_right >= 6.75:
+        return '3-Point'
+    
+    # Everything else is mid-range
+    return 'Mid-Range'
+
+# AI Analysis function (uses Groq API if available)
+def generate_ai_insights(kpi_df, zone_df=None):
+    """Generate AI insights using Groq API or fallback to rule-based"""
+    try:
+        # Try to import groq
+        import groq
+        
+        # Check if API key exists in secrets
+        if 'GROQ_API_KEY' in st.secrets:
+            client = groq.Groq(api_key=st.secrets["GROQ_API_KEY"])
+            
+            # Prepare data summary
+            data_summary = f"""
+            Analizza questi dati di performance basket:
+            
+            KPI Giocatori:
+            {kpi_df.to_string()}
+            
+            Fornisci insights brevi e actionable in italiano (max 3 punti).
+            """
+            
+            response = client.chat.completions.create(
+                model="llama-3.1-70b-versatile",
+                messages=[{
+                    "role": "user",
+                    "content": data_summary
+                }],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            return response.choices[0].message.content
+        else:
+            raise Exception("API key not found")
+    
+    except Exception as e:
+        # Fallback to rule-based insights
+        insights = []
+        
+        # Top performer
+        top_player = kpi_df.loc[kpi_df['distance_m'].idxmax()]
+        insights.append(f"🏆 **Top Performer**: {top_player['player_id']} ha percorso {top_player['distance_m']:.0f}m - il più attivo!")
+        
+        # Speed analysis
+        fastest = kpi_df.loc[kpi_df['max_speed_kmh'].idxmax()]
+        insights.append(f"⚡ **Velocità Massima**: {fastest['player_id']} ha raggiunto {fastest['max_speed_kmh']:.1f} km/h!")
+        
+        # Quality check
+        avg_quality = kpi_df['avg_quality'].mean()
+        if avg_quality < 60:
+            insights.append(f"⚠️ **Attenzione**: Quality factor medio basso ({avg_quality:.0f}) - possibili interferenze NLOS")
+        else:
+            insights.append(f"✅ **Tracking Quality**: Ottima ({avg_quality:.0f}/100) - dati affidabili!")
+        
+        return "\n\n".join(insights)
+
 with st.sidebar:
     st.header('📁 Dati')
     use_sample = st.toggle('Usa sample realistici inclusi (consigliato)', value=True)
@@ -79,6 +218,14 @@ with st.sidebar:
     st.header('🔧 Filtri UWB')
     min_q = st.slider('Quality factor minima (0-100)', 0, 100, 50, 1)
     max_speed_clip = st.slider('Clip velocità (km/h) per togliere outlier', 10, 40, 30, 1)
+    
+    st.header('🤖 AI Analysis')
+    enable_ai = st.toggle('Abilita AI Insights', value=True)
+    
+    st.header('🎯 Advanced Features')
+    show_zones = st.toggle('Mostra Zone Analysis', value=True)
+    show_comparison = st.toggle('Confronto Heatmap', value=False)
+    show_animation = st.toggle('Animazione Temporale', value=False)
 
 @st.cache_data
 def load_sample():
@@ -121,14 +268,18 @@ if quarter != 'Intera Partita':
 
 uwb = uwb[uwb['quality_factor'] >= min_q].copy()
 
-st.subheader(f'📊 KPI per giocatore - {quarter}')
-
+# Calculate derived metrics
 uwb['dx'] = uwb.groupby('player_id')['x_m'].diff()
 uwb['dy'] = uwb.groupby('player_id')['y_m'].diff()
 uwb['dt'] = uwb.groupby('player_id')['timestamp_s'].diff()
 uwb['step_m'] = np.sqrt(uwb['dx']**2 + uwb['dy']**2)
 uwb['speed_ms_calc'] = uwb['step_m'] / uwb['dt']
 uwb['speed_kmh_calc'] = (uwb['speed_ms_calc'] * 3.6).clip(upper=max_speed_clip)
+
+# Add zone classification
+uwb['zone'] = uwb.apply(lambda row: classify_zone(row['x_m'], row['y_m']), axis=1)
+
+st.subheader(f'📊 KPI per giocatore - {quarter}')
 
 kpi = (uwb.groupby('player_id')
        .agg(points=('timestamp_s','count'),
@@ -140,6 +291,45 @@ kpi = (uwb.groupby('player_id')
 
 kpi['distance_m'] = kpi['distance_m'].fillna(0)
 st.dataframe(kpi, use_container_width=True)
+
+# AI Insights Section
+if enable_ai:
+    with st.expander('🤖 AI Insights & Recommendations', expanded=True):
+        with st.spinner('Analyzing performance data...'):
+            insights = generate_ai_insights(kpi)
+            st.markdown(f'<div class="ai-insight">{insights}</div>', unsafe_allow_html=True)
+            st.caption('💡 Powered by Groq AI (Llama 3.1 70B) - Configure API key in Streamlit secrets for enhanced insights')
+
+# Zone Analysis Section
+if show_zones:
+    st.subheader('🎯 Zone Analysis - Distribuzione sul Campo')
+    
+    zone_stats = (uwb.groupby(['player_id', 'zone'])
+                  .size()
+                  .reset_index(name='count'))
+    
+    zone_totals = zone_stats.groupby('player_id')['count'].transform('sum')
+    zone_stats['percentage'] = (zone_stats['count'] / zone_totals * 100).round(1)
+    
+    # Select player for zone analysis
+    zone_player = st.selectbox('Seleziona giocatore per zone analysis', 
+                               sorted(uwb['player_id'].unique()), 
+                               key='zone_player_select')
+    
+    player_zones = zone_stats[zone_stats['player_id'] == zone_player]
+    
+    col_z1, col_z2 = st.columns([1, 1])
+    
+    with col_z1:
+        st.write('**Tabella Zone**')
+        st.dataframe(player_zones[['zone', 'count', 'percentage']], use_container_width=True)
+    
+    with col_z2:
+        st.write('**Distribuzione Percentuale**')
+        fig_pie = px.pie(player_zones, values='percentage', names='zone', 
+                         title=f'Zone Distribution - {zone_player}',
+                         color_discrete_sequence=px.colors.qualitative.Set3)
+        st.plotly_chart(fig_pie, use_container_width=True)
 
 # Player filter section
 st.subheader('👤 Filtro Giocatore')
@@ -157,11 +347,89 @@ if player_filter:
 else:
     uwb_filtered = uwb.copy()
 
+# Heatmap Comparison (Side-by-Side)
+if show_comparison and len(all_players) >= 2:
+    st.subheader('🔥 Confronto Heatmap - Side by Side')
+    
+    col_cmp1, col_cmp2 = st.columns(2)
+    
+    with col_cmp1:
+        player_a = st.selectbox('Giocatore A', all_players, index=0, key='cmp_a')
+    
+    with col_cmp2:
+        player_b = st.selectbox('Giocatore B', all_players, index=min(1, len(all_players)-1), key='cmp_b')
+    
+    # Create side-by-side subplots
+    fig_comparison = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=(f'{player_a}', f'{player_b}'),
+        specs=[[{'type': 'histogram2d'}, {'type': 'histogram2d'}]]
+    )
+    
+    data_a = uwb_filtered[uwb_filtered['player_id'] == player_a]
+    data_b = uwb_filtered[uwb_filtered['player_id'] == player_b]
+    
+    fig_comparison.add_trace(
+        go.Histogram2d(x=data_a['x_m'], y=data_a['y_m'], 
+                      colorscale='Hot', showscale=False,
+                      nbinsx=40, nbinsy=20),
+        row=1, col=1
+    )
+    
+    fig_comparison.add_trace(
+        go.Histogram2d(x=data_b['x_m'], y=data_b['y_m'], 
+                      colorscale='Viridis', showscale=True,
+                      nbinsx=40, nbinsy=20),
+        row=1, col=2
+    )
+    
+    fig_comparison.update_xaxes(range=[0, 28], row=1, col=1)
+    fig_comparison.update_xaxes(range=[0, 28], row=1, col=2)
+    fig_comparison.update_yaxes(range=[0, 15], row=1, col=1)
+    fig_comparison.update_yaxes(range=[0, 15], row=1, col=2)
+    
+    fig_comparison.update_layout(height=400, showlegend=False)
+    
+    st.plotly_chart(fig_comparison, use_container_width=True)
+
+# Temporal Animation
+if show_animation:
+    st.subheader('⏯️ Animazione Temporale - Evoluzione Heatmap')
+    
+    anim_player = st.selectbox('Giocatore per animazione', all_players, key='anim_player')
+    time_window = st.slider('Finestra temporale (secondi)', 30, 300, 60, 30)
+    
+    anim_data = uwb_filtered[uwb_filtered['player_id'] == anim_player].copy()
+    
+    if not anim_data.empty:
+        # Create time bins
+        min_time = anim_data['timestamp_s'].min()
+        max_time = anim_data['timestamp_s'].max()
+        time_bins = np.arange(min_time, max_time, time_window)
+        
+        anim_data['time_bin'] = pd.cut(anim_data['timestamp_s'], bins=time_bins, 
+                                        labels=[f'{int(t)}-{int(t+time_window)}s' for t in time_bins[:-1]])
+        
+        fig_anim = px.density_heatmap(
+            anim_data, x='x_m', y='y_m',
+            animation_frame='time_bin',
+            range_x=[0, 28], range_y=[0, 15],
+            nbinsx=40, nbinsy=20,
+            color_continuous_scale='Plasma',
+            title=f'Evoluzione Posizionale - {anim_player}'
+        )
+        
+        fig_anim.update_layout(height=500)
+        st.plotly_chart(fig_anim, use_container_width=True)
+    else:
+        st.info('Nessun dato disponibile per questo giocatore')
+
+# Original visualizations (kept from previous version)
 c1, c2 = st.columns([1,1])
+
 with c1:
     st.subheader('🗺️ Traiettorie su Campo')
     
-    # Trajectory filters
     with st.expander('⚙️ Opzioni Traiettorie'):
         show_all = st.checkbox('Mostra tutti i giocatori', value=True, key='traj_all')
         if not show_all:
@@ -171,7 +439,6 @@ with c1:
     
     fig = go.Figure()
     
-    # Add player trajectories
     plot_data = uwb_filtered if show_all else uwb_filtered[uwb_filtered['player_id'] == traj_player]
     
     for player in plot_data['player_id'].unique():
@@ -185,12 +452,11 @@ with c1:
             marker=dict(size=marker_size)
         ))
     
-    # Add court lines
     fig.update_layout(
         shapes=draw_basketball_court(),
         xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False),
         yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False),
-        plot_bgcolor='rgba(34,139,34,0.2)',  # Green court color
+        plot_bgcolor='rgba(34,139,34,0.2)',
         title='Posizioni UWB su Campo Basket',
         showlegend=True,
         height=500
@@ -201,7 +467,6 @@ with c1:
 with c2:
     st.subheader('🔥 Heatmap Densità su Campo')
     
-    # Heatmap filters
     with st.expander('⚙️ Opzioni Heatmap'):
         heatmap_player_all = st.checkbox('Tutti i giocatori', value=True, key='heat_all')
         if not heatmap_player_all:
@@ -223,7 +488,7 @@ with c2:
         colorscale_choice = st.selectbox(
             'Schema colori heatmap',
             options=list(colorscale_options.keys()),
-            index=2,  # Default: Plasma
+            index=2,
             key='heat_color'
         )
         
@@ -234,10 +499,8 @@ with c2:
     
     fig2 = go.Figure()
     
-    # Filter data for heatmap
     heatmap_data = uwb_filtered if heatmap_player_all else uwb_filtered[uwb_filtered['player_id'] == heatmap_player]
     
-    # Create 2D histogram for heatmap
     colorscale = colorscale_options[colorscale_choice]
     if reverse_color:
         colorscale = colorscale + '_r'
@@ -251,7 +514,6 @@ with c2:
         colorbar=dict(title="Densità")
     ))
     
-    # Add court lines on top
     fig2.update_layout(
         shapes=draw_basketball_court(),
         xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False, title=''),
@@ -265,7 +527,6 @@ with c2:
 
 st.subheader('📈 Velocità nel tempo')
 
-# Speed chart filters
 with st.expander('⚙️ Opzioni Grafico Velocità'):
     speed_players = st.multiselect(
         'Giocatori da mostrare',
@@ -294,6 +555,24 @@ if show_max_line and not plot_df.empty:
 
 st.plotly_chart(fig3, use_container_width=True)
 
+st.subheader('💾 Export Grafici come PNG')
+
+col_exp1, col_exp2, col_exp3 = st.columns(3)
+
+with col_exp1:
+    if st.button('📥 Download Traiettorie PNG', key='export_traj'):
+        st.info('Usa il pulsante 📷 nella toolbar del grafico sopra per salvare come PNG')
+
+with col_exp2:
+    if st.button('📥 Download Heatmap PNG', key='export_heat'):
+        st.info('Usa il pulsante 📷 nella toolbar del grafico sopra per salvare come PNG')
+
+with col_exp3:
+    if st.button('📥 Download Velocità PNG', key='export_speed'):
+        st.info('Usa il pulsante 📷 nella toolbar del grafico sopra per salvare come PNG')
+
+st.caption('💡 Tip: Ogni grafico Plotly ha una toolbar interattiva (visibile al passaggio del mouse) con opzioni di export, zoom, pan e reset.')
+
 st.subheader('📉 IMU (con rumore/bias + dropout)')
 if imu is None:
     st.info('Nessun file IMU caricato (ok per test UWB-only).')
@@ -301,14 +580,12 @@ else:
     if 'timestamp_s' not in imu.columns or 'accel_z_ms2' not in imu.columns:
         st.warning(f'IMU CSV: colonne richieste mancanti. Colonne disponibili: {list(imu.columns)}')
     else:
-        # Apply quarter filter to IMU
         if quarter != 'Intera Partita':
             imu = imu[(imu['timestamp_s'] >= t_min) & (imu['timestamp_s'] < t_max)].copy()
         
         jumps = int((imu.get('jump_detected', pd.Series([0]*len(imu)))==1).sum()) if 'jump_detected' in imu.columns else 0
         st.write(f'🏀 Salti rilevati in {quarter}:', jumps)
         
-        # IMU player selector
         imu_players = sorted(imu['player_id'].unique())
         psel = st.selectbox('Giocatore IMU', imu_players, key='imu_player')
         
@@ -317,7 +594,6 @@ else:
                       title=f'Accel Z (m/s²) - {psel} - {quarter}',
                       labels={'timestamp_s': 'Tempo (secondi)', 'accel_z_ms2': 'Accelerazione Z (m/s²)'})
         
-        # Highlight jumps
         if 'jump_detected' in imu_p.columns:
             jump_points = imu_p[imu_p['jump_detected'] == 1]
             if not jump_points.empty:
@@ -326,3 +602,23 @@ else:
                                name='Salti rilevati')
         
         st.plotly_chart(fig4, use_container_width=True)
+
+# Footer with setup instructions
+with st.expander('⚙️ Setup Instructions - AI Features'):
+    st.markdown("""
+    ### 🤖 Enable AI Insights with Groq API (FREE)
+    
+    1. Get FREE API key at: [console.groq.com](https://console.groq.com)
+    2. Create `.streamlit/secrets.toml` file:
+       GROQ_API_KEY = "your_api_key_here"
+    3. Restart Streamlit app
+    4. AI insights will automatically activate!
+    
+    **Benefits:**
+    - ✅ 14,400 free requests/day
+    - ✅ 10x faster than GPT-4
+    - ✅ Llama 3.1 70B model
+    - ✅ Natural language insights
+    
+    Without API key, app uses rule-based insights (still useful!).
+    """)
