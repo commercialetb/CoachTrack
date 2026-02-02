@@ -304,9 +304,13 @@ st.dataframe(kpi, use_container_width=True)
 if enable_ai:
     with st.expander('🤖 AI Insights & Recommendations', expanded=True):
         with st.spinner('Analyzing performance data...'):
-            insights = generate_ai_insights(kpi)
+            insights, is_ai_active = generate_ai_insights(kpi)
             st.markdown(f'<div class="ai-insight">{insights}</div>', unsafe_allow_html=True)
-            st.caption('💡 Powered by Groq AI (Llama 3.1 70B) - Configure API key in Streamlit secrets for enhanced insights')
+            
+            if is_ai_active:
+                st.success('✅ **AI Attiva**: Powered by Groq AI (Llama 3.1 70B) - Analisi avanzata 1000 tokens')
+            else:
+                st.info('💡 **Enhanced Rule-Based Mode**: Analisi dettagliata 7 sezioni. Per insights AI, configura Groq API key')
 
 # Zone Analysis Section
 if show_zones:
