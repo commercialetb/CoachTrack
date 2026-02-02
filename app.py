@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import groq
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -230,8 +229,10 @@ with st.sidebar:
 
 @st.cache_data
 def load_sample():
-    uwb = pd.read_csv('data/virtual_uwb_realistic.csv')
-    imu = pd.read_csv('data/virtual_imu_realistic.csv')
+    uwb = pd.read_csv('data/virtual_uwb_realistic.csv', 
+                      dtype={'player_id': 'category', 'quality_factor': 'int16'})
+    imu = pd.read_csv('data/virtual_imu_realistic.csv',
+                      dtype={'player_id': 'category', 'jump_detected': 'int8'})
     return uwb, imu
 
 @st.cache_data
@@ -282,15 +283,21 @@ uwb['zone'] = uwb.apply(lambda row: classify_zone(row['x_m'], row['y_m']), axis=
 
 st.subheader(f'📊 KPI per giocatore - {quarter}')
 
-kpi = (uwb.groupby('player_id')
-       .agg(points=('timestamp_s','count'),
-            distance_m=('step_m','sum'),
-            avg_speed_kmh=('speed_kmh_calc','mean'),
-            max_speed_kmh=('speed_kmh_calc','max'),
-            avg_quality=('quality_factor','mean'))
-       .reset_index())
+@st.cache_data
+def calculate_kpi(uwb_data):
+    kpi = (uwb_data.groupby('player_id')
+           .agg(points=('timestamp_s','count'),
+                distance_m=('step_m','sum'),
+                avg_speed_kmh=('speed_kmh_calc','mean'),
+                max_speed_kmh=('speed_kmh_calc','max'),
+                avg_quality=('quality_factor','mean'))
+           .reset_index())
+    kpi['distance_m'] = kpi['distance_m'].fillna(0)
+    return kpi
 
-kpi['distance_m'] = kpi['distance_m'].fillna(0)
+cache_key = f"{len(uwb)}_{uwb['timestamp_s'].min()}_{uwb['timestamp_s'].max()}"
+kpi = calculate_kpi(uwb.copy())
+
 st.dataframe(kpi, use_container_width=True)
 
 # AI Insights Section
@@ -305,12 +312,16 @@ if enable_ai:
 if show_zones:
     st.subheader('🎯 Zone Analysis - Distribuzione sul Campo')
     
-    zone_stats = (uwb.groupby(['player_id', 'zone'])
-                  .size()
-                  .reset_index(name='count'))
+    @st.cache_data
+    def calculate_zone_stats(uwb_data):
+        zone_stats = (uwb_data.groupby(['player_id', 'zone'])
+                      .size()
+                      .reset_index(name='count'))
+        zone_totals = zone_stats.groupby('player_id')['count'].transform('sum')
+        zone_stats['percentage'] = (zone_stats['count'] / zone_totals * 100).round(1)
+        return zone_stats
     
-    zone_totals = zone_stats.groupby('player_id')['count'].transform('sum')
-    zone_stats['percentage'] = (zone_stats['count'] / zone_totals * 100).round(1)
+    zone_stats = calculate_zone_stats(uwb[['player_id', 'zone']].copy())
     
     # Select player for zone analysis
     zone_player = st.selectbox('Seleziona giocatore per zone analysis', 
@@ -441,6 +452,8 @@ with c1:
     fig = go.Figure()
     
     plot_data = uwb_filtered if show_all else uwb_filtered[uwb_filtered['player_id'] == traj_player]
+    if len(plot_data) > 5000:
+        plot_data = plot_data.iloc[::max(1, len(plot_data)//5000)]
     
     for player in plot_data['player_id'].unique():
         player_data = plot_data[plot_data['player_id'] == player]
