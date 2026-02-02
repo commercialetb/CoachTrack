@@ -141,21 +141,48 @@ kpi = (uwb.groupby('player_id')
 kpi['distance_m'] = kpi['distance_m'].fillna(0)
 st.dataframe(kpi, use_container_width=True)
 
+# Player filter section
+st.subheader('👤 Filtro Giocatore')
+all_players = sorted(uwb['player_id'].unique())
+player_filter = st.multiselect(
+    'Seleziona giocatori da visualizzare (lascia vuoto per tutti)',
+    options=all_players,
+    default=all_players,
+    help='Seleziona uno o più giocatori per filtrare le visualizzazioni'
+)
+
+# Apply player filter
+if player_filter:
+    uwb_filtered = uwb[uwb['player_id'].isin(player_filter)].copy()
+else:
+    uwb_filtered = uwb.copy()
+
 c1, c2 = st.columns([1,1])
 with c1:
     st.subheader('🗺️ Traiettorie su Campo')
+    
+    # Trajectory filters
+    with st.expander('⚙️ Opzioni Traiettorie'):
+        show_all = st.checkbox('Mostra tutti i giocatori', value=True, key='traj_all')
+        if not show_all:
+            traj_player = st.selectbox('Giocatore singolo', all_players, key='traj_player')
+        marker_size = st.slider('Dimensione marker', 2, 10, 4, key='traj_size')
+        marker_opacity = st.slider('Opacità marker', 0.1, 1.0, 0.5, 0.1, key='traj_opacity')
+    
     fig = go.Figure()
     
     # Add player trajectories
-    for player in uwb['player_id'].unique():
-        player_data = uwb[uwb['player_id'] == player]
+    plot_data = uwb_filtered if show_all else uwb_filtered[uwb_filtered['player_id'] == traj_player]
+    
+    for player in plot_data['player_id'].unique():
+        player_data = plot_data[plot_data['player_id'] == player]
         fig.add_trace(go.Scatter(
             x=player_data['x_m'],
             y=player_data['y_m'],
             mode='markers',
             name=player,
-            opacity=0.5,
-            marker=dict(size=4)
+            opacity=marker_opacity,
+            marker=dict(size=marker_size)
         ))
     
     # Add court lines
@@ -163,7 +190,7 @@ with c1:
         shapes=draw_basketball_court(),
         xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False),
         yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False),
-        plot_bgcolor='rgba(139,69,19,0.3)',  # Wood floor color
+        plot_bgcolor='rgba(34,139,34,0.2)',  # Green court color
         title='Posizioni UWB su Campo Basket',
         showlegend=True,
         height=500
@@ -174,36 +201,97 @@ with c1:
 with c2:
     st.subheader('🔥 Heatmap Densità su Campo')
     
+    # Heatmap filters
+    with st.expander('⚙️ Opzioni Heatmap'):
+        heatmap_player_all = st.checkbox('Tutti i giocatori', value=True, key='heat_all')
+        if not heatmap_player_all:
+            heatmap_player = st.selectbox('Giocatore singolo', all_players, key='heat_player')
+        
+        colorscale_options = {
+            'Hot (Rosso-Giallo)': 'Hot',
+            'Viridis (Blu-Verde-Giallo)': 'Viridis',
+            'Plasma (Viola-Rosa-Giallo)': 'Plasma',
+            'Inferno (Nero-Rosso-Giallo)': 'Inferno',
+            'Jet (Blu-Verde-Rosso)': 'Jet',
+            'Portland (Blu-Bianco-Rosso)': 'Portland',
+            'Blues (Bianco-Blu)': 'Blues',
+            'Reds (Bianco-Rosso)': 'Reds',
+            'YlOrRd (Giallo-Arancio-Rosso)': 'YlOrRd',
+            'RdYlGn (Rosso-Giallo-Verde)': 'RdYlGn'
+        }
+        
+        colorscale_choice = st.selectbox(
+            'Schema colori heatmap',
+            options=list(colorscale_options.keys()),
+            index=2,  # Default: Plasma
+            key='heat_color'
+        )
+        
+        nbins_x = st.slider('Risoluzione orizzontale', 20, 100, 60, 5, key='heat_binsx')
+        nbins_y = st.slider('Risoluzione verticale', 10, 60, 32, 2, key='heat_binsy')
+        
+        reverse_color = st.checkbox('Inverti colori', value=False, key='heat_reverse')
+    
     fig2 = go.Figure()
     
+    # Filter data for heatmap
+    heatmap_data = uwb_filtered if heatmap_player_all else uwb_filtered[uwb_filtered['player_id'] == heatmap_player]
+    
     # Create 2D histogram for heatmap
+    colorscale = colorscale_options[colorscale_choice]
+    if reverse_color:
+        colorscale = colorscale + '_r'
+    
     fig2.add_trace(go.Histogram2d(
-        x=uwb['x_m'],
-        y=uwb['y_m'],
-        colorscale='Hot',
-        nbinsx=60,
-        nbinsy=32,
-        colorbar=dict(title="Densità")
+        x=heatmap_data['x_m'],
+        y=heatmap_data['y_m'],
+        colorscale=colorscale,
+        nbinsx=nbins_x,
+        nbinsy=nbins_y,
+        colorbar=dict(title="Densità<br>posizioni", titleside='right')
     ))
     
     # Add court lines on top
     fig2.update_layout(
         shapes=draw_basketball_court(),
-        xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False),
-        yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False),
-        plot_bgcolor='rgba(139,69,19,0.3)',
-        title='Heatmap Densità Posizioni',
+        xaxis=dict(range=[0, 28], constrain='domain', showgrid=False, zeroline=False, title=''),
+        yaxis=dict(range=[0, 15], scaleanchor='x', scaleratio=1, showgrid=False, zeroline=False, title=''),
+        plot_bgcolor='rgba(34,139,34,0.2)',
+        title=f"Heatmap Densità - {'Tutti' if heatmap_player_all else heatmap_player}",
         height=500
     )
     
     st.plotly_chart(fig2, use_container_width=True)
 
 st.subheader('📈 Velocità nel tempo')
-players = sorted(uwb['player_id'].unique())
-sel = st.multiselect('Seleziona giocatori', players, default=players[:2] if len(players) >= 2 else players)
-plot_df = uwb[uwb['player_id'].isin(sel)].copy()
+
+# Speed chart filters
+with st.expander('⚙️ Opzioni Grafico Velocità'):
+    speed_players = st.multiselect(
+        'Giocatori da mostrare',
+        options=all_players,
+        default=all_players[:2] if len(all_players) >= 2 else all_players,
+        key='speed_players'
+    )
+    show_avg = st.checkbox('Mostra media velocità', value=False, key='speed_avg')
+    show_max_line = st.checkbox('Mostra linea velocità massima', value=False, key='speed_max')
+
+plot_df = uwb_filtered[uwb_filtered['player_id'].isin(speed_players)].copy() if speed_players else uwb_filtered.copy()
+
 fig3 = px.line(plot_df, x='timestamp_s', y='speed_kmh_calc', color='player_id', 
-               title=f'Speed (km/h) - {quarter}')
+               title=f'Speed (km/h) - {quarter}',
+               labels={'timestamp_s': 'Tempo (secondi)', 'speed_kmh_calc': 'Velocità (km/h)'})
+
+if show_avg and not plot_df.empty:
+    avg_speed = plot_df['speed_kmh_calc'].mean()
+    fig3.add_hline(y=avg_speed, line_dash="dash", line_color="gray", 
+                   annotation_text=f"Media: {avg_speed:.1f} km/h")
+
+if show_max_line and not plot_df.empty:
+    max_speed = plot_df['speed_kmh_calc'].max()
+    fig3.add_hline(y=max_speed, line_dash="dot", line_color="red",
+                   annotation_text=f"Max: {max_speed:.1f} km/h")
+
 st.plotly_chart(fig3, use_container_width=True)
 
 st.subheader('📉 IMU (con rumore/bias + dropout)')
@@ -219,7 +307,22 @@ else:
         
         jumps = int((imu.get('jump_detected', pd.Series([0]*len(imu)))==1).sum()) if 'jump_detected' in imu.columns else 0
         st.write(f'🏀 Salti rilevati in {quarter}:', jumps)
-        psel = st.selectbox('Giocatore IMU', sorted(imu['player_id'].unique()))
+        
+        # IMU player selector
+        imu_players = sorted(imu['player_id'].unique())
+        psel = st.selectbox('Giocatore IMU', imu_players, key='imu_player')
+        
         imu_p = imu[imu['player_id']==psel].sort_values('timestamp_s')
-        fig4 = px.line(imu_p, x='timestamp_s', y='accel_z_ms2', title=f'Accel Z (m/s²) - {psel} - {quarter}')
+        fig4 = px.line(imu_p, x='timestamp_s', y='accel_z_ms2', 
+                      title=f'Accel Z (m/s²) - {psel} - {quarter}',
+                      labels={'timestamp_s': 'Tempo (secondi)', 'accel_z_ms2': 'Accelerazione Z (m/s²)'})
+        
+        # Highlight jumps
+        if 'jump_detected' in imu_p.columns:
+            jump_points = imu_p[imu_p['jump_detected'] == 1]
+            if not jump_points.empty:
+                fig4.add_scatter(x=jump_points['timestamp_s'], y=jump_points['accel_z_ms2'],
+                               mode='markers', marker=dict(color='red', size=10, symbol='star'),
+                               name='Salti rilevati')
+        
         st.plotly_chart(fig4, use_container_width=True)
