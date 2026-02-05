@@ -258,7 +258,7 @@ def optimize_defensive_matchups(defenders):
     return matchups
 
 
-def analyze_movement_patterns(player_ pd.DataFrame):
+def analyze_movement_patterns(player_data: pd.DataFrame):
     if len(player_data) < 50:
         return {
             "dominant_direction": "Right (N/A)",
@@ -591,7 +591,7 @@ def send_email_with_pdf(
         html_part = MIMEText(body_html, "html")
         msg.attach(html_part)
 
-        if pdf_
+        if pdf_data:
             pdf_attachment = MIMEApplication(pdf_data, _subtype="pdf")
             pdf_attachment.add_header(
                 "Content-Disposition", "attachment", filename=pdf_filename
