@@ -187,42 +187,32 @@ def classify_zone(x, y):
 # AI FUNCTIONS
 # =================================================================
 def calculate_injury_risk(player_ pd.DataFrame, player_id):
-  
-"""Calculate injury risk metrics"""
-    if len(player_data) < 100:
+    if len(player_data) < 100: 
         return 0, 1.0, 0.1, 5, "🟢 LOW"
-
-    recent = player_data.tail(min(100, len(player_data)))["speed_kmh_calc"].sum()
-    chronic = player_data["speed_kmh_calc"].mean() * 100
+    
+    recent = player_data.tail(min(100, len(player_data)))['speed_kmh_calc'].sum()
+    chronic = player_data['speed_kmh_calc'].mean() * 100
     acwr = recent / chronic if chronic > 0 else 1.0
-
-    left_moves = (player_data["dx"] < -0.5).sum()
-    right_moves = (player_data["dx"] > 0.5).sum()
+    
+    left_moves = (player_data['dx'] < -0.5).sum()
+    right_moves = (player_data['dx'] > 0.5).sum()
     asymmetry = abs(left_moves - right_moves) / max(left_moves + right_moves, 1)
-
-    q1_speed = player_data.head(len(player_data) // 4)["speed_kmh_calc"].mean()
-    q4_speed = player_data.tail(len(player_data) // 4)["speed_kmh_calc"].mean()
+    
+    q1_speed = player_data.head(len(player_data)//4)['speed_kmh_calc'].mean()
+    q4_speed = player_data.tail(len(player_data)//4)['speed_kmh_calc'].mean()
     fatigue = abs((q1_speed - q4_speed) / q1_speed * 100) if q1_speed > 0 else 5
-
+    
     risk = 0
-    if acwr > 1.5:
-        risk += 40
-    if acwr < 0.8:
-        risk += 20
-    if asymmetry > 0.25:
-        risk += 30
-    if fatigue > 15:
-        risk += 30
-
+    if acwr > 1.5: risk += 40
+    if acwr < 0.8: risk += 20
+    if asymmetry > 0.25: risk += 30
+    if fatigue > 15: risk += 30
+    
     risk = min(risk, 100)
-    if risk > 60:
-        level = "🔴 HIGH"
-    elif risk > 30:
-        level = "🟡 MEDIUM"
-    else:
-        level = "🟢 LOW"
-
+    level = "🔴 HIGH" if risk > 60 else "🟡 MEDIUM" if risk > 30 else "🟢 LOW"
+    
     return risk, acwr, asymmetry, fatigue, level
+
 
 
 def recommend_offensive_play(spacing: float, quarter: int, score_diff: int):
