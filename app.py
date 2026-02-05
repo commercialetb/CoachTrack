@@ -684,14 +684,14 @@ def load_uploaded(uwb_bytes, imu_bytes):
 # =================================================================
 
 # HOMEPAGE
-st.title("🏀 CoachTrack Elite AI - Professional Analytics")
+st.title("CoachTrack Elite AI - Professional Analytics")
 
 # TABS (ADDED NEW TAB)
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
-    "⚙️ Configuration", 
+    "📊 Analytics & Reports"
     "🏃 Physical Profile & AI", 
     "🧠 AI Elite Features", 
-    "📊 Analytics & Reports"
+    "⚙️ Configuration", 
 ])
 
 # =================================================================
