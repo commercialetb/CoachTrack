@@ -688,10 +688,10 @@ st.title("🏀 CoachTrack Elite AI - Professional Analytics")
 
 # TABS (ADDED NEW TAB)
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
-    "⚙️ Configuration", 
+    "📊 Analytics & Reports"
     "🏃 Physical Profile & AI", 
     "🧠 AI Elite Features", 
-    "📊 Analytics & Reports"
+    "⚙️ Configuration",
 ])
 
 # =================================================================
@@ -723,6 +723,19 @@ with tab_config:
     with col_p3: max_speed_clip = st.slider("Max Speed Clip", 10, 40, 30)
     
     st.divider()
+    
+    
+    # Player name mapping
+    if 'player_names' not in st.session_state:
+        st.session_state.player_names = {p: p for p in all_players_temp}
+    
+    col_map1, col_map2, col_map3 = st.columns(3)
+    for idx, pid in enumerate(all_players_temp):
+        col = [col_map1, col_map2, col_map3][idx % 3]
+        with col:
+            st.session_state.player_names[pid] = st.text_input(f"Player {pid}", value=st.session_state.player_names.get(pid, pid), key=f'name_{pid}')
+    
+    
     
     # EMAIL CONFIGURATION
     st.subheader("📧 Email Configuration (Optional)")
@@ -768,15 +781,7 @@ with tab_config:
     
     all_players_temp = sorted(uwb_temp['player_id'].unique())
     
-    # Player name mapping
-    if 'player_names' not in st.session_state:
-        st.session_state.player_names = {p: p for p in all_players_temp}
-    
-    col_map1, col_map2, col_map3 = st.columns(3)
-    for idx, pid in enumerate(all_players_temp):
-        col = [col_map1, col_map2, col_map3][idx % 3]
-        with col:
-            st.session_state.player_names[pid] = st.text_input(f"Player {pid}", value=st.session_state.player_names.get(pid, pid), key=f'name_{pid}')
+   
 
 # LOAD DATA
 if use_sample:
