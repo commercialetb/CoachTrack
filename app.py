@@ -688,10 +688,10 @@ st.title("🏀 CoachTrack Elite AI - Professional Analytics")
 
 # TABS (ADDED NEW TAB)
 tab_analytics, tab_physical, tab_ai, tab_config = st.tabs([
-    "📊 Analytics & Reports"
+    "⚙️ Configuration",
     "🏃 Physical Profile & AI", 
     "🧠 AI Elite Features", 
-    "⚙️ Configuration",
+    "📊 Analytics & Reports"
 ])
 
 # =================================================================
