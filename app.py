@@ -695,7 +695,7 @@ tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
 ])
 
 # =================================================================
-# TAB 1: CONFIGURATION
+# TAB 4: CONFIGURATION
 # =================================================================
 with tab_config:
     st.header("⚙️ System Configuration")
@@ -1466,7 +1466,7 @@ with tab_ai:
             st.plotly_chart(fig_imu, use_container_width=True)
 
 # =================================================================
-# TAB 4: ANALYTICS & REPORTS
+# TAB 1: ANALYTICS & REPORTS
 # =================================================================
 with tab_analytics:
     st.header("📊 Analytics & Reports")
