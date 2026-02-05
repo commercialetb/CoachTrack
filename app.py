@@ -684,18 +684,18 @@ def load_uploaded(uwb_bytes, imu_bytes):
 # =================================================================
 
 # HOMEPAGE
-st.title("CoachTrack Elite AI - Professional Analytics")
+st.title("🏀 CoachTrack Elite AI - Professional Analytics")
 
 # TABS (ADDED NEW TAB)
-tab_analytics, tab_physical, tab_ai, tab_config = st.tabs([
-    "📊 Analytics & Reports"
+tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
+    "⚙️ Configuration", 
     "🏃 Physical Profile & AI", 
     "🧠 AI Elite Features", 
-    "⚙️ Configuration", 
+    "📊 Analytics & Reports"
 ])
 
 # =================================================================
-# TAB 4: CONFIGURATION
+# TAB 1: CONFIGURATION
 # =================================================================
 with tab_config:
     st.header("⚙️ System Configuration")
@@ -1466,7 +1466,7 @@ with tab_ai:
             st.plotly_chart(fig_imu, use_container_width=True)
 
 # =================================================================
-# TAB 1: ANALYTICS & REPORTS
+# TAB 4: ANALYTICS & REPORTS
 # =================================================================
 with tab_analytics:
     st.header("📊 Analytics & Reports")
