@@ -183,7 +183,7 @@ def classify_zone(x, y):
 # =================================================================
 # AI FUNCTIONS
 # =================================================================
-def calculate_injury_risk(player_ pd.DataFrame, player_id):
+def calculate_injury_risk(player_data: pd.DataFrame, player_id):
     if len(player_data) < 100:
         return 0, 1.0, 0.1, 5, "🟢 LOW"
 
