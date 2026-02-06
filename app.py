@@ -25,6 +25,52 @@ except ImportError:
     PDF_AVAILABLE = False
 
 # =================================================================
+# 🔐 LOGIN SYSTEM
+# =================================================================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+USERNAME = "coach"
+PASSWORD = "basket2026"
+
+def login():
+    """Login form"""
+    st.markdown("""
+    <div style='text-align:center; padding:50px 0 30px 0;'>
+        <h1 style='color:#2563eb;'>🏀 CoachTrack Elite AI</h1>
+        <p style='color:#64748b; font-size:18px;'>Professional Basketball Analytics Platform</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("login_form", clear_on_submit=True):
+            st.markdown("### 🔐 Login")
+            username = st.text_input("Username", placeholder="coach")
+            password = st.text_input("Password", type="password", placeholder="••••••••")
+            submit = st.form_submit_button("🚀 Accedi", use_container_width=True)
+
+            if submit:
+                if username == USERNAME and password == PASSWORD:
+                    st.session_state.authenticated = True
+                    st.rerun()
+                else:
+                    st.error("❌ Username o password errati!")
+
+def logout():
+    """Logout button"""
+    if st.sidebar.button("🚪 Logout", use_container_width=True):
+        st.session_state.authenticated = False
+        st.rerun()
+
+# Check authentication
+if not st.session_state.authenticated:
+    login()
+    st.stop()
+
+# =================================================================
+# CONFIG
+# =================================================================
 # CONFIG
 # =================================================================
 st.set_page_config(page_title='CoachTrack Elite AI', layout='wide', initial_sidebar_state='collapsed')
@@ -686,29 +732,34 @@ def load_uploaded(uwb_bytes, imu_bytes):
 # HOMEPAGE
 st.title("CoachTrack Elite AI")
 
+# Sidebar with logout
+st.sidebar.title("👋 Benvenuto Coach!")
+logout()
+st.sidebar.divider()
+
 # TABS (ADDED NEW TAB)
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
-    "Configuration", 
-    "Physical Profile & AI", 
-    "AI Elite Features", 
-    "Analytics & Reports"
+    "âš™ï¸ Configuration", 
+    "ðŸƒ Physical Profile & AI", 
+    "ðŸ§  AI Elite Features", 
+    "ðŸ“Š Analytics & Reports"
 ])
 
 # =================================================================
 # TAB 1: CONFIGURATION
 # =================================================================
 with tab_config:
-    st.header("System Configuration")
+    st.header("âš™ï¸ System Configuration")
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        team_name = st.text_input("Team Name", "Elite Basketball Academy", key='team_name')
+        team_name = st.text_input("ðŸ† Team Name", "Elite Basketball Academy", key='team_name')
     with col2:
-        session_type = st.selectbox("Session Type", ["Match", "Training"], key='session_type')
+        session_type = st.selectbox("ðŸ“‹ Session Type", ["Match", "Training"], key='session_type')
     with col3:
-        brand_color = st.color_picker("Brand Color", "#2563eb", key='brand_color')
+        brand_color = st.color_picker("ðŸŽ¨ Brand Color", "#2563eb", key='brand_color')
     
-    st.subheader("Data Source")
+    st.subheader("ðŸ“ Data Source")
     use_sample = st.toggle("Use sample data (recommended)", value=True)
     uwb_file, imu_file = None, None
     if not use_sample:
@@ -716,7 +767,7 @@ with tab_config:
         with col_f1: uwb_file = st.file_uploader("UWB CSV", type=['csv'])
         with col_f2: imu_file = st.file_uploader("IMU CSV (optional)", type=['csv'])
     
-    st.subheader("Period Filter")
+    st.subheader("â±ï¸ Period Filter")
     col_p1, col_p2, col_p3 = st.columns(3)
     with col_p1: quarter = st.selectbox("Period", ['Full Session', 'Q1 (0-10min)', 'Q2 (10-20min)', 'Q3 (20-30min)', 'Q4 (30-40min)'])
     with col_p2: min_q = st.slider("Min Quality", 0, 100, 50)
@@ -725,8 +776,8 @@ with tab_config:
     st.divider()
     
     # EMAIL CONFIGURATION
-    st.subheader("Email Configuration (Optional)")
-    st.info("Configure SMTP settings to enable email sending of reports to athletes")
+    st.subheader("ðŸ“§ Email Configuration (Optional)")
+    st.info("ðŸ’¡ Configure SMTP settings to enable email sending of reports to athletes")
     
     col_smtp1, col_smtp2 = st.columns(2)
     with col_smtp1:
@@ -741,7 +792,7 @@ with tab_config:
                                       help="For Gmail: use App Password")
     
     if smtp_user and smtp_password:
-        st.success("Email configuration saved")
+        st.success("âœ… Email configuration saved")
         smtp_config = {
             'smtp_server': smtp_server,
             'smtp_port': smtp_port,
@@ -750,12 +801,12 @@ with tab_config:
         }
     else:
         smtp_config = None
-        st.warning("Email sending disabled - configure SMTP settings to enable")
+        st.warning("âš ï¸ Email sending disabled - configure SMTP settings to enable")
     
     st.divider()
     
-    st.subheader("Player Name Mapping")
-    st.info("**Change Player Names:** Edit the mappings below to use custom names (e.g., Player_1 'LeBron James')")
+    st.subheader("ðŸ‘¥ Player Name Mapping")
+    st.info("ðŸ’¡ **Change Player Names:** Edit the mappings below to use custom names (e.g., Player_1 â†’ 'LeBron James')")
     
     # Load data first to get player IDs
     if use_sample:
@@ -835,11 +886,11 @@ all_players = sorted(uwb['player_id'].unique())
 # TAB 2: PHYSICAL PROFILE & AI
 # =================================================================
 with tab_physical:
-    st.header("Physical Profile & AI Personalization")
+    st.header("ðŸƒ Physical Profile & AI Personalization")
     
     st.markdown("""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-        <h3>Athlete Physical Data Management</h3>
+        <h3>ðŸ‘¤ Athlete Physical Data Management</h3>
         <p>Insert physical and anthropometric data for each athlete to enable AI-powered personalized training and nutrition plans.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -865,75 +916,75 @@ with tab_physical:
             }
     
     # Player selection
-    physical_player = st.selectbox("Select Player to Edit Physical Profile", all_players, key='physical_player_select')
+    physical_player = st.selectbox("ðŸ‘¤ Select Player to Edit Physical Profile", all_players, key='physical_player_select')
     pname = st.session_state.player_names.get(physical_player, physical_player)
     
-    st.subheader(f"Physical Profile: {pname}")
+    st.subheader(f"ðŸ“‹ Physical Profile: {pname}")
     
     # PERSONAL DATA SECTION
-    st.markdown("#### Personal Information")
+    st.markdown("#### ðŸ‘¤ Personal Information")
     col_p1, col_p2, col_p3, col_p4 = st.columns(4)
     
     with col_p1:
-        email = st.text_input("Email", 
+        email = st.text_input("ðŸ“§ Email", 
                              st.session_state.physical_profiles[physical_player].get('email', ''),
                              key=f'email_{physical_player}',
                              help="Email address for sending reports")
     with col_p2:
-        phone = st.text_input("Phone", 
+        phone = st.text_input("ðŸ“± Phone", 
                              st.session_state.physical_profiles[physical_player].get('phone', ''),
                              key=f'phone_{physical_player}',
                              help="Contact phone number")
     with col_p3:
-        birthdate = st.date_input("Birthdate", 
+        birthdate = st.date_input("ðŸŽ‚ Birthdate", 
                                   value=datetime.strptime(st.session_state.physical_profiles[physical_player].get('birthdate', '2001-01-01'), '%Y-%m-%d'),
                                   key=f'birthdate_{physical_player}',
                                   min_value=datetime(1980, 1, 1),
                                   max_value=datetime.now())
     with col_p4:
-        nationality = st.text_input("Nationality", 
+        nationality = st.text_input("ðŸŒ Nationality", 
                                    st.session_state.physical_profiles[physical_player].get('nationality', ''),
                                    key=f'nationality_{physical_player}')
     
     st.divider()
     
     # Physical data input form
-    st.markdown("####Physical Measurements")
+    st.markdown("#### ðŸ“ Physical Measurements")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        height = st.number_input("Height (cm)", 150, 230, 
+        height = st.number_input("ðŸ“ Height (cm)", 150, 230, 
                                 st.session_state.physical_profiles[physical_player]['height_cm'],
                                 key=f'height_{physical_player}')
     with col2:
-        weight = st.number_input("Weight (kg)", 50, 150,
+        weight = st.number_input("âš–ï¸ Weight (kg)", 50, 150,
                                 st.session_state.physical_profiles[physical_player]['weight_kg'],
                                 key=f'weight_{physical_player}')
     with col3:
-        age = st.number_input("Age", 16, 45,
+        age = st.number_input("ðŸŽ‚ Age", 16, 45,
                              st.session_state.physical_profiles[physical_player]['age'],
                              key=f'age_{physical_player}')
     with col4:
-        gender = st.selectbox("Gender", ['Male', 'Female'],
+        gender = st.selectbox("âš§ Gender", ['Male', 'Female'],
                              index=0 if st.session_state.physical_profiles[physical_player]['gender'] == 'Male' else 1,
                              key=f'gender_{physical_player}')
     
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
-        body_fat = st.number_input("Body Fat (%)", 5, 30,
+        body_fat = st.number_input("ðŸ“Š Body Fat (%)", 5, 30,
                                   st.session_state.physical_profiles[physical_player]['body_fat_pct'],
                                   key=f'bodyfat_{physical_player}')
     with col6:
-        vertical = st.number_input("Vertical Jump (cm)", 30, 100,
+        vertical = st.number_input("ðŸ¦˜ Vertical Jump (cm)", 30, 100,
                                   st.session_state.physical_profiles[physical_player]['vertical_jump_cm'],
                                   key=f'vertical_{physical_player}')
     with col7:
-        wingspan = st.number_input("Wingspan (cm)", 150, 250,
+        wingspan = st.number_input("ðŸ¦… Wingspan (cm)", 150, 250,
                                   st.session_state.physical_profiles[physical_player]['wingspan_cm'],
                                   key=f'wingspan_{physical_player}')
     with col8:
-        position = st.selectbox("Position", ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'],
+        position = st.selectbox("ðŸ€ Position", ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'],
                                index=['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'].index(
                                    st.session_state.physical_profiles[physical_player].get('position', 'Guard') 
                                    if st.session_state.physical_profiles[physical_player].get('position', 'Guard') in ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center']
@@ -942,7 +993,7 @@ with tab_physical:
                                key=f'position_{physical_player}')
     
     # Update profile button
-    if st.button("Save Physical Profile", type="primary", key=f'save_profile_{physical_player}'):
+    if st.button("ðŸ’¾ Save Physical Profile", type="primary", key=f'save_profile_{physical_player}'):
         st.session_state.physical_profiles[physical_player] = {
             'height_cm': height,
             'weight_kg': weight,
@@ -957,13 +1008,13 @@ with tab_physical:
             'birthdate': birthdate.strftime('%Y-%m-%d'),
             'nationality': nationality
         }
-        st.success(f"Profile saved for {pname}!")
+        st.success(f"âœ… Profile saved for {pname}!")
         
         # Show contact card if email/phone provided
         if email or phone:
             st.markdown(f"""
             <div class='contact-card'>
-                <h4>Contact Information Updated</h4>
+                <h4>ðŸ“ž Contact Information Updated</h4>
                 <p><b>Email:</b> {email if email else 'Not provided'}</p>
                 <p><b>Phone:</b> {phone if phone else 'Not provided'}</p>
             </div>
@@ -975,9 +1026,9 @@ with tab_physical:
     # AI TRAINING GENERATION
     # =================================================================
     
-    st.subheader("AI-Powered Personalized Training Plan")
+    st.subheader("ðŸ¤– AI-Powered Personalized Training Plan")
     
-    st.info("The AI analyzes performance data, injury risk, movement patterns, and physical profile to generate a customized training program.")
+    st.info("ðŸ§  The AI analyzes performance data, injury risk, movement patterns, and physical profile to generate a customized training program.")
     
     training_player = st.selectbox("Select Player for Training Plan", all_players, key='training_player_select')
     training_pname = st.session_state.player_names.get(training_player, training_player)
@@ -987,8 +1038,8 @@ with tab_physical:
     injury_data = calculate_injury_risk(player_data_training, training_player)
     physical_profile = st.session_state.physical_profiles.get(training_player, {})
     
-    if st.button("Generate AI Training Plan", type="primary", key='generate_training'):
-        with st.spinner("AI analyzing performance data and generating plan..."):
+    if st.button("ðŸŽ¯ Generate AI Training Plan", type="primary", key='generate_training'):
+        with st.spinner("ðŸ¤– AI analyzing performance data and generating plan..."):
             training_plan = generate_personalized_training(
                 training_player,
                 player_data_training,
@@ -1011,17 +1062,17 @@ with tab_physical:
             
             # Warnings
             if training_plan['warnings']:
-                st.warning("**Important Alerts:**")
+                st.warning("âš ï¸ **Important Alerts:**")
                 for warning in training_plan['warnings']:
                     st.markdown(f"- {warning}")
             
             # Focus Areas
-            st.markdown("####Focus Areas")
+            st.markdown("#### ðŸŽ¯ Focus Areas")
             for area in training_plan['focus_areas']:
                 st.markdown(f"- {area}")
             
             # Exercises
-            st.markdown("#### Recommended Exercises")
+            st.markdown("#### ðŸ’ª Recommended Exercises")
             for idx, exercise in enumerate(training_plan['exercises'], 1):
                 st.markdown(f"{idx}. {exercise}")
             
@@ -1043,7 +1094,7 @@ with tab_physical:
                     
                     if training_pdf:
                         st.download_button(
-                            "Download Training Plan PDF",
+                            "ðŸ“¥ Download Training Plan PDF",
                             data=training_pdf,
                             file_name=f"{training_pname}_Training_Plan.pdf",
                             mime="application/pdf",
@@ -1054,7 +1105,7 @@ with tab_physical:
                 # Email sending
                 player_email = physical_profile.get('email', '')
                 if smtp_config and player_email:
-                    if st.button("Send via Email", key='send_training_email'):
+                    if st.button("ðŸ“§ Send via Email", key='send_training_email'):
                         training_pdf = generate_training_pdf(
                             training_player,
                             training_pname,
@@ -1085,7 +1136,7 @@ with tab_physical:
                         success, message = send_email_with_pdf(
                             player_email,
                             training_pname,
-                            f"Your Training Plan - {team_name}",
+                            f"ðŸ‹ï¸ Your Training Plan - {team_name}",
                             email_body,
                             training_pdf,
                             f"{training_pname}_Training_Plan.pdf",
@@ -1108,9 +1159,9 @@ with tab_physical:
     # AI NUTRITION GENERATION
     # =================================================================
     
-    st.subheader("AI-Powered Personalized Nutrition Plan")
+    st.subheader("ðŸ½ï¸ AI-Powered Personalized Nutrition Plan")
     
-    st.info("The AI calculates caloric needs (BMR, TDEE) and macronutrient distribution based on physical profile, activity level, and goals.")
+    st.info("ðŸ¥— The AI calculates caloric needs (BMR, TDEE) and macronutrient distribution based on physical profile, activity level, and goals.")
     
     nutrition_player = st.selectbox("Select Player for Nutrition Plan", all_players, key='nutrition_player_select')
     nutrition_pname = st.session_state.player_names.get(nutrition_player, nutrition_player)
@@ -1119,7 +1170,7 @@ with tab_physical:
     
     with col_n1:
         activity_level = st.selectbox(
-            "Activity Level",
+            "ðŸƒ Activity Level",
             ["Low (Recovery)", "Moderate (Training)", "High (Intense/Match)", "Very High (Tournament)"],
             index=1,
             key='activity_level'
@@ -1127,7 +1178,7 @@ with tab_physical:
     
     with col_n2:
         nutrition_goal = st.selectbox(
-            "Goal",
+            "ðŸŽ¯ Goal",
             ["Maintenance", "Muscle Gain", "Fat Loss", "Performance"],
             index=3,
             key='nutrition_goal'
@@ -1135,8 +1186,8 @@ with tab_physical:
     
     physical_profile_nutrition = st.session_state.physical_profiles.get(nutrition_player, {})
     
-    if st.button("Generate AI Nutrition Plan", type="primary", key='generate_nutrition'):
-        with st.spinner("AI calculating caloric needs and macros..."):
+    if st.button("ðŸ¥— Generate AI Nutrition Plan", type="primary", key='generate_nutrition'):
+        with st.spinner("ðŸ¤– AI calculating caloric needs and macros..."):
             nutrition_plan = generate_personalized_nutrition(
                 nutrition_player,
                 physical_profile_nutrition,
@@ -1153,20 +1204,20 @@ with tab_physical:
             
             # Caloric Overview
             col1, col2, col3, col4 = st.columns(4)
-            col1.metric("BMR", f"{nutrition_plan['bmr']} kcal")
-            col2.metric("TDEE", f"{nutrition_plan['tdee']} kcal")
-            col3.metric("Target", f"{nutrition_plan['target_calories']} kcal")
-            col4.metric("Water", f"{nutrition_plan['water_liters']} L")
+            col1.metric("ðŸ”¥ BMR", f"{nutrition_plan['bmr']} kcal")
+            col2.metric("âš¡ TDEE", f"{nutrition_plan['tdee']} kcal")
+            col3.metric("ðŸŽ¯ Target", f"{nutrition_plan['target_calories']} kcal")
+            col4.metric("ðŸ’§ Water", f"{nutrition_plan['water_liters']} L")
             
             st.divider()
             
             # Macronutrients
-            st.markdown("#### Daily Macronutrients")
+            st.markdown("#### ðŸ¥— Daily Macronutrients")
             col1, col2, col3 = st.columns(3)
-            col1.metric("Protein", f"{nutrition_plan['protein_g']}g", 
+            col1.metric("ðŸ’ª Protein", f"{nutrition_plan['protein_g']}g", 
                        f"{nutrition_plan['protein_g']/physical_profile_nutrition.get('weight_kg', 80):.1f}g/kg")
-            col2.metric("Carbs", f"{nutrition_plan['carbs_g']}g")
-            col3.metric("Fats", f"{nutrition_plan['fats_g']}g")
+            col2.metric("ðŸš Carbs", f"{nutrition_plan['carbs_g']}g")
+            col3.metric("ðŸ¥‘ Fats", f"{nutrition_plan['fats_g']}g")
             
             # Macros visualization
             fig_macros = go.Figure(data=[go.Pie(
@@ -1181,13 +1232,13 @@ with tab_physical:
             st.divider()
             
             # Meal Distribution
-            st.markdown("####Meal Distribution")
+            st.markdown("#### ðŸ´ Meal Distribution")
             meal_df = pd.DataFrame(nutrition_plan['meals'])
             st.dataframe(meal_df, use_container_width=True, hide_index=True)
             
             # Recommendations
             if nutrition_plan['recommendations']:
-                st.markdown("####Personalized Recommendations")
+                st.markdown("#### ðŸ’¡ Personalized Recommendations")
                 for rec in nutrition_plan['recommendations']:
                     st.markdown(f"- {rec}")
             
@@ -1211,7 +1262,7 @@ with tab_physical:
                     
                     if nutrition_pdf:
                         st.download_button(
-                            "Download Nutrition Plan PDF",
+                            "ðŸ“¥ Download Nutrition Plan PDF",
                             data=nutrition_pdf,
                             file_name=f"{nutrition_pname}_Nutrition_Plan.pdf",
                             mime="application/pdf",
@@ -1222,7 +1273,7 @@ with tab_physical:
                 # Email sending
                 player_email = physical_profile_nutrition.get('email', '')
                 if smtp_config and player_email:
-                    if st.button("Send via Email", key='send_nutrition_email'):
+                    if st.button("ðŸ“§ Send via Email", key='send_nutrition_email'):
                         nutrition_pdf = generate_nutrition_pdf(
                             nutrition_player,
                             nutrition_pname,
@@ -1236,9 +1287,9 @@ with tab_physical:
                         email_body = f"""
                         <html>
                         <body style='font-family: Arial, sans-serif;'>
-                            <h2 style='color: {brand_color};'>Your Personalized Nutrition Plan</h2>
+                            <h2 style='color: {brand_color};'>ðŸ½ï¸ Your Personalized Nutrition Plan</h2>
                             <p>Ciao <b>{nutrition_pname}</b>,</p>
-                            <p>Il tuo piano nutrizionale personalizzato AI allegato a questa email.</p>
+                            <p>Il tuo piano nutrizionale personalizzato AI Ã¨ allegato a questa email.</p>
                             <p><b>Summary:</b></p>
                             <ul>
                                 <li>Target Calories: {nutrition_plan['target_calories']} kcal/day</li>
@@ -1257,7 +1308,7 @@ with tab_physical:
                         success, message = send_email_with_pdf(
                             player_email,
                             nutrition_pname,
-                            f"Your Nutrition Plan - {team_name}",
+                            f"ðŸ½ï¸ Your Nutrition Plan - {team_name}",
                             email_body,
                             nutrition_pdf,
                             f"{nutrition_pname}_Nutrition_Plan.pdf",
@@ -1280,7 +1331,7 @@ with tab_physical:
     # TEAM OVERVIEW
     # =================================================================
     
-    st.subheader("Team Physical Overview")
+    st.subheader("ðŸ‘¥ Team Physical Overview")
     
     # Create overview dataframe
     overview_data = []
@@ -1312,7 +1363,7 @@ with tab_physical:
     # Export physical profiles
     csv_physical = overview_df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        "Export Physical Profiles CSV",
+        "ðŸ“¥ Export Physical Profiles CSV",
         data=csv_physical,
         file_name=f"{team_name}_Physical_Profiles.csv",
         mime="text/csv"
@@ -1322,49 +1373,34 @@ with tab_physical:
 # TAB 3: AI ELITE FEATURES (UNCHANGED)
 # =================================================================
 with tab_ai:
-    st.header("AI Elite Features")
+    st.header("ðŸ§  AI Elite Features")
     
     ai_tab1, ai_tab2, ai_tab3, ai_tab4, ai_tab5, ai_tab6 = st.tabs([
-        "Injury Risk", "Offensive AI", "Defense AI", 
-        "Movement AI", "Shot Quality", "IMU Jumps"
+        "ðŸ¥ Injury Risk", "ðŸŽ¯ Offensive AI", "ðŸ›¡ï¸ Defense AI", 
+        "ðŸ‘£ Movement AI", "ðŸ€ Shot Quality", "ðŸ“‰ IMU Jumps"
     ])
     
-        # INJURY TAB
+    # INJURY TAB
     with ai_tab1:
-        st.subheader("🩹 Injury Risk Predictor")
-        
-        # Griglia responsive per le card
-        cols = st.columns(3)  # Usa sempre 3 colonne fisse per ordine
-        
+        st.subheader("ðŸ¥ Injury Risk Predictor")
+        cols = st.columns(min(3, len(all_players)))
         for idx, pid in enumerate(all_players):
             pdata = uwb[uwb['player_id'] == pid]
             risk, acwr, asym, fat, level = calculate_injury_risk(pdata, pid)
-            pname = st.session_state.player_names.get(pid, pid)
-            
-            # Seleziona la colonna corretta (loop 0, 1, 2)
             with cols[idx % 3]:
-                # Container con bordo per separare visivamente ogni giocatore
-                with st.container(border=True):
-                    st.markdown(f"### {pname}")
-                    
-                    # Indicatore di rischio principale colorato
-                    risk_color = "red" if risk > 60 else "orange" if risk > 30 else "green"
-                    st.markdown(f"**Livello Rischio:** :{risk_color}[{level}]")
-                    st.progress(risk / 100, text=f"Risk Score: {risk}/100")
-                    
-                    st.divider()
-                    
-                    # Metriche dettagliate in colonne interne
-                    c1, c2 = st.columns(2)
-                    c1.metric("ACWR", f"{acwr:.2f}", delta="High" if acwr > 1.5 else "Normal", delta_color="inverse")
-                    c2.metric("Fatica", f"{fat:.1f}%", delta=None)
-                    
-                    st.caption(f"Asimmetria: {asym*100:.1f}%")
-
+                pname = st.session_state.player_names.get(pid, pid)
+                st.markdown(f"""
+                <div class='predictive-card'>
+                    <b>{pname}</b><br>
+                    <span style='font-size:24px;'>{level}</span><br>
+                    <span style='font-size:16px;'>{risk}/100</span>
+                </div>
+                """, unsafe_allow_html=True)
+                st.metric("ACWR", f"{acwr:.2f}", "âš ï¸" if acwr > 1.5 else "âœ…")
     
     # TACTICS TAB
     with ai_tab2:
-        st.subheader("Offensive Play Recommender")
+        st.subheader("ðŸŽ¯ Offensive Play Recommender")
         col1, col2, col3 = st.columns(3)
         with col1: curr_q = st.selectbox("Quarter", [1,2,3,4], index=3)
         with col2: score_diff = st.number_input("Score Diff", -20, 20, -3)
@@ -1381,7 +1417,7 @@ with tab_ai:
     
     # DEFENSE TAB
     with ai_tab3:
-        st.subheader("Defensive Matchup Optimizer")
+        st.subheader("ðŸ›¡ï¸ Defensive Matchup Optimizer")
         matchups = optimize_defensive_matchups(all_players[:5])
         for m in matchups:
             pname = st.session_state.player_names.get(m['your_player'], m['your_player'])
@@ -1393,7 +1429,7 @@ with tab_ai:
     
     # MOVEMENT TAB
     with ai_tab4:
-        st.subheader("Movement Pattern Analyzer")
+        st.subheader("ðŸ‘£ Movement Pattern Analyzer")
         pattern_player = st.selectbox("Select Player", all_players)
         pdata = uwb[uwb['player_id'] == pattern_player]
         patterns = analyze_movement_patterns(pdata)
@@ -1412,7 +1448,7 @@ with tab_ai:
     
     # SHOT QUALITY TAB
     with ai_tab5:
-        st.subheader("Shot Quality Predictor (qSQ)")
+        st.subheader("ðŸ€ Shot Quality Predictor (qSQ)")
         shot_player = st.selectbox("Select Player for Shot Quality", all_players, key='shot_player')
         
         # Generate map for selected player's positions
@@ -1436,7 +1472,7 @@ with tab_ai:
         st.plotly_chart(fig_qsq, use_container_width=True)
         
         # Simulator
-        st.markdown("###Shot Simulator")
+        st.markdown("### ðŸŽ¯ Shot Simulator")
         col1, col2, col3 = st.columns(3)
         with col1: sim_x = st.slider("X Position", 0.0, 28.0, 6.75, 0.5)
         with col2: sim_y = st.slider("Y Position", 0.0, 15.0, 7.5, 0.5)
@@ -1456,7 +1492,7 @@ with tab_ai:
     
     # IMU JUMPS TAB
     with ai_tab6:
-        st.subheader("IMU Jump Detection")
+        st.subheader("ðŸ“‰ IMU Jump Detection")
         if imu is None:
             st.info("No IMU data loaded")
         else:
@@ -1484,16 +1520,16 @@ with tab_ai:
 # TAB 4: ANALYTICS & REPORTS
 # =================================================================
 with tab_analytics:
-    st.header("Analytics & Reports")
+    st.header("ðŸ“Š Analytics & Reports")
     
     # PDF DOWNLOADS
     if PDF_AVAILABLE:
-        st.subheader("PDF Reports")
+        st.subheader("ðŸ“„ PDF Reports")
         col1, col2 = st.columns(2)
         with col1:
             team_pdf = generate_team_pdf(team_name, kpi, brand_color, session_type)
             if team_pdf:
-                st.download_button("Team Report PDF", data=team_pdf, 
+                st.download_button("ðŸ“¥ Team Report PDF", data=team_pdf, 
                                   file_name=f"{team_name}_Report.pdf", mime="application/pdf")
         with col2:
             player_pdf_sel = st.selectbox("Player for PDF", all_players)
@@ -1501,19 +1537,31 @@ with tab_analytics:
                                             team_name, brand_color, session_type)
             if player_pdf:
                 pname = st.session_state.player_names.get(player_pdf_sel, player_pdf_sel)
-                st.download_button(f"{pname} PDF", data=player_pdf, 
+                st.download_button(f"ðŸ“¥ {pname} PDF", data=player_pdf, 
                                   file_name=f"{pname}_Report.pdf", mime="application/pdf")
     
     st.divider()
     
+    # KPI TABLE
+    st.subheader(f"ðŸ“Š Team KPI - {quarter} - {session_type}")
+    st.dataframe(kpi, use_container_width=True)
+    
+    # CSV EXPORT
+    csv = kpi.to_csv(index=False).encode('utf-8')
+    st.download_button("ðŸ“¥ Export KPI as CSV", data=csv, file_name=f"{team_name}_KPI.csv", mime="text/csv")
+    
+    st.divider()
     
     # VISUALIZATIONS
-    st.subheader("Court Visualizations")
+    st.subheader("ðŸ“ Court Visualizations")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**Player Trajectories**")
+        st.markdown("**ðŸ—ºï¸ Player Trajectories**")
+        traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
+        traj_data = uwb[uwb['player_id'] == traj_player]
+        
         fig_traj = go.Figure()
         sample_data = uwb.sample(min(2000, len(uwb)))
         for pid in sample_data['player_id'].unique():
@@ -1527,7 +1575,7 @@ with tab_analytics:
         st.plotly_chart(fig_traj, use_container_width=True)
     
     with col2:
-        st.markdown("**Density Heatmap**")
+        st.markdown("**ðŸ”¥ Density Heatmap**")
         heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
         heat_data = uwb[uwb['player_id'] == heat_player]
         
@@ -1542,7 +1590,7 @@ with tab_analytics:
     st.divider()
     
     # ACCELERATIONS
-    st.subheader("Acceleration Analysis")
+    st.subheader("âš¡ Acceleration Analysis")
     accel_player = st.selectbox("Select Player for Accelerations", all_players, key='accel_player')
     accel_data = uwb[uwb['player_id'] == accel_player].dropna(subset=['accel_calc'])
     accel_data = accel_data[np.abs(accel_data['accel_calc']) < 50]
@@ -1567,7 +1615,7 @@ with tab_analytics:
     st.divider()
     
     # PLAYER COMPARISON
-    st.subheader("Player Comparison Tool")
+    st.subheader("ðŸ”„ Player Comparison Tool")
     col_cmp1, col_cmp2 = st.columns(2)
     with col_cmp1: player_cmp_a = st.selectbox("Player A", all_players, key='cmp_a')
     with col_cmp2: player_cmp_b = st.selectbox("Player B", all_players, index=min(1, len(all_players)-1), key='cmp_b')
@@ -1594,16 +1642,7 @@ with tab_analytics:
                                        name=st.session_state.player_names.get(player_cmp_b, player_cmp_b)))
     fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=400)
     st.plotly_chart(fig_radar, use_container_width=True)
-# KPI TABLE
-    st.subheader(f"Team KPI - {quarter} - {session_type}")
-    st.dataframe(kpi, use_container_width=True)
-    
-    # CSV EXPORT
-    csv = kpi.to_csv(index=False).encode('utf-8')
-    st.download_button("Export KPI as CSV", data=csv, file_name=f"{team_name}_KPI.csv", mime="text/csv")
-    
+
 st.divider()
 
-st.caption(f"2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration")
-
-
+st.caption(f"Â© 2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration | Powered by Perplexity AI")
