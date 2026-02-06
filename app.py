@@ -34,6 +34,183 @@ if "authenticated" not in st.session_state:
 USERNAME = "coach"
 PASSWORD = "basket2026"
 
+# TRADUZIONI COMPLETE
+translations = {
+    "it": {
+        "logout": "Esci",
+        "welcome": "Benvenuto Coach!",
+        "tab_config": "Configurazione",
+        "tab_physical": "Profilo Fisico & AI",
+        "tab_ai": "Funzioni AI Elite",
+        "tab_analytics": "Analisi & Report",
+        "system_config": "Configurazione Sistema",
+        "team_name": "Nome Squadra",
+        "session_type": "Tipo Sessione",
+        "brand_color": "Colore Brand",
+        "data_source": "Sorgente Dati",
+        "use_sample": "Usa dati di esempio (raccomandato)",
+        "period_filter": "Filtro Periodo",
+        "min_quality": "Qualita Minima",
+        "max_speed": "Velocita Massima",
+        "email_config": "Configurazione Email (Opzionale)",
+        "player_mapping": "Mappatura Nomi Giocatori",
+        "match": "Partita",
+        "training": "Allenamento",
+        "period": "Periodo",
+        "full_session": "Sessione Completa",
+        "player": "Giocatore",
+        "smtp_server": "Server SMTP",
+        "smtp_port": "Porta SMTP",
+        "smtp_user": "Email Utente",
+        "smtp_password": "Password SMTP",
+        "configure_smtp": "Configura le impostazioni SMTP per abilitare l'invio email dei report agli atleti",
+        "email_saved": "Configurazione email salvata",
+        "email_disabled": "Invio email disabilitato - configura le impostazioni SMTP",
+        "change_names": "Modifica i nomi dei giocatori qui sotto per usare nomi personalizzati",
+        "physical_header": "Gestione Dati Fisici Atleti",
+        "physical_desc": "Inserisci i dati fisici e antropometrici di ogni atleta per abilitare i piani di allenamento e nutrizione personalizzati AI.",
+        "select_player": "Seleziona Giocatore per Modificare Profilo Fisico",
+        "physical_profile": "Profilo Fisico",
+        "personal_info": "Informazioni Personali",
+        "email": "Email",
+        "phone": "Telefono",
+        "birthdate": "Data di Nascita",
+        "nationality": "Nazionalita",
+        "physical_data": "Dati Fisici",
+        "height": "Altezza (cm)",
+        "weight": "Peso (kg)",
+        "age": "Eta",
+        "gender": "Sesso",
+        "male": "Maschio",
+        "female": "Femmina",
+        "bodyfat": "Massa Grassa (%)",
+        "vertical": "Salto Verticale (cm)",
+        "wingspan": "Apertura Alare (cm)",
+        "position": "Posizione",
+        "save_profile": "Salva Profilo Fisico",
+        "profile_saved": "Profilo salvato per",
+        "ai_training": "Piano di Allenamento Personalizzato AI",
+        "ai_training_desc": "L'AI analizza i dati di performance, il rischio infortuni, i pattern di movimento e il profilo fisico per generare un programma di allenamento personalizzato.",
+        "generate_training": "Genera Piano Allenamento AI",
+        "ai_nutrition": "Piano Nutrizionale Personalizzato AI",
+        "ai_nutrition_desc": "L'AI calcola il fabbisogno calorico (BMR, TDEE) e la distribuzione dei macronutrienti basandosi sul profilo fisico, livello di attivita e obiettivi.",
+        "activity_level": "Livello di Attivita",
+        "goal": "Obiettivo",
+        "generate_nutrition": "Genera Piano Nutrizionale AI",
+        "team_overview": "Panoramica Fisica Squadra",
+        "download_profiles": "Esporta Profili Fisici CSV",
+        "injury_risk": "Predittore Rischio Infortuni",
+        "offensive_ai": "Raccomandatore Giocate Offensive",
+        "defense_ai": "Ottimizzatore Matchup Difensivi",
+        "movement_ai": "Analizzatore Pattern di Movimento",
+        "shot_quality": "Simulatore Qualita Tiro",
+        "imu_jumps": "Rilevamento Salti IMU",
+        "team_performance": "Riepilogo Performance Squadra",
+        "total_distance": "Distanza Totale",
+        "max_speed": "Velocita Massima",
+        "avg_speed": "Velocita Media",
+        "avg_quality": "Qualita Media",
+        "export_reports": "Esporta Report",
+        "team_report": "Report Squadra",
+        "player_report": "Report Giocatore",
+        "team_kpi": "KPI Squadra",
+        "export_csv": "Esporta KPI come CSV",
+        "court_viz": "Visualizzazioni Campo",
+        "trajectories": "Traiettorie Giocatori",
+        "heatmap": "Mappa di Densita",
+        "accel_analysis": "Analisi Accelerazioni"
+    },
+    "en": {
+        "logout": "Logout",
+        "welcome": "Welcome Coach!",
+        "tab_config": "Configuration",
+        "tab_physical": "Physical Profile & AI",
+        "tab_ai": "AI Elite Features",
+        "tab_analytics": "Analytics & Reports",
+        "system_config": "System Configuration",
+        "team_name": "Team Name",
+        "session_type": "Session Type",
+        "brand_color": "Brand Color",
+        "data_source": "Data Source",
+        "use_sample": "Use sample data (recommended)",
+        "period_filter": "Period Filter",
+        "min_quality": "Min Quality",
+        "max_speed": "Max Speed Clip",
+        "email_config": "Email Configuration (Optional)",
+        "player_mapping": "Player Name Mapping",
+        "match": "Match",
+        "training": "Training",
+        "period": "Period",
+        "full_session": "Full Session",
+        "player": "Player",
+        "smtp_server": "SMTP Server",
+        "smtp_port": "SMTP Port",
+        "smtp_user": "SMTP User (Email)",
+        "smtp_password": "SMTP Password",
+        "configure_smtp": "Configure SMTP settings to enable email sending of reports to athletes",
+        "email_saved": "Email configuration saved",
+        "email_disabled": "Email sending disabled - configure SMTP settings",
+        "change_names": "Edit the mappings below to use custom names",
+        "physical_header": "Athlete Physical Data Management",
+        "physical_desc": "Insert physical and anthropometric data for each athlete to enable AI-powered personalized training and nutrition plans.",
+        "select_player": "Select Player to Edit Physical Profile",
+        "physical_profile": "Physical Profile",
+        "personal_info": "Personal Information",
+        "email": "Email",
+        "phone": "Phone",
+        "birthdate": "Birthdate",
+        "nationality": "Nationality",
+        "physical_data": "Physical Data",
+        "height": "Height (cm)",
+        "weight": "Weight (kg)",
+        "age": "Age",
+        "gender": "Gender",
+        "male": "Male",
+        "female": "Female",
+        "bodyfat": "Body Fat (%)",
+        "vertical": "Vertical Jump (cm)",
+        "wingspan": "Wingspan (cm)",
+        "position": "Position",
+        "save_profile": "Save Physical Profile",
+        "profile_saved": "Profile saved for",
+        "ai_training": "AI-Powered Personalized Training Plan",
+        "ai_training_desc": "The AI analyzes performance data, injury risk, movement patterns, and physical profile to generate a customized training program.",
+        "generate_training": "Generate AI Training Plan",
+        "ai_nutrition": "AI-Powered Personalized Nutrition Plan",
+        "ai_nutrition_desc": "The AI calculates caloric needs (BMR, TDEE) and macronutrient distribution based on physical profile, activity level, and goals.",
+        "activity_level": "Activity Level",
+        "goal": "Goal",
+        "generate_nutrition": "Generate AI Nutrition Plan",
+        "team_overview": "Team Physical Overview",
+        "download_profiles": "Export Physical Profiles CSV",
+        "injury_risk": "Injury Risk Predictor",
+        "offensive_ai": "Offensive Play Recommender",
+        "defense_ai": "Defensive Matchup Optimizer",
+        "movement_ai": "Movement Pattern Analyzer",
+        "shot_quality": "Shot Quality Simulator",
+        "imu_jumps": "IMU Jump Detection",
+        "team_performance": "Team Performance Summary",
+        "total_distance": "Total Distance",
+        "max_speed": "Max Speed",
+        "avg_speed": "Avg Speed",
+        "avg_quality": "Avg Quality",
+        "export_reports": "Export Reports",
+        "team_report": "Team Report",
+        "player_report": "Player Report",
+        "team_kpi": "Team KPI",
+        "export_csv": "Export KPI as CSV",
+        "court_viz": "Court Visualizations",
+        "trajectories": "Player Trajectories",
+        "heatmap": "Density Heatmap",
+        "accel_analysis": "Acceleration Analysis"
+    }
+}
+
+def t(key):
+    """Translation function"""
+    return translations[st.session_state.language].get(key, key)
+
+# LANGUAGE SELECTOR
 if st.session_state.language is None:
     st.markdown("<div style='text-align:center; padding:50px 0 30px 0;'><h1 style='color:#2563eb;'>CoachTrack Elite AI</h1><p style='color:#64748b; font-size:18px;'>Professional Basketball Analytics Platform</p></div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1,2,1])
@@ -47,6 +224,7 @@ if st.session_state.language is None:
             st.rerun()
     st.stop()
 
+# LOGIN
 if not st.session_state.authenticated:
     texts = {"it": {"title": "CoachTrack Elite AI", "subtitle": "Piattaforma Professionale di Analisi Basketball", "login_title": "Accedi", "username": "Username", "password": "Password", "login_btn": "Accedi", "error": "Username o password errati", "change_lang": "Cambia Lingua"}, "en": {"title": "CoachTrack Elite AI", "subtitle": "Professional Basketball Analytics Platform", "login_title": "Login", "username": "Username", "password": "Password", "login_btn": "Login", "error": "Invalid credentials", "change_lang": "Change Language"}}
     t_login = texts[st.session_state.language]
@@ -69,10 +247,8 @@ if not st.session_state.authenticated:
             st.rerun()
     st.stop()
 
-translations = {"it": {"logout": "Logout", "welcome": "Benvenuto Coach!", "tab_config": "Configurazione", "tab_physical": "Profilo Fisico & AI", "tab_ai": "Funzioni AI Elite", "tab_analytics": "Analisi & Report"}, "en": {"logout": "Logout", "welcome": "Welcome Coach!", "tab_config": "Configuration", "tab_physical": "Physical Profile & AI", "tab_ai": "AI Elite Features", "tab_analytics": "Analytics & Reports"}}
-def t(key):
-    return translations[st.session_state.language].get(key, key)
 def logout():
+    """Logout function"""
     if st.sidebar.button(t("logout"), use_container_width=True):
         st.session_state.authenticated = False
         st.session_state.language = None
@@ -84,14 +260,12 @@ def logout():
 st.set_page_config(page_title='CoachTrack Elite AI', layout='wide', initial_sidebar_state='collapsed')
 st.markdown("<style>header {visibility: hidden;}.main { background-color: #f8fafc !important; color: #1e293b !important; }.stTabs [data-baseweb='tab-list'] { background-color: #ffffff; border-radius: 12px; padding: 10px; border: 1px solid #e2e8f0; }.stTabs [data-baseweb='tab'] { height: 60px; color: #64748b !important; font-size: 16px !important; font-weight: 700 !important; }.stTabs [aria-selected='true'] { color: #2563eb !important; border-bottom: 4px solid #2563eb !important; }.predictive-card { background: #ffffff; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }.ai-report-light { background: #ffffff; padding: 30px; border-radius: 15px; border-left: 5px solid #2563eb; line-height: 1.6; margin: 15px 0; }.physical-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin: 10px 0; }.contact-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; margin: 10px 0; }</style>", unsafe_allow_html=True)
 
-st.title("CoachTrack Elite AI")
+# SIDEBAR (UN SOLO TITOLO)
 st.sidebar.title(t("welcome"))
 logout()
 st.sidebar.divider()
 
 
-# CORE FUNCTIONS
-# =================================================================
 def draw_basketball_court():
     court_length, court_width = 28.0, 15.0
     shapes = []
@@ -727,10 +901,70 @@ def load_uploaded(uwb_bytes, imu_bytes):
 
 # =================================================================
 # MAIN APP
+st.title("CoachTrack Elite AI")
+
+tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
+    t("tab_config"),
+    t("tab_physical"),
+    t("tab_ai"),
+    t("tab_analytics")
+])
+
+with tab_config:
+    st.header(t("system_config"))
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        team_name = st.text_input(t("team_name"), "Elite Basketball Academy", key='team_name')
+    with col2:
+        session_options = [t("match"), t("training")]
+        session_type = st.selectbox(t("session_type"), session_options, key='session_type')
+    with col3:
+        brand_color = st.color_picker(t("brand_color"), "#2563eb", key='brand_color')
+
+    st.subheader(t("data_source"))
+    use_sample = st.toggle(t("use_sample"), value=True)
+    uwb_file, imu_file = None, None
+    if not use_sample:
+        col_f1, col_f2 = st.columns(2)
+        with col_f1: uwb_file = st.file_uploader("UWB CSV", type=['csv'])
+        with col_f2: imu_file = st.file_uploader("IMU CSV (optional)", type=['csv'])
+
+    st.subheader(t("period_filter"))
+    col_p1, col_p2, col_p3 = st.columns(3)
+    with col_p1: 
+        period_options = [t("full_session"), 'Q1 (0-10min)', 'Q2 (10-20min)', 'Q3 (20-30min)', 'Q4 (30-40min)']
+        quarter = st.selectbox(t("period"), period_options)
+    with col_p2: min_q = st.slider(t("min_quality"), 0, 100, 50)
+    with col_p3: max_speed_clip = st.slider(t("max_speed"), 10, 40, 30)
+
+    st.divider()
+    st.subheader(t("email_config"))
+    st.info(t("configure_smtp"))
+
+    col_smtp1, col_smtp2 = st.columns(2)
+    with col_smtp1:
+        smtp_server = st.text_input(t("smtp_server"), "smtp.gmail.com", key='smtp_server')
+        smtp_user = st.text_input(t("smtp_user"), "", key='smtp_user')
+    with col_smtp2:
+        smtp_port = st.number_input(t("smtp_port"), 587, 587, 587, key='smtp_port')
+        smtp_password = st.text_input(t("smtp_password"), "", type="password", key='smtp_password')
+
+    if smtp_user and smtp_password:
+        st.success(t("email_saved"))
+        smtp_config = {'smtp_server': smtp_server, 'smtp_port': smtp_port, 'smtp_user': smtp_user, 'smtp_password': smtp_password}
+    else:
+        smtp_config = None
+        st.warning(t("email_disabled"))
+
+    st.divider()
+    st.subheader(t("player_mapping"))
+    st.info(t("change_names"))
+
 # =================================================================
 
 # HOMEPAGE
-st.title("CoachTrack Elite AI")
+# Title removed - using sidebar only
 
 # TABS (ADDED NEW TAB)
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
