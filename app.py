@@ -25,7 +25,7 @@ except ImportError:
     PDF_AVAILABLE = False
 
 # =================================================================
-# 🔐 LOGIN SYSTEM
+# LOGIN SYSTEM
 # =================================================================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -34,10 +34,9 @@ USERNAME = "coach"
 PASSWORD = "basket2026"
 
 def login():
-    """Login form"""
     st.markdown("""
     <div style='text-align:center; padding:50px 0 30px 0;'>
-        <h1 style='color:#2563eb;'>🏀 CoachTrack Elite AI</h1>
+        <h1 style='color:#2563eb;'>CoachTrack Elite AI</h1>
         <p style='color:#64748b; font-size:18px;'>Professional Basketball Analytics Platform</p>
     </div>
     """, unsafe_allow_html=True)
@@ -45,25 +44,23 @@ def login():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.form("login_form", clear_on_submit=True):
-            st.markdown("### 🔐 Login")
+            st.markdown("### Login")
             username = st.text_input("Username", placeholder="coach")
             password = st.text_input("Password", type="password", placeholder="••••••••")
-            submit = st.form_submit_button("🚀 Accedi", use_container_width=True)
+            submit = st.form_submit_button("Accedi", use_container_width=True)
 
             if submit:
                 if username == USERNAME and password == PASSWORD:
                     st.session_state.authenticated = True
                     st.rerun()
                 else:
-                    st.error("❌ Username o password errati!")
+                    st.error("ERROR Username o password errati!")
 
 def logout():
-    """Logout button"""
-    if st.sidebar.button("🚪 Logout", use_container_width=True):
+    if st.sidebar.button("Logout", use_container_width=True):
         st.session_state.authenticated = False
         st.rerun()
 
-# Check authentication
 if not st.session_state.authenticated:
     login()
     st.stop()
@@ -732,8 +729,7 @@ def load_uploaded(uwb_bytes, imu_bytes):
 # HOMEPAGE
 st.title("CoachTrack Elite AI")
 
-# Sidebar with logout
-st.sidebar.title("👋 Benvenuto Coach!")
+st.sidebar.title("Benvenuto Coach!")
 logout()
 st.sidebar.divider()
 
