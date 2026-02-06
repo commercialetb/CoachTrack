@@ -1511,7 +1511,6 @@ with tab_analytics:
                           plot_bgcolor='rgba(34,139,34,0.2)', height=500, showlegend=True)
     st.plotly_chart(fig_traj, use_container_width=True)
 
-    
     with col2:
         st.markdown("**🔥 Density Heatmap**")
         heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
