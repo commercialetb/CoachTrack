@@ -1491,15 +1491,6 @@ with tab_analytics:
     
     st.divider()
     
-    # KPI TABLE
-    st.subheader(f"Team KPI - {quarter} - {session_type}")
-    st.dataframe(kpi, use_container_width=True)
-    
-    # CSV EXPORT
-    csv = kpi.to_csv(index=False).encode('utf-8')
-    st.download_button("Export KPI as CSV", data=csv, file_name=f"{team_name}_KPI.csv", mime="text/csv")
-    
-    st.divider()
     
     # VISUALIZATIONS
     st.subheader("Court Visualizations")
@@ -1588,7 +1579,15 @@ with tab_analytics:
                                        name=st.session_state.player_names.get(player_cmp_b, player_cmp_b)))
     fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=400)
     st.plotly_chart(fig_radar, use_container_width=True)
-
+# KPI TABLE
+    st.subheader(f"Team KPI - {quarter} - {session_type}")
+    st.dataframe(kpi, use_container_width=True)
+    
+    # CSV EXPORT
+    csv = kpi.to_csv(index=False).encode('utf-8')
+    st.download_button("Export KPI as CSV", data=csv, file_name=f"{team_name}_KPI.csv", mime="text/csv")
+    
 st.divider()
 
 st.caption(f"2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration")
+
