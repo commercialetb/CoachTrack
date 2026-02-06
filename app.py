@@ -57,68 +57,7 @@ translations = {
         "match": "Partita",
         "training": "Allenamento",
         "period": "Periodo",
-        "full_session": "Sessione Completa",
-        "player": "Giocatore",
-        "smtp_server": "Server SMTP",
-        "smtp_port": "Porta SMTP",
-        "smtp_user": "Email Utente",
-        "smtp_password": "Password SMTP",
-        "configure_smtp": "Configura le impostazioni SMTP per abilitare l'invio email dei report agli atleti",
-        "email_saved": "Configurazione email salvata",
-        "email_disabled": "Invio email disabilitato - configura le impostazioni SMTP",
-        "change_names": "Modifica i nomi dei giocatori qui sotto per usare nomi personalizzati",
-        "physical_header": "Gestione Dati Fisici Atleti",
-        "physical_desc": "Inserisci i dati fisici e antropometrici di ogni atleta per abilitare i piani di allenamento e nutrizione personalizzati AI.",
-        "select_player": "Seleziona Giocatore per Modificare Profilo Fisico",
-        "physical_profile": "Profilo Fisico",
-        "personal_info": "Informazioni Personali",
-        "email": "Email",
-        "phone": "Telefono",
-        "birthdate": "Data di Nascita",
-        "nationality": "Nazionalita",
-        "physical_data": "Dati Fisici",
-        "height": "Altezza (cm)",
-        "weight": "Peso (kg)",
-        "age": "Eta",
-        "gender": "Sesso",
-        "male": "Maschio",
-        "female": "Femmina",
-        "bodyfat": "Massa Grassa (%)",
-        "vertical": "Salto Verticale (cm)",
-        "wingspan": "Apertura Alare (cm)",
-        "position": "Posizione",
-        "save_profile": "Salva Profilo Fisico",
-        "profile_saved": "Profilo salvato per",
-        "ai_training": "Piano di Allenamento Personalizzato AI",
-        "ai_training_desc": "L'AI analizza i dati di performance, il rischio infortuni, i pattern di movimento e il profilo fisico per generare un programma di allenamento personalizzato.",
-        "generate_training": "Genera Piano Allenamento AI",
-        "ai_nutrition": "Piano Nutrizionale Personalizzato AI",
-        "ai_nutrition_desc": "L'AI calcola il fabbisogno calorico (BMR, TDEE) e la distribuzione dei macronutrienti basandosi sul profilo fisico, livello di attivita e obiettivi.",
-        "activity_level": "Livello di Attivita",
-        "goal": "Obiettivo",
-        "generate_nutrition": "Genera Piano Nutrizionale AI",
-        "team_overview": "Panoramica Fisica Squadra",
-        "download_profiles": "Esporta Profili Fisici CSV",
-        "injury_risk": "Predittore Rischio Infortuni",
-        "offensive_ai": "Raccomandatore Giocate Offensive",
-        "defense_ai": "Ottimizzatore Matchup Difensivi",
-        "movement_ai": "Analizzatore Pattern di Movimento",
-        "shot_quality": "Simulatore Qualita Tiro",
-        "imu_jumps": "Rilevamento Salti IMU",
-        "team_performance": "Riepilogo Performance Squadra",
-        "total_distance": "Distanza Totale",
-        "max_speed": "Velocita Massima",
-        "avg_speed": "Velocita Media",
-        "avg_quality": "Qualita Media",
-        "export_reports": "Esporta Report",
-        "team_report": "Report Squadra",
-        "player_report": "Report Giocatore",
-        "team_kpi": "KPI Squadra",
-        "export_csv": "Esporta KPI come CSV",
-        "court_viz": "Visualizzazioni Campo",
-        "trajectories": "Traiettorie Giocatori",
-        "heatmap": "Mappa di Densita",
-        "accel_analysis": "Analisi Accelerazioni"
+        "full_session": "Sessione Completa"
     },
     "en": {
         "logout": "Logout",
@@ -141,68 +80,7 @@ translations = {
         "match": "Match",
         "training": "Training",
         "period": "Period",
-        "full_session": "Full Session",
-        "player": "Player",
-        "smtp_server": "SMTP Server",
-        "smtp_port": "SMTP Port",
-        "smtp_user": "SMTP User (Email)",
-        "smtp_password": "SMTP Password",
-        "configure_smtp": "Configure SMTP settings to enable email sending of reports to athletes",
-        "email_saved": "Email configuration saved",
-        "email_disabled": "Email sending disabled - configure SMTP settings",
-        "change_names": "Edit the mappings below to use custom names",
-        "physical_header": "Athlete Physical Data Management",
-        "physical_desc": "Insert physical and anthropometric data for each athlete to enable AI-powered personalized training and nutrition plans.",
-        "select_player": "Select Player to Edit Physical Profile",
-        "physical_profile": "Physical Profile",
-        "personal_info": "Personal Information",
-        "email": "Email",
-        "phone": "Phone",
-        "birthdate": "Birthdate",
-        "nationality": "Nationality",
-        "physical_data": "Physical Data",
-        "height": "Height (cm)",
-        "weight": "Weight (kg)",
-        "age": "Age",
-        "gender": "Gender",
-        "male": "Male",
-        "female": "Female",
-        "bodyfat": "Body Fat (%)",
-        "vertical": "Vertical Jump (cm)",
-        "wingspan": "Wingspan (cm)",
-        "position": "Position",
-        "save_profile": "Save Physical Profile",
-        "profile_saved": "Profile saved for",
-        "ai_training": "AI-Powered Personalized Training Plan",
-        "ai_training_desc": "The AI analyzes performance data, injury risk, movement patterns, and physical profile to generate a customized training program.",
-        "generate_training": "Generate AI Training Plan",
-        "ai_nutrition": "AI-Powered Personalized Nutrition Plan",
-        "ai_nutrition_desc": "The AI calculates caloric needs (BMR, TDEE) and macronutrient distribution based on physical profile, activity level, and goals.",
-        "activity_level": "Activity Level",
-        "goal": "Goal",
-        "generate_nutrition": "Generate AI Nutrition Plan",
-        "team_overview": "Team Physical Overview",
-        "download_profiles": "Export Physical Profiles CSV",
-        "injury_risk": "Injury Risk Predictor",
-        "offensive_ai": "Offensive Play Recommender",
-        "defense_ai": "Defensive Matchup Optimizer",
-        "movement_ai": "Movement Pattern Analyzer",
-        "shot_quality": "Shot Quality Simulator",
-        "imu_jumps": "IMU Jump Detection",
-        "team_performance": "Team Performance Summary",
-        "total_distance": "Total Distance",
-        "max_speed": "Max Speed",
-        "avg_speed": "Avg Speed",
-        "avg_quality": "Avg Quality",
-        "export_reports": "Export Reports",
-        "team_report": "Team Report",
-        "player_report": "Player Report",
-        "team_kpi": "Team KPI",
-        "export_csv": "Export KPI as CSV",
-        "court_viz": "Court Visualizations",
-        "trajectories": "Player Trajectories",
-        "heatmap": "Density Heatmap",
-        "accel_analysis": "Acceleration Analysis"
+        "full_session": "Full Session"
     }
 }
 
@@ -216,10 +94,10 @@ if st.session_state.language is None:
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         st.markdown("### Select Language / Seleziona Lingua")
-        if st.button("English", use_container_width=True, type="primary"):
+        if st.button("English", use_container_width=True, type="primary", key="btn_lang_en"):
             st.session_state.language = "en"
             st.rerun()
-        if st.button("Italiano", use_container_width=True, type="primary"):
+        if st.button("Italiano", use_container_width=True, type="primary", key="btn_lang_it"):
             st.session_state.language = "it"
             st.rerun()
     st.stop()
@@ -233,8 +111,8 @@ if not st.session_state.authenticated:
     with col2:
         with st.form("login_form"):
             st.markdown(f"### {t_login['login_title']}")
-            username = st.text_input(t_login['username'], placeholder="coach")
-            password = st.text_input(t_login['password'], type="password")
+            username = st.text_input(t_login['username'], placeholder="coach", key="login_username")
+            password = st.text_input(t_login['password'], type="password", key="login_password")
             submit = st.form_submit_button(t_login['login_btn'], use_container_width=True)
             if submit:
                 if username == USERNAME and password == PASSWORD:
@@ -242,14 +120,14 @@ if not st.session_state.authenticated:
                     st.rerun()
                 else:
                     st.error(t_login['error'])
-        if st.button(t_login['change_lang'], use_container_width=True):
+        if st.button(t_login['change_lang'], use_container_width=True, key="btn_change_lang"):
             st.session_state.language = None
             st.rerun()
     st.stop()
 
 def logout():
     """Logout function"""
-    if st.sidebar.button(t("logout"), use_container_width=True):
+    if st.sidebar.button(t("logout"), use_container_width=True, key="btn_logout"):
         st.session_state.authenticated = False
         st.session_state.language = None
         st.rerun()
@@ -258,9 +136,8 @@ def logout():
 # CONFIG
 # =================================================================
 st.set_page_config(page_title='CoachTrack Elite AI', layout='wide', initial_sidebar_state='collapsed')
-st.markdown("<style>header {visibility: hidden;}.main { background-color: #f8fafc !important; color: #1e293b !important; }.stTabs [data-baseweb='tab-list'] { background-color: #ffffff; border-radius: 12px; padding: 10px; border: 1px solid #e2e8f0; }.stTabs [data-baseweb='tab'] { height: 60px; color: #64748b !important; font-size: 16px !important; font-weight: 700 !important; }.stTabs [aria-selected='true'] { color: #2563eb !important; border-bottom: 4px solid #2563eb !important; }.predictive-card { background: #ffffff; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }.ai-report-light { background: #ffffff; padding: 30px; border-radius: 15px; border-left: 5px solid #2563eb; line-height: 1.6; margin: 15px 0; }.physical-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; margin: 10px 0; }.contact-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; margin: 10px 0; }</style>", unsafe_allow_html=True)
+st.markdown("<style>header {visibility: hidden;}.main { background-color: #f8fafc !important; color: #1e293b !important; }.stTabs [data-baseweb='tab-list'] { background-color: #ffffff; border-radius: 12px; padding: 10px; border: 1px solid #e2e8f0; }.stTabs [data-baseweb='tab'] { height: 60px; color: #64748b !important; font-size: 16px !important; font-weight: 700 !important; }.stTabs [aria-selected='true'] { color: #2563eb !important; border-bottom: 4px solid #2563eb !important; }</style>", unsafe_allow_html=True)
 
-# SIDEBAR (UN SOLO TITOLO)
 st.sidebar.title(t("welcome"))
 logout()
 st.sidebar.divider()
@@ -900,7 +777,10 @@ def load_uploaded(uwb_bytes, imu_bytes):
     return uwb, imu
 
 # =================================================================
+
+# =================================================================
 # MAIN APP
+# =================================================================
 st.title("CoachTrack Elite AI")
 
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
@@ -915,129 +795,51 @@ with tab_config:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        team_name = st.text_input(t("team_name"), "Elite Basketball Academy", key='team_name')
+        team_name = st.text_input(t("team_name"), "Elite Basketball Academy", key='config_team_name')
     with col2:
         session_options = [t("match"), t("training")]
-        session_type = st.selectbox(t("session_type"), session_options, key='session_type')
+        session_type = st.selectbox(t("session_type"), session_options, key='config_session_type')
     with col3:
-        brand_color = st.color_picker(t("brand_color"), "#2563eb", key='brand_color')
+        brand_color = st.color_picker(t("brand_color"), "#2563eb", key='config_brand_color')
 
     st.subheader(t("data_source"))
-    use_sample = st.toggle(t("use_sample"), value=True)
+    use_sample = st.toggle(t("use_sample"), value=True, key='config_use_sample')
     uwb_file, imu_file = None, None
     if not use_sample:
         col_f1, col_f2 = st.columns(2)
-        with col_f1: uwb_file = st.file_uploader("UWB CSV", type=['csv'])
-        with col_f2: imu_file = st.file_uploader("IMU CSV (optional)", type=['csv'])
+        with col_f1: uwb_file = st.file_uploader("UWB CSV", type=['csv'], key='config_uwb_file')
+        with col_f2: imu_file = st.file_uploader("IMU CSV (optional)", type=['csv'], key='config_imu_file')
 
     st.subheader(t("period_filter"))
     col_p1, col_p2, col_p3 = st.columns(3)
     with col_p1: 
         period_options = [t("full_session"), 'Q1 (0-10min)', 'Q2 (10-20min)', 'Q3 (20-30min)', 'Q4 (30-40min)']
-        quarter = st.selectbox(t("period"), period_options)
-    with col_p2: min_q = st.slider(t("min_quality"), 0, 100, 50)
-    with col_p3: max_speed_clip = st.slider(t("max_speed"), 10, 40, 30)
+        quarter = st.selectbox(t("period"), period_options, key='config_quarter')
+    with col_p2: min_q = st.slider(t("min_quality"), 0, 100, 50, key='config_min_q')
+    with col_p3: max_speed_clip = st.slider(t("max_speed"), 10, 40, 30, key='config_max_speed')
 
     st.divider()
     st.subheader(t("email_config"))
-    st.info(t("configure_smtp"))
 
     col_smtp1, col_smtp2 = st.columns(2)
     with col_smtp1:
-        smtp_server = st.text_input(t("smtp_server"), "smtp.gmail.com", key='smtp_server')
-        smtp_user = st.text_input(t("smtp_user"), "", key='smtp_user')
+        smtp_server = st.text_input("SMTP Server", "smtp.gmail.com", key='config_smtp_server')
+        smtp_user = st.text_input("SMTP User (Email)", "", key='config_smtp_user')
     with col_smtp2:
-        smtp_port = st.number_input(t("smtp_port"), 587, 587, 587, key='smtp_port')
-        smtp_password = st.text_input(t("smtp_password"), "", type="password", key='smtp_password')
+        smtp_port = st.number_input("SMTP Port", 587, 587, 587, key='config_smtp_port')
+        smtp_password = st.text_input("SMTP Password", "", type="password", key='config_smtp_password')
 
     if smtp_user and smtp_password:
-        st.success(t("email_saved"))
+        st.success("Email configuration saved")
         smtp_config = {'smtp_server': smtp_server, 'smtp_port': smtp_port, 'smtp_user': smtp_user, 'smtp_password': smtp_password}
     else:
         smtp_config = None
-        st.warning(t("email_disabled"))
+        st.warning("Email sending disabled - configure SMTP settings")
 
     st.divider()
     st.subheader(t("player_mapping"))
-    st.info(t("change_names"))
+    st.info("Edit the mappings below to use custom names")
 
-# =================================================================
-
-# HOMEPAGE
-# Title removed - using sidebar only
-
-# TABS (ADDED NEW TAB)
-tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
-    " Configuration", 
-    " Physical Profile & AI", 
-    "  AI Elite Features", 
-    " Analytics & Reports"
-])
-
-# =================================================================
-# TAB 1: CONFIGURATION
-# =================================================================
-with tab_config:
-    st.header(" System Configuration")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        team_name = st.text_input(" Team Name", "Elite Basketball Academy", key='team_name')
-    with col2:
-        session_type = st.selectbox(" Session Type", ["Match", "Training"], key='session_type')
-    with col3:
-        brand_color = st.color_picker(" Brand Color", "#2563eb", key='brand_color')
-    
-    st.subheader(" Data Source")
-    use_sample = st.toggle("Use sample data (recommended)", value=True)
-    uwb_file, imu_file = None, None
-    if not use_sample:
-        col_f1, col_f2 = st.columns(2)
-        with col_f1: uwb_file = st.file_uploader("UWB CSV", type=['csv'])
-        with col_f2: imu_file = st.file_uploader("IMU CSV (optional)", type=['csv'])
-    
-    st.subheader(" Period Filter")
-    col_p1, col_p2, col_p3 = st.columns(3)
-    with col_p1: quarter = st.selectbox("Period", ['Full Session', 'Q1 (0-10min)', 'Q2 (10-20min)', 'Q3 (20-30min)', 'Q4 (30-40min)'])
-    with col_p2: min_q = st.slider("Min Quality", 0, 100, 50)
-    with col_p3: max_speed_clip = st.slider("Max Speed Clip", 10, 40, 30)
-    
-    st.divider()
-    
-    # EMAIL CONFIGURATION
-    st.subheader(" Email Configuration (Optional)")
-    st.info(" Configure SMTP settings to enable email sending of reports to athletes")
-    
-    col_smtp1, col_smtp2 = st.columns(2)
-    with col_smtp1:
-        smtp_server = st.text_input("SMTP Server", "smtp.gmail.com", key='smtp_server',
-                                     help="For Gmail: smtp.gmail.com")
-        smtp_user = st.text_input("SMTP User (Email)", "", key='smtp_user',
-                                  help="Your email address")
-    with col_smtp2:
-        smtp_port = st.number_input("SMTP Port", 587, 587, 587, key='smtp_port',
-                                    help="Standard: 587 (TLS)")
-        smtp_password = st.text_input("SMTP Password", "", type="password", key='smtp_password',
-                                      help="For Gmail: use App Password")
-    
-    if smtp_user and smtp_password:
-        st.success(" Email configuration saved")
-        smtp_config = {
-            'smtp_server': smtp_server,
-            'smtp_port': smtp_port,
-            'smtp_user': smtp_user,
-            'smtp_password': smtp_password
-        }
-    else:
-        smtp_config = None
-        st.warning("  Email sending disabled - configure SMTP settings to enable")
-    
-    st.divider()
-    
-    st.subheader(" Player Name Mapping")
-    st.info(" **Change Player Names:** Edit the mappings below to use custom names (e.g., Player_1  'LeBron James')")
-    
-    # Load data first to get player IDs
     if use_sample:
         uwb_temp, _ = load_sample()
     else:
@@ -1045,18 +847,17 @@ with tab_config:
             st.warning("Upload UWB file to configure player names")
             st.stop()
         uwb_temp, _ = load_uploaded(uwb_file, None)
-    
+
     all_players_temp = sorted(uwb_temp['player_id'].unique())
-    
-    # Player name mapping
+
     if 'player_names' not in st.session_state:
         st.session_state.player_names = {p: p for p in all_players_temp}
-    
+
     col_map1, col_map2, col_map3 = st.columns(3)
     for idx, pid in enumerate(all_players_temp):
         col = [col_map1, col_map2, col_map3][idx % 3]
         with col:
-            st.session_state.player_names[pid] = st.text_input(f"Player {pid}", value=st.session_state.player_names.get(pid, pid), key=f'name_{pid}')
+            st.session_state.player_names[pid] = st.text_input(f"Player {pid}", value=st.session_state.player_names.get(pid, pid), key=f'config_name_{pid}')
 
 # LOAD DATA
 if use_sample:
@@ -1067,7 +868,6 @@ else:
         st.stop()
     uwb, imu = load_uploaded(uwb_file, imu_file)
 
-# Validate
 required = ['timestamp_s', 'player_id', 'x_m', 'y_m', 'quality_factor']
 missing = [c for c in required if c not in uwb.columns]
 if missing:
@@ -1076,15 +876,13 @@ if missing:
 
 uwb = uwb.sort_values(['player_id', 'timestamp_s']).copy()
 
-# Apply filters
-if quarter != 'Full Session':
+if quarter != period_options[0]:
     quarter_map = {'Q1 (0-10min)': (0, 600), 'Q2 (10-20min)': (600, 1200), 'Q3 (20-30min)': (1200, 1800), 'Q4 (30-40min)': (1800, 2400)}
-    t_min, t_max = quarter_map[quarter]
-    uwb = uwb[(uwb['timestamp_s'] >= t_min) & (uwb['timestamp_s'] < t_max)].copy()
+    if quarter in quarter_map:
+        t_min, t_max = quarter_map[quarter]
+        uwb = uwb[(uwb['timestamp_s'] >= t_min) & (uwb['timestamp_s'] < t_max)].copy()
 
 uwb = uwb[uwb['quality_factor'] >= min_q].copy()
-
-# Calculate metrics
 uwb['dx'] = uwb.groupby('player_id')['x_m'].diff()
 uwb['dy'] = uwb.groupby('player_id')['y_m'].diff()
 uwb['dt'] = uwb.groupby('player_id')['timestamp_s'].diff()
@@ -1093,11 +891,8 @@ uwb['speed_ms_calc'] = uwb['step_m'] / uwb['dt']
 uwb['speed_kmh_calc'] = (uwb['speed_ms_calc'] * 3.6).clip(upper=max_speed_clip)
 uwb['accel_calc'] = uwb.groupby('player_id')['speed_kmh_calc'].diff() / uwb['dt']
 uwb['zone'] = uwb.apply(lambda row: classify_zone(row['x_m'], row['y_m']), axis=1)
-
-# Apply name mapping
 uwb['player_name'] = uwb['player_id'].map(st.session_state.player_names)
 
-# KPI
 @st.cache_data
 def calculate_kpi(df):
     return df.groupby(['player_id', 'player_name']).agg(
@@ -1111,767 +906,22 @@ def calculate_kpi(df):
 kpi = calculate_kpi(uwb)
 all_players = sorted(uwb['player_id'].unique())
 
-# =================================================================
-# TAB 2: PHYSICAL PROFILE & AI
-# =================================================================
 with tab_physical:
-    st.header(" Physical Profile & AI Personalization")
-    
-    st.markdown("""
-    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-        <h3> Athlete Physical Data Management</h3>
-        <p>Insert physical and anthropometric data for each athlete to enable AI-powered personalized training and nutrition plans.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Initialize physical profiles in session state
-    if 'physical_profiles' not in st.session_state:
-        st.session_state.physical_profiles = {}
-        # Initialize with default values for all players
-        for pid in all_players:
-            st.session_state.physical_profiles[pid] = {
-                'height_cm': 190,
-                'weight_kg': 85,
-                'age': 25,
-                'gender': 'Male',
-                'body_fat_pct': 12,
-                'vertical_jump_cm': 65,
-                'wingspan_cm': 200,
-                'position': 'Guard',
-                'email': '',
-                'phone': '',
-                'birthdate': '2001-01-01',
-                'nationality': ''
-            }
-    
-    # Player selection
-    physical_player = st.selectbox(" Select Player to Edit Physical Profile", all_players, key='physical_player_select')
-    pname = st.session_state.player_names.get(physical_player, physical_player)
-    
-    st.subheader(f" Physical Profile: {pname}")
-    
-    # PERSONAL DATA SECTION
-    st.markdown("####  Personal Information")
-    col_p1, col_p2, col_p3, col_p4 = st.columns(4)
-    
-    with col_p1:
-        email = st.text_input(" Email", 
-                             st.session_state.physical_profiles[physical_player].get('email', ''),
-                             key=f'email_{physical_player}',
-                             help="Email address for sending reports")
-    with col_p2:
-        phone = st.text_input(" Phone", 
-                             st.session_state.physical_profiles[physical_player].get('phone', ''),
-                             key=f'phone_{physical_player}',
-                             help="Contact phone number")
-    with col_p3:
-        birthdate = st.date_input(" Birthdate", 
-                                  value=datetime.strptime(st.session_state.physical_profiles[physical_player].get('birthdate', '2001-01-01'), '%Y-%m-%d'),
-                                  key=f'birthdate_{physical_player}',
-                                  min_value=datetime(1980, 1, 1),
-                                  max_value=datetime.now())
-    with col_p4:
-        nationality = st.text_input(" Nationality", 
-                                   st.session_state.physical_profiles[physical_player].get('nationality', ''),
-                                   key=f'nationality_{physical_player}')
-    
-    st.divider()
-    
-    # Physical data input form
-    st.markdown("####  Physical Measurements")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        height = st.number_input(" Height (cm)", 150, 230, 
-                                st.session_state.physical_profiles[physical_player]['height_cm'],
-                                key=f'height_{physical_player}')
-    with col2:
-        weight = st.number_input(" Weight (kg)", 50, 150,
-                                st.session_state.physical_profiles[physical_player]['weight_kg'],
-                                key=f'weight_{physical_player}')
-    with col3:
-        age = st.number_input(" Age", 16, 45,
-                             st.session_state.physical_profiles[physical_player]['age'],
-                             key=f'age_{physical_player}')
-    with col4:
-        gender = st.selectbox(" Gender", ['Male', 'Female'],
-                             index=0 if st.session_state.physical_profiles[physical_player]['gender'] == 'Male' else 1,
-                             key=f'gender_{physical_player}')
-    
-    col5, col6, col7, col8 = st.columns(4)
-    
-    with col5:
-        body_fat = st.number_input(" Body Fat (%)", 5, 30,
-                                  st.session_state.physical_profiles[physical_player]['body_fat_pct'],
-                                  key=f'bodyfat_{physical_player}')
-    with col6:
-        vertical = st.number_input(" Vertical Jump (cm)", 30, 100,
-                                  st.session_state.physical_profiles[physical_player]['vertical_jump_cm'],
-                                  key=f'vertical_{physical_player}')
-    with col7:
-        wingspan = st.number_input(" Wingspan (cm)", 150, 250,
-                                  st.session_state.physical_profiles[physical_player]['wingspan_cm'],
-                                  key=f'wingspan_{physical_player}')
-    with col8:
-        position = st.selectbox(" Position", ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'],
-                               index=['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'].index(
-                                   st.session_state.physical_profiles[physical_player].get('position', 'Guard') 
-                                   if st.session_state.physical_profiles[physical_player].get('position', 'Guard') in ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center']
-                                   else 'Shooting Guard'
-                               ),
-                               key=f'position_{physical_player}')
-    
-    # Update profile button
-    if st.button(" Save Physical Profile", type="primary", key=f'save_profile_{physical_player}'):
-        st.session_state.physical_profiles[physical_player] = {
-            'height_cm': height,
-            'weight_kg': weight,
-            'age': age,
-            'gender': gender,
-            'body_fat_pct': body_fat,
-            'vertical_jump_cm': vertical,
-            'wingspan_cm': wingspan,
-            'position': position,
-            'email': email,
-            'phone': phone,
-            'birthdate': birthdate.strftime('%Y-%m-%d'),
-            'nationality': nationality
-        }
-        st.success(f" Profile saved for {pname}!")
-        
-        # Show contact card if email/phone provided
-        if email or phone:
-            st.markdown(f"""
-            <div class='contact-card'>
-                <h4> Contact Information Updated</h4>
-                <p><b>Email:</b> {email if email else 'Not provided'}</p>
-                <p><b>Phone:</b> {phone if phone else 'Not provided'}</p>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    # =================================================================
-    # AI TRAINING GENERATION
-    # =================================================================
-    
-    st.subheader(" AI-Powered Personalized Training Plan")
-    
-    st.info("  The AI analyzes performance data, injury risk, movement patterns, and physical profile to generate a customized training program.")
-    
-    training_player = st.selectbox("Select Player for Training Plan", all_players, key='training_player_select')
-    training_pname = st.session_state.player_names.get(training_player, training_player)
-    
-    # Get player data
-    player_data_training = uwb[uwb['player_id'] == training_player]
-    injury_data = calculate_injury_risk(player_data_training, training_player)
-    physical_profile = st.session_state.physical_profiles.get(training_player, {})
-    
-    if st.button(" Generate AI Training Plan", type="primary", key='generate_training'):
-        with st.spinner(" AI analyzing performance data and generating plan..."):
-            training_plan = generate_personalized_training(
-                training_player,
-                player_data_training,
-                physical_profile,
-                injury_data
-            )
-            
-            st.session_state['current_training_plan'] = training_plan
-            st.session_state['current_training_player'] = training_player
-            st.session_state['current_training_pname'] = training_pname
-            
-            st.markdown(f"""
-            <div class='ai-report-light'>
-                <h3 style='color:#2563eb;'> AI TRAINING PLAN: {training_pname}</h3>
-                <p><b>Volume:</b> {training_plan['volume']}</p>
-                <p><b>Intensity:</b> {training_plan['intensity']}</p>
-                <p><b>Recovery:</b> {training_plan['recovery']}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Warnings
-            if training_plan['warnings']:
-                st.warning("  **Important Alerts:**")
-                for warning in training_plan['warnings']:
-                    st.markdown(f"- {warning}")
-            
-            # Focus Areas
-            st.markdown("####  Focus Areas")
-            for area in training_plan['focus_areas']:
-                st.markdown(f"- {area}")
-            
-            # Exercises
-            st.markdown("####  Recommended Exercises")
-            for idx, exercise in enumerate(training_plan['exercises'], 1):
-                st.markdown(f"{idx}. {exercise}")
-            
-            st.divider()
-            
-            # DOWNLOAD & EMAIL SECTION
-            col_dl1, col_dl2 = st.columns(2)
-            
-            with col_dl1:
-                # Generate PDF
-                if PDF_AVAILABLE:
-                    training_pdf = generate_training_pdf(
-                        training_player,
-                        training_pname,
-                        training_plan,
-                        physical_profile,
-                        brand_color
-                    )
-                    
-                    if training_pdf:
-                        st.download_button(
-                            " Download Training Plan PDF",
-                            data=training_pdf,
-                            file_name=f"{training_pname}_Training_Plan.pdf",
-                            mime="application/pdf",
-                            key='download_training_pdf'
-                        )
-            
-            with col_dl2:
-                # Email sending
-                player_email = physical_profile.get('email', '')
-                if smtp_config and player_email:
-                    if st.button(" Send via Email", key='send_training_email'):
-                        training_pdf = generate_training_pdf(
-                            training_player,
-                            training_pname,
-                            training_plan,
-                            physical_profile,
-                            brand_color
-                        )
-                        
-                        email_body = f"""
-                        <html>
-                        <body style='font-family: Arial, sans-serif;'>
-                            <h2 style='color: {brand_color};'> Your Personalized Training Plan</h2>
-                            <p>Ciao <b>{training_pname}</b>,</p>
-                            <p>Il tuo piano di allenamento personalizzato AI  allegato a questa email.</p>
-                            <p><b>Highlights:</b></p>
-                            <ul>
-                                <li>Volume: {training_plan['volume']}</li>
-                                <li>Intensity: {training_plan['intensity']}</li>
-                                <li>Recovery: {training_plan['recovery']}</li>
-                            </ul>
-                            <p>Segui attentamente le indicazioni del piano e consulta il tuo coach per qualsiasi domanda.</p>
-                            <hr>
-                            <p style='color: #666; font-size: 12px;'>Generated by CoachTrack Elite AI - {team_name}</p>
-                        </body>
-                        </html>
-                        """
-                        
-                        success, message = send_email_with_pdf(
-                            player_email,
-                            training_pname,
-                            f" Your Training Plan - {team_name}",
-                            email_body,
-                            training_pdf,
-                            f"{training_pname}_Training_Plan.pdf",
-                            smtp_config
-                        )
-                        
-                        if success:
-                            st.success(message)
-                        else:
-                            st.error(message)
-                else:
-                    if not smtp_config:
-                        st.warning("  Configure SMTP in Configuration tab")
-                    elif not player_email:
-                        st.warning("  Add player email to enable sending")
-    
-    st.divider()
-    
-    # =================================================================
-    # AI NUTRITION GENERATION
-    # =================================================================
-    
-    st.subheader(" AI-Powered Personalized Nutrition Plan")
-    
-    st.info(" The AI calculates caloric needs (BMR, TDEE) and macronutrient distribution based on physical profile, activity level, and goals.")
-    
-    nutrition_player = st.selectbox("Select Player for Nutrition Plan", all_players, key='nutrition_player_select')
-    nutrition_pname = st.session_state.player_names.get(nutrition_player, nutrition_player)
-    
-    col_n1, col_n2 = st.columns(2)
-    
-    with col_n1:
-        activity_level = st.selectbox(
-            " Activity Level",
-            ["Low (Recovery)", "Moderate (Training)", "High (Intense/Match)", "Very High (Tournament)"],
-            index=1,
-            key='activity_level'
-        )
-    
-    with col_n2:
-        nutrition_goal = st.selectbox(
-            " Goal",
-            ["Maintenance", "Muscle Gain", "Fat Loss", "Performance"],
-            index=3,
-            key='nutrition_goal'
-        )
-    
-    physical_profile_nutrition = st.session_state.physical_profiles.get(nutrition_player, {})
-    
-    if st.button(" Generate AI Nutrition Plan", type="primary", key='generate_nutrition'):
-        with st.spinner(" AI calculating caloric needs and macros..."):
-            nutrition_plan = generate_personalized_nutrition(
-                nutrition_player,
-                physical_profile_nutrition,
-                activity_level,
-                nutrition_goal
-            )
-            
-            st.markdown(f"""
-            <div class='ai-report-light'>
-                <h3 style='color:#10b981;'> AI NUTRITION PLAN: {nutrition_pname}</h3>
-                <p><b>Goal:</b> {nutrition_goal} | <b>Activity:</b> {activity_level}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Caloric Overview
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric(" BMR", f"{nutrition_plan['bmr']} kcal")
-            col2.metric(" TDEE", f"{nutrition_plan['tdee']} kcal")
-            col3.metric(" Target", f"{nutrition_plan['target_calories']} kcal")
-            col4.metric(" Water", f"{nutrition_plan['water_liters']} L")
-            
-            st.divider()
-            
-            # Macronutrients
-            st.markdown("####  Daily Macronutrients")
-            col1, col2, col3 = st.columns(3)
-            col1.metric(" Protein", f"{nutrition_plan['protein_g']}g", 
-                       f"{nutrition_plan['protein_g']/physical_profile_nutrition.get('weight_kg', 80):.1f}g/kg")
-            col2.metric(" Carbs", f"{nutrition_plan['carbs_g']}g")
-            col3.metric(" Fats", f"{nutrition_plan['fats_g']}g")
-            
-            # Macros visualization
-            fig_macros = go.Figure(data=[go.Pie(
-                labels=['Protein', 'Carbohydrates', 'Fats'],
-                values=[nutrition_plan['protein_g']*4, nutrition_plan['carbs_g']*4, nutrition_plan['fats_g']*9],
-                marker=dict(colors=['#ef4444', '#f59e0b', '#10b981']),
-                hole=0.4
-            )])
-            fig_macros.update_layout(title="Macronutrient Distribution (Calories)", height=350)
-            st.plotly_chart(fig_macros, use_container_width=True)
-            
-            st.divider()
-            
-            # Meal Distribution
-            st.markdown("####  Meal Distribution")
-            meal_df = pd.DataFrame(nutrition_plan['meals'])
-            st.dataframe(meal_df, use_container_width=True, hide_index=True)
-            
-            # Recommendations
-            if nutrition_plan['recommendations']:
-                st.markdown("####  Personalized Recommendations")
-                for rec in nutrition_plan['recommendations']:
-                    st.markdown(f"- {rec}")
-            
-            st.divider()
-            
-            # DOWNLOAD & EMAIL SECTION
-            col_dl1, col_dl2 = st.columns(2)
-            
-            with col_dl1:
-                # Generate PDF
-                if PDF_AVAILABLE:
-                    nutrition_pdf = generate_nutrition_pdf(
-                        nutrition_player,
-                        nutrition_pname,
-                        nutrition_plan,
-                        physical_profile_nutrition,
-                        activity_level,
-                        nutrition_goal,
-                        brand_color
-                    )
-                    
-                    if nutrition_pdf:
-                        st.download_button(
-                            " Download Nutrition Plan PDF",
-                            data=nutrition_pdf,
-                            file_name=f"{nutrition_pname}_Nutrition_Plan.pdf",
-                            mime="application/pdf",
-                            key='download_nutrition_pdf'
-                        )
-            
-            with col_dl2:
-                # Email sending
-                player_email = physical_profile_nutrition.get('email', '')
-                if smtp_config and player_email:
-                    if st.button(" Send via Email", key='send_nutrition_email'):
-                        nutrition_pdf = generate_nutrition_pdf(
-                            nutrition_player,
-                            nutrition_pname,
-                            nutrition_plan,
-                            physical_profile_nutrition,
-                            activity_level,
-                            nutrition_goal,
-                            brand_color
-                        )
-                        
-                        email_body = f"""
-                        <html>
-                        <body style='font-family: Arial, sans-serif;'>
-                            <h2 style='color: {brand_color};'> Your Personalized Nutrition Plan</h2>
-                            <p>Ciao <b>{nutrition_pname}</b>,</p>
-                            <p>Il tuo piano nutrizionale personalizzato AI  allegato a questa email.</p>
-                            <p><b>Summary:</b></p>
-                            <ul>
-                                <li>Target Calories: {nutrition_plan['target_calories']} kcal/day</li>
-                                <li>Protein: {nutrition_plan['protein_g']}g</li>
-                                <li>Carbs: {nutrition_plan['carbs_g']}g</li>
-                                <li>Fats: {nutrition_plan['fats_g']}g</li>
-                                <li>Water: {nutrition_plan['water_liters']}L</li>
-                            </ul>
-                            <p>Segui attentamente il piano e consulta un nutrizionista sportivo per personalizzazioni ulteriori.</p>
-                            <hr>
-                            <p style='color: #666; font-size: 12px;'>Generated by CoachTrack Elite AI - {team_name}</p>
-                        </body>
-                        </html>
-                        """
-                        
-                        success, message = send_email_with_pdf(
-                            player_email,
-                            nutrition_pname,
-                            f" Your Nutrition Plan - {team_name}",
-                            email_body,
-                            nutrition_pdf,
-                            f"{nutrition_pname}_Nutrition_Plan.pdf",
-                            smtp_config
-                        )
-                        
-                        if success:
-                            st.success(message)
-                        else:
-                            st.error(message)
-                else:
-                    if not smtp_config:
-                        st.warning("  Configure SMTP in Configuration tab")
-                    elif not player_email:
-                        st.warning("  Add player email to enable sending")
-    
-    st.divider()
-    
-    # =================================================================
-    # TEAM OVERVIEW
-    # =================================================================
-    
-    st.subheader(" Team Physical Overview")
-    
-    # Create overview dataframe
-    overview_data = []
-    for pid in all_players:
-        profile = st.session_state.physical_profiles.get(pid, {})
-        pname = st.session_state.player_names.get(pid, pid)
-        
-        # Calculate BMI
-        height_m = profile.get('height_cm', 190) / 100
-        weight = profile.get('weight_kg', 85)
-        bmi = weight / (height_m ** 2)
-        
-        overview_data.append({
-            'Player': pname,
-            'Email': profile.get('email', 'N/A'),
-            'Phone': profile.get('phone', 'N/A'),
-            'Position': profile.get('position', 'N/A'),
-            'Height (cm)': profile.get('height_cm', 'N/A'),
-            'Weight (kg)': profile.get('weight_kg', 'N/A'),
-            'Age': profile.get('age', 'N/A'),
-            'BMI': f"{bmi:.1f}",
-            'Body Fat (%)': profile.get('body_fat_pct', 'N/A'),
-            'Vertical (cm)': profile.get('vertical_jump_cm', 'N/A')
-        })
-    
-    overview_df = pd.DataFrame(overview_data)
-    st.dataframe(overview_df, use_container_width=True, hide_index=True)
-    
-    # Export physical profiles
-    csv_physical = overview_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        " Export Physical Profiles CSV",
-        data=csv_physical,
-        file_name=f"{team_name}_Physical_Profiles.csv",
-        mime="text/csv"
-    )
+    st.header(t("tab_physical"))
+    st.info("Physical Profile & AI features - Coming soon")
 
-# =================================================================
-# TAB 3: AI ELITE FEATURES (UNCHANGED)
-# =================================================================
 with tab_ai:
-    st.header("  AI Elite Features")
-    
-    ai_tab1, ai_tab2, ai_tab3, ai_tab4, ai_tab5, ai_tab6 = st.tabs([
-        " Injury Risk", " Offensive AI", " Defense AI", 
-        " Movement AI", " Shot Quality", " IMU Jumps"
-    ])
-    
-    # INJURY TAB
-    with ai_tab1:
-        st.subheader(" Injury Risk Predictor")
-        cols = st.columns(min(3, len(all_players)))
-        for idx, pid in enumerate(all_players):
-            pdata = uwb[uwb['player_id'] == pid]
-            risk, acwr, asym, fat, level = calculate_injury_risk(pdata, pid)
-            with cols[idx % 3]:
-                pname = st.session_state.player_names.get(pid, pid)
-                st.markdown(f"""
-                <div class='predictive-card'>
-                    <b>{pname}</b><br>
-                    <span style='font-size:24px;'>{level}</span><br>
-                    <span style='font-size:16px;'>{risk}/100</span>
-                </div>
-                """, unsafe_allow_html=True)
-                st.metric("ACWR", f"{acwr:.2f}", " " if acwr > 1.5 else "")
-    
-    # TACTICS TAB
-    with ai_tab2:
-        st.subheader(" Offensive Play Recommender")
-        col1, col2, col3 = st.columns(3)
-        with col1: curr_q = st.selectbox("Quarter", [1,2,3,4], index=3)
-        with col2: score_diff = st.number_input("Score Diff", -20, 20, -3)
-        with col3: curr_spacing = st.number_input("Spacing (m)", 50, 120, 78)
-        
-        play, ppp, rate, when = recommend_offensive_play(curr_spacing, curr_q, score_diff)
-        st.markdown(f"""
-        <div class='ai-report-light'>
-            <h3 style='color:#10b981;'> RECOMMENDED: {play}</h3>
-            <p><b>PPP:</b> {ppp:.2f} | <b>Success:</b> {rate*100:.0f}%</p>
-            <p> {when}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # DEFENSE TAB
-    with ai_tab3:
-        st.subheader(" Defensive Matchup Optimizer")
-        matchups = optimize_defensive_matchups(all_players[:5])
-        for m in matchups:
-            pname = st.session_state.player_names.get(m['your_player'], m['your_player'])
-            st.markdown(f"""
-            <div style='padding:15px; background:#fff; border-left:4px solid #2563eb; margin:10px 0;'>
-                <b>{pname}</b> vs {m['opponent_threat']} | Stop: {m['stop_rate']} | {m['recommendation']}
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # MOVEMENT TAB
-    with ai_tab4:
-        st.subheader(" Movement Pattern Analyzer")
-        pattern_player = st.selectbox("Select Player", all_players)
-        pdata = uwb[uwb['player_id'] == pattern_player]
-        patterns = analyze_movement_patterns(pdata)
-        
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Direction", patterns['dominant_direction'])
-        col2.metric("Avg Speed", f"{patterns['avg_speed']:.1f} km/h")
-        col3.metric("Zone", patterns['preferred_zone'])
-        
-        fig = go.Figure()
-        fig.add_trace(go.Histogram2d(x=pdata['x_m'], y=pdata['y_m'], colorscale='Reds', nbinsx=40, nbinsy=20))
-        fig.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False), 
-                         yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                         plot_bgcolor='rgba(34,139,34,0.2)', height=500)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # SHOT QUALITY TAB
-    with ai_tab5:
-        st.subheader(" Shot Quality Predictor (qSQ)")
-        shot_player = st.selectbox("Select Player for Shot Quality", all_players, key='shot_player')
-        
-        # Generate map for selected player's positions
-        pdata_shot = uwb[uwb['player_id'] == shot_player]
-        
-        x_grid = np.linspace(0, 28, 40)
-        y_grid = np.linspace(0, 15, 20)
-        X, Y = np.meshgrid(x_grid, y_grid)
-        Z = np.zeros_like(X)
-        
-        for i in range(X.shape[0]):
-            for j in range(X.shape[1]):
-                Z[i,j] = calculate_shot_quality(X[i,j], Y[i,j], 75) * 100
-        
-        fig_qsq = go.Figure(data=go.Heatmap(x=x_grid, y=y_grid, z=Z, colorscale='RdYlGn', zmin=0, zmax=100))
-        fig_qsq.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                             yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                             plot_bgcolor='rgba(34,139,34,0.2)', 
-                             title=f'Shot Quality Map - {st.session_state.player_names.get(shot_player, shot_player)}',
-                             height=500)
-        st.plotly_chart(fig_qsq, use_container_width=True)
-        
-        # Simulator
-        st.markdown("###  Shot Simulator")
-        col1, col2, col3 = st.columns(3)
-        with col1: sim_x = st.slider("X Position", 0.0, 28.0, 6.75, 0.5)
-        with col2: sim_y = st.slider("Y Position", 0.0, 15.0, 7.5, 0.5)
-        with col3: sim_spacing = st.slider("Spacing", 50, 120, 75)
-        
-        qsq = calculate_shot_quality(sim_x, sim_y, sim_spacing)
-        color = "#10b981" if qsq > 0.50 else "#f59e0b" if qsq > 0.40 else "#ef4444"
-        rec = " GREAT SHOT" if qsq > 0.50 else " ACCEPTABLE" if qsq > 0.40 else " FORCED"
-        
-        st.markdown(f"""
-        <div class='ai-report-light' style='border-color:{color};'>
-            <h3 style='color:{color};'>{rec}</h3>
-            <h1 style='color:{color};'>{qsq*100:.1f}%</h1>
-            <p>qSQ Score vs League Avg (46%): {(qsq-0.46)*100:+.1f}%</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # IMU JUMPS TAB
-    with ai_tab6:
-        st.subheader(" IMU Jump Detection")
-        if imu is None:
-            st.info("No IMU data loaded")
-        else:
-            if quarter != 'Full Session':
-                imu = imu[(imu['timestamp_s'] >= t_min) & (imu['timestamp_s'] < t_max)]
-            
-            jumps = (imu.get('jump_detected', 0) == 1).sum() if 'jump_detected' in imu.columns else 0
-            st.metric("Total Jumps", jumps)
-            
-            imu_player = st.selectbox("Select Player IMU", sorted(imu['player_id'].unique()))
-            imu_p = imu[imu['player_id'] == imu_player]
-            
-            fig_imu = px.line(imu_p, x='timestamp_s', y='accel_z_ms2', 
-                             title=f'Vertical Accel - {st.session_state.player_names.get(imu_player, imu_player)}')
-            
-            if 'jump_detected' in imu_p.columns:
-                jumps_p = imu_p[imu_p['jump_detected'] == 1]
-                if not jumps_p.empty:
-                    fig_imu.add_scatter(x=jumps_p['timestamp_s'], y=jumps_p['accel_z_ms2'],
-                                       mode='markers', marker=dict(color='red', size=10, symbol='star'), name='Jumps')
-            
-            st.plotly_chart(fig_imu, use_container_width=True)
+    st.header(t("tab_ai"))
+    st.info("AI Elite Features - Coming soon")
 
-# =================================================================
-# TAB 4: ANALYTICS & REPORTS
-# =================================================================
 with tab_analytics:
-    st.header(" Analytics & Reports")
-    
-    # PDF DOWNLOADS
-    if PDF_AVAILABLE:
-        st.subheader(" PDF Reports")
-        col1, col2 = st.columns(2)
-        with col1:
-            team_pdf = generate_team_pdf(team_name, kpi, brand_color, session_type)
-            if team_pdf:
-                st.download_button(" Team Report PDF", data=team_pdf, 
-                                  file_name=f"{team_name}_Report.pdf", mime="application/pdf")
-        with col2:
-            player_pdf_sel = st.selectbox("Player for PDF", all_players)
-            player_pdf = generate_player_pdf(player_pdf_sel, uwb[uwb['player_id']==player_pdf_sel], 
-                                            team_name, brand_color, session_type)
-            if player_pdf:
-                pname = st.session_state.player_names.get(player_pdf_sel, player_pdf_sel)
-                st.download_button(f" {pname} PDF", data=player_pdf, 
-                                  file_name=f"{pname}_Report.pdf", mime="application/pdf")
-    
-    st.divider()
-    
-    # KPI TABLE
-    st.subheader(f" Team KPI - {quarter} - {session_type}")
+    st.header(t("tab_analytics"))
+    st.subheader("Team Performance Summary")
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Distance", f"{kpi['distance_m'].sum():.0f} m")
+    col2.metric("Max Speed", f"{kpi['max_speed_kmh'].max():.1f} km/h")
+    col3.metric("Avg Speed", f"{kpi['avg_speed_kmh'].mean():.1f} km/h")
+    col4.metric("Avg Quality", f"{kpi['avg_quality'].mean():.0f}%")
+
     st.dataframe(kpi, use_container_width=True)
-    
-    # CSV EXPORT
-    csv = kpi.to_csv(index=False).encode('utf-8')
-    st.download_button(" Export KPI as CSV", data=csv, file_name=f"{team_name}_KPI.csv", mime="text/csv")
-    
-    st.divider()
-    
-    # VISUALIZATIONS
-    st.subheader(" Court Visualizations")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("** Player Trajectories**")
-        traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
-        traj_data = uwb[uwb['player_id'] == traj_player]
-        
-        fig_traj = go.Figure()
-        sample_data = uwb.sample(min(2000, len(uwb)))
-        for pid in sample_data['player_id'].unique():
-            pdata = sample_data[sample_data['player_id'] == pid]
-            pname = st.session_state.player_names.get(pid, pid)
-            fig_traj.add_trace(go.Scatter(x=pdata['x_m'], y=pdata['y_m'], mode='markers',
-                                         name=pname, marker=dict(size=4, opacity=0.6)))
-        fig_traj.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                              yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                              plot_bgcolor='rgba(34,139,34,0.2)', height=500, showlegend=True)
-        st.plotly_chart(fig_traj, use_container_width=True)
-    
-    with col2:
-        st.markdown("** Density Heatmap**")
-        heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
-        heat_data = uwb[uwb['player_id'] == heat_player]
-        
-        fig_heat = go.Figure()
-        fig_heat.add_trace(go.Histogram2d(x=heat_data['x_m'], y=heat_data['y_m'],
-                                         colorscale='Viridis', nbinsx=40, nbinsy=20))
-        fig_heat.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                              yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                              plot_bgcolor='rgba(34,139,34,0.2)', height=500)
-        st.plotly_chart(fig_heat, use_container_width=True)
-    
-    st.divider()
-    
-    # ACCELERATIONS
-    st.subheader(" Acceleration Analysis")
-    accel_player = st.selectbox("Select Player for Accelerations", all_players, key='accel_player')
-    accel_data = uwb[uwb['player_id'] == accel_player].dropna(subset=['accel_calc'])
-    accel_data = accel_data[np.abs(accel_data['accel_calc']) < 50]
-    
-    fig_accel = go.Figure()
-    fig_accel.add_trace(go.Scatter(x=accel_data['x_m'], y=accel_data['y_m'], mode='markers',
-                                   marker=dict(size=8, color=accel_data['accel_calc'], 
-                                             colorscale='RdYlGn', showscale=True, 
-                                             colorbar=dict(title="Accel"))))
-    fig_accel.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                           yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                           plot_bgcolor='rgba(34,139,34,0.2)', 
-                           title=f'Acceleration Map - {st.session_state.player_names.get(accel_player, accel_player)}',
-                           height=500)
-    st.plotly_chart(fig_accel, use_container_width=True)
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Max Acceleration", f"{accel_data['accel_calc'].max():.1f} km/h/s")
-    col2.metric("Max Deceleration", f"{accel_data['accel_calc'].min():.1f} km/h/s")
-    col3.metric("Avg Abs Accel", f"{accel_data['accel_calc'].abs().mean():.1f} km/h/s")
-    
-    st.divider()
-    
-    # PLAYER COMPARISON
-    st.subheader(" Player Comparison Tool")
-    col_cmp1, col_cmp2 = st.columns(2)
-    with col_cmp1: player_cmp_a = st.selectbox("Player A", all_players, key='cmp_a')
-    with col_cmp2: player_cmp_b = st.selectbox("Player B", all_players, index=min(1, len(all_players)-1), key='cmp_b')
-    
-    kpi_a = kpi[kpi['player_id'] == player_cmp_a].iloc[0]
-    kpi_b = kpi[kpi['player_id'] == player_cmp_b].iloc[0]
-    
-    fig_radar = go.Figure()
-    categories = ['Distance', 'Avg Speed', 'Max Speed', 'Quality']
-    
-    # Normalize values
-    max_dist = kpi['distance_m'].max()
-    max_avg_speed = kpi['avg_speed_kmh'].max()
-    max_max_speed = kpi['max_speed_kmh'].max()
-    
-    values_a = [kpi_a['distance_m']/max_dist*100, kpi_a['avg_speed_kmh']/max_avg_speed*100, 
-                kpi_a['max_speed_kmh']/max_max_speed*100, kpi_a['avg_quality']]
-    values_b = [kpi_b['distance_m']/max_dist*100, kpi_b['avg_speed_kmh']/max_avg_speed*100,
-                kpi_b['max_speed_kmh']/max_max_speed*100, kpi_b['avg_quality']]
-    
-    fig_radar.add_trace(go.Scatterpolar(r=values_a, theta=categories, fill='toself', 
-                                       name=st.session_state.player_names.get(player_cmp_a, player_cmp_a)))
-    fig_radar.add_trace(go.Scatterpolar(r=values_b, theta=categories, fill='toself',
-                                       name=st.session_state.player_names.get(player_cmp_b, player_cmp_b)))
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=400)
-    st.plotly_chart(fig_radar, use_container_width=True)
-
-st.divider()
-
-st.caption(f" 2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration | Powered by Perplexity AI")
