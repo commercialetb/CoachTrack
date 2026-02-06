@@ -1329,23 +1329,38 @@ with tab_ai:
         "Movement AI", "Shot Quality", "IMU Jumps"
     ])
     
-    # INJURY TAB
+        # INJURY TAB
     with ai_tab1:
-        st.subheader("Injury Risk Predictor")
-        cols = st.columns(min(3, len(all_players)))
+        st.subheader("🩹 Injury Risk Predictor")
+        
+        # Griglia responsive per le card
+        cols = st.columns(3)  # Usa sempre 3 colonne fisse per ordine
+        
         for idx, pid in enumerate(all_players):
             pdata = uwb[uwb['player_id'] == pid]
             risk, acwr, asym, fat, level = calculate_injury_risk(pdata, pid)
+            pname = st.session_state.player_names.get(pid, pid)
+            
+            # Seleziona la colonna corretta (loop 0, 1, 2)
             with cols[idx % 3]:
-                pname = st.session_state.player_names.get(pid, pid)
-                st.markdown(f"""
-                <div class='predictive-card'>
-                    <b>{pname}</b><br>
-                    <span style='font-size:24px;'>{level}</span><br>
-                    <span style='font-size:16px;'>{risk}/100</span>
-                </div>
-                """, unsafe_allow_html=True)
-                st.metric("ACWR", f"{acwr:.2f}", "âš ï¸" if acwr > 1.5 else "âœ…")
+                # Container con bordo per separare visivamente ogni giocatore
+                with st.container(border=True):
+                    st.markdown(f"### {pname}")
+                    
+                    # Indicatore di rischio principale colorato
+                    risk_color = "red" if risk > 60 else "orange" if risk > 30 else "green"
+                    st.markdown(f"**Livello Rischio:** :{risk_color}[{level}]")
+                    st.progress(risk / 100, text=f"Risk Score: {risk}/100")
+                    
+                    st.divider()
+                    
+                    # Metriche dettagliate in colonne interne
+                    c1, c2 = st.columns(2)
+                    c1.metric("ACWR", f"{acwr:.2f}", delta="High" if acwr > 1.5 else "Normal", delta_color="inverse")
+                    c2.metric("Fatica", f"{fat:.1f}%", delta=None)
+                    
+                    st.caption(f"Asimmetria: {asym*100:.1f}%")
+
     
     # TACTICS TAB
     with ai_tab2:
@@ -1590,4 +1605,5 @@ with tab_analytics:
 st.divider()
 
 st.caption(f"2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration")
+
 
