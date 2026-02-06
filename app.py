@@ -1508,6 +1508,9 @@ with tab_analytics:
     
     with col1:
         st.markdown("**ðŸ—ºï¸ Player Trajectories**")
+        traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
+        traj_data = uwb[uwb['player_id'] == traj_player]
+        
         fig_traj = go.Figure()
         sample_data = uwb.sample(min(2000, len(uwb)))
         for pid in sample_data['player_id'].unique():
@@ -1590,4 +1593,5 @@ with tab_analytics:
     st.plotly_chart(fig_radar, use_container_width=True)
 
 st.divider()
+
 st.caption(f"Â© 2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration | Powered by Perplexity AI")
