@@ -25,15 +25,19 @@ except ImportError:
     PDF_AVAILABLE = False
 
 # =================================================================
-# LOGIN SYSTEM
+# LANGUAGE SELECTOR + LOGIN
 # =================================================================
+if "language" not in st.session_state:
+    st.session_state.language = None
+
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 USERNAME = "coach"
 PASSWORD = "basket2026"
 
-def login():
+# Language selection page
+if st.session_state.language is None:
     st.markdown("""
     <div style='text-align:center; padding:50px 0 30px 0;'>
         <h1 style='color:#2563eb;'>CoachTrack Elite AI</h1>
@@ -41,33 +45,130 @@ def login():
     </div>
     """, unsafe_allow_html=True)
 
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.markdown("### Select Language / Seleziona Lingua")
+        st.markdown("")
+        if st.button("English", use_container_width=True, type="primary"):
+            st.session_state.language = "en"
+            st.rerun()
+        st.markdown("")
+        if st.button("Italiano", use_container_width=True, type="primary"):
+            st.session_state.language = "it"
+            st.rerun()
+    st.stop()
+
+# Login page
+if not st.session_state.authenticated:
+    texts = {
+        "it": {
+            "title": "CoachTrack Elite AI",
+            "subtitle": "Piattaforma Professionale di Analisi Basketball",
+            "login_title": "Accedi",
+            "username": "Username",
+            "password": "Password",
+            "login_btn": "Accedi",
+            "error": "Username o password errati",
+            "change_lang": "Cambia Lingua"
+        },
+        "en": {
+            "title": "CoachTrack Elite AI",
+            "subtitle": "Professional Basketball Analytics Platform",
+            "login_title": "Login",
+            "username": "Username",
+            "password": "Password",
+            "login_btn": "Login",
+            "error": "Invalid credentials",
+            "change_lang": "Change Language"
+        }
+    }
+
+    t = texts[st.session_state.language]
+
+    st.markdown(f"""
+    <div style='text-align:center; padding:50px 0 30px 0;'>
+        <h1 style='color:#2563eb;'>{t['title']}</h1>
+        <p style='color:#64748b; font-size:18px;'>{t['subtitle']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        with st.form("login_form", clear_on_submit=True):
-            st.markdown("### Login")
-            username = st.text_input("Username", placeholder="coach")
-            password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Login", use_container_width=True)
+        with st.form("login_form"):
+            st.markdown(f"### {t['login_title']}")
+            username = st.text_input(t['username'], placeholder="coach")
+            password = st.text_input(t['password'], type="password")
+            submit = st.form_submit_button(t['login_btn'], use_container_width=True)
 
             if submit:
                 if username == USERNAME and password == PASSWORD:
                     st.session_state.authenticated = True
                     st.rerun()
                 else:
-                    st.error("Invalid credentials")
+                    st.error(t['error'])
 
-def logout():
-    if st.sidebar.button("Logout", use_container_width=True):
-        st.session_state.authenticated = False
-        st.rerun()
+        if st.button(t['change_lang'], use_container_width=True):
+            st.session_state.language = None
+            st.rerun()
 
-if not st.session_state.authenticated:
-    login()
     st.stop()
 
-# =================================================================
-# CONFIG
-# =================================================================
+# Translations dictionary
+translations = {
+    "it": {
+        "logout": "Logout",
+        "welcome": "Benvenuto Coach!",
+        "tab_config": "Configurazione",
+        "tab_physical": "Profilo Fisico & AI",
+        "tab_ai": "Funzioni AI Elite",
+        "tab_analytics": "Analisi & Report",
+        "system_config": "Configurazione Sistema",
+        "team_name": "Nome Squadra",
+        "session_type": "Tipo Sessione",
+        "brand_color": "Colore Brand",
+        "data_source": "Sorgente Dati",
+        "use_sample": "Usa dati di esempio (raccomandato)",
+        "period_filter": "Filtro Periodo",
+        "min_quality": "Qualita Minima",
+        "max_speed": "Velocita Max Clip",
+        "email_config": "Configurazione Email (Opzionale)",
+        "player_mapping": "Mappatura Nomi Giocatori",
+        "match": "Partita",
+        "training": "Allenamento"
+    },
+    "en": {
+        "logout": "Logout",
+        "welcome": "Welcome Coach!",
+        "tab_config": "Configuration",
+        "tab_physical": "Physical Profile & AI",
+        "tab_ai": "AI Elite Features",
+        "tab_analytics": "Analytics & Reports",
+        "system_config": "System Configuration",
+        "team_name": "Team Name",
+        "session_type": "Session Type",
+        "brand_color": "Brand Color",
+        "data_source": "Data Source",
+        "use_sample": "Use sample data (recommended)",
+        "period_filter": "Period Filter",
+        "min_quality": "Min Quality",
+        "max_speed": "Max Speed Clip",
+        "email_config": "Email Configuration (Optional)",
+        "player_mapping": "Player Name Mapping",
+        "match": "Match",
+        "training": "Training"
+    }
+}
+
+def t(key):
+    return translations[st.session_state.language].get(key, key)
+
+def logout():
+    if st.sidebar.button(t("logout"), use_container_width=True):
+        st.session_state.authenticated = False
+        st.session_state.language = None
+        st.rerun()
+
+
 # CONFIG
 # =================================================================
 st.set_page_config(page_title='CoachTrack Elite AI', layout='wide', initial_sidebar_state='collapsed')
@@ -729,12 +830,20 @@ def load_uploaded(uwb_bytes, imu_bytes):
 # HOMEPAGE
 st.title("CoachTrack Elite AI")
 
-st.sidebar.title("Welcome Coach!")
+st.sidebar.title(t("welcome"))
 logout()
 st.sidebar.divider()
 
 # TABS (ADDED NEW TAB)
 tab_config, tab_physical, tab_ai, tab_analytics = st.tabs([
+    t("tab_config"),
+    t("tab_physical"),
+    t("tab_ai"),
+    t("tab_analytics")
+])
+
+# Rimuovo vecchie tab
+"""
     " Configuration", 
     " Physical Profile & AI", 
     "  AI Elite Features", 
