@@ -1499,8 +1499,8 @@ with tab_analytics:
     
     with col1:
         st.markdown("**🗺️ Player Trajectories**")
-        heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
-        heat_data = uwb[uwb['player_id'] == heat_player]
+        heat_player = st.selectbox("Select Player", all_players, key='traj_viz')
+        heat_data = uwb[uwb['player_id'] == traj_player]
         
         fig_traj = go.Figure()
         sample_data = uwb.sample(min(2000, len(uwb)))
