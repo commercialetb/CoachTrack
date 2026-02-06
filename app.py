@@ -1505,36 +1505,53 @@ with tab_analytics:
     st.subheader("ðŸ“ Court Visualizations")
     
     col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**ðŸ—ºï¸ Player Trajectories**")
-        traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
-        traj_data = uwb[uwb['player_id'] == traj_player]
-        
-        fig_traj = go.Figure()
-        sample_data = uwb.sample(min(2000, len(uwb)))
-        for pid in sample_data['player_id'].unique():
-            pdata = sample_data[sample_data['player_id'] == pid]
-            pname = st.session_state.player_names.get(pid, pid)
-            fig_traj.add_trace(go.Scatter(x=pdata['x_m'], y=pdata['y_m'], mode='markers',
-                                         name=pname, marker=dict(size=4, opacity=0.6)))
-        fig_traj.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                              yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                              plot_bgcolor='rgba(34,139,34,0.2)', height=500, showlegend=True)
-        st.plotly_chart(fig_traj, use_container_width=True)
-    
-    with col2:
-        st.markdown("**ðŸ”¥ Density Heatmap**")
-        heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
-        heat_data = uwb[uwb['player_id'] == heat_player]
-        
-        fig_heat = go.Figure()
-        fig_heat.add_trace(go.Histogram2d(x=heat_data['x_m'], y=heat_data['y_m'],
-                                         colorscale='Viridis', nbinsx=40, nbinsy=20))
-        fig_heat.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                              yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                              plot_bgcolor='rgba(34,139,34,0.2)', height=500)
-        st.plotly_chart(fig_heat, use_container_width=True)
+
+with col1:
+    st.markdown("🗺️ **Player Trajectories**")
+    traj_player = st.selectbox("Select Player", all_players, key="traj_viz")
+    traj_data = uwb[uwb["player_id"] == traj_player]
+
+    fig_traj = go.Figure()
+    sample_data = uwb.sample(min(2000, len(uwb)))
+    for pid in sample_data["player_id"].unique():
+        pdata = sample_data[sample_data["player_id"] == pid]
+        pname = st.session_state.player_names.get(pid, pid)
+        fig_traj.add_trace(go.Scatter(
+            x=pdata["x_m"], y=pdata["y_m"],
+            mode="markers",
+            name=pname,
+            marker=dict(size=4, opacity=0.6),
+        ))
+
+    fig_traj.update_layout(
+        shapes=draw_basketball_court(),
+        xaxis=dict(range=[0, 28], showgrid=False),
+        yaxis=dict(range=[0, 15], scaleanchor="x", scaleratio=1, showgrid=False),
+        plot_bgcolor="rgba(34,139,34,0.2)",
+        height=500,
+        showlegend=True,
+    )
+    st.plotly_chart(fig_traj, use_container_width=True)
+
+with col2:
+    st.markdown("🔥 **Density Heatmap**")
+    heat_player = st.selectbox("Select Player", all_players, key="heat_viz")
+    heat_data = uwb[uwb["player_id"] == heat_player]
+
+    fig_heat = go.Figure()
+    fig_heat.add_trace(go.Histogram2d(
+        x=heat_data["x_m"], y=heat_data["y_m"],
+        colorscale="Viridis",
+        nbinsx=40, nbinsy=20,
+    ))
+    fig_heat.update_layout(
+        shapes=draw_basketball_court(),
+        xaxis=dict(range=[0, 28], showgrid=False),
+        yaxis=dict(range=[0, 15], scaleanchor="x", scaleratio=1, showgrid=False),
+        plot_bgcolor="rgba(34,139,34,0.2)",
+        height=500,
+    )
+    st.plotly_chart(fig_heat, use_container_width=True)
     
     st.divider()
     
@@ -1595,3 +1612,4 @@ with tab_analytics:
 st.divider()
 
 st.caption(f"Â© 2026 {team_name} | CoachTrack Elite AI v8.0 - Email Integration | Powered by Perplexity AI")
+
