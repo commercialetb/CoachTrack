@@ -24,7 +24,7 @@ except ImportError:
     PDF_AVAILABLE = False
 
 # =================================================================
-# LANGUAGE + LOGIN SYSTEM
+# LANGUAGE + LOGIN
 # =================================================================
 if "language" not in st.session_state:
     st.session_state.language = None
@@ -34,7 +34,7 @@ if "authenticated" not in st.session_state:
 USERNAME = "coach"
 PASSWORD = "basket2026"
 
-# COMPLETE TRANSLATIONS
+# COMPLETE TRANSLATIONS - 80+ keys
 translations = {
     "it": {
         "logout": "Esci", "welcome": "Benvenuto Coach!", "tab_config": "Configurazione",
@@ -43,14 +43,40 @@ translations = {
         "brand_color": "Colore Brand", "data_source": "Sorgente Dati", "use_sample": "Usa dati di esempio (raccomandato)",
         "period_filter": "Filtro Periodo", "min_quality": "Qualita Minima", "max_speed": "Velocita Massima",
         "match": "Partita", "training": "Allenamento", "period": "Periodo", "full_session": "Sessione Completa",
-        "email_config": "Configurazione Email", "player_mapping": "Mappatura Giocatori",
-        "injury_risk_title": "Predittore Rischio Infortuni",
-        "injury_risk_desc": "Analisi AI del rischio infortuni basata su carico, asimmetrie e fatica",
-        "risk_level": "Livello Rischio", "risk_score": "Punteggio", "acwr": "ACWR (Acuto/Cronico)",
-        "acwr_desc": "Rapporto carico recente vs cronico. Ideale: 0.8-1.3",
+        "email_config": "Configurazione Email (Opzionale)", "player_mapping": "Mappatura Nomi Giocatori",
+        "injury_risk_title": "Predittore Rischio Infortuni", "offensive_ai_title": "Raccomandatore Giocate Offensive",
+        "defense_ai_title": "Ottimizzatore Matchup Difensivi", "movement_ai_title": "Analizzatore Pattern Movimento",
+        "shot_quality_title": "Simulatore Qualita Tiro", "imu_jumps_title": "Rilevamento Salti IMU",
+        "physical_header": "Gestione Dati Fisici Atleti", "select_player_physical": "Seleziona Giocatore per Modificare Profilo Fisico",
+        "personal_info": "Informazioni Personali", "physical_measures": "Misure Fisiche",
+        "email": "Email", "phone": "Telefono", "birthdate": "Data di Nascita", "nationality": "Nazionalita",
+        "height": "Altezza (cm)", "weight": "Peso (kg)", "age": "Eta", "gender": "Sesso",
+        "male": "Maschio", "female": "Femmina", "bodyfat": "Massa Grassa (%)",
+        "vertical": "Salto Verticale (cm)", "wingspan": "Apertura Alare (cm)", "position": "Posizione",
+        "save_profile": "Salva Profilo Fisico", "profile_saved": "Profilo salvato per",
+        "ai_training_title": "Piano di Allenamento Personalizzato AI", "select_player_training": "Seleziona Giocatore per Piano Allenamento",
+        "generate_training": "Genera Piano Allenamento AI", "download_training": "Scarica PDF Piano Allenamento",
+        "send_email": "Invia via Email", "ai_nutrition_title": "Piano Nutrizionale Personalizzato AI",
+        "select_player_nutrition": "Seleziona Giocatore per Piano Nutrizionale", "activity_level": "Livello di Attivita",
+        "goal": "Obiettivo", "maintenance": "Mantenimento", "muscle_gain": "Aumento Massa",
+        "fat_loss": "Perdita Grasso", "performance": "Performance", "generate_nutrition": "Genera Piano Nutrizionale AI",
+        "download_nutrition": "Scarica PDF Piano Nutrizionale", "team_overview": "Panoramica Fisica Squadra",
+        "team_performance": "Riepilogo Performance Squadra", "total_distance": "Distanza Totale",
+        "max_speed": "Velocita Massima", "avg_speed": "Velocita Media", "avg_quality": "Qualita Media",
+        "export_reports": "Esporta Report", "team_report": "Report Squadra", "player_report": "Report Giocatore",
+        "download_team_pdf": "Scarica PDF Squadra", "download_player_pdf": "Scarica PDF Giocatore",
+        "select_player_report": "Seleziona Giocatore", "team_kpi": "KPI Squadra", "export_csv": "Esporta KPI CSV",
+        "smtp_server": "Server SMTP", "smtp_port": "Porta SMTP", "smtp_user": "Email Utente", "smtp_password": "Password SMTP",
+        "quarter": "Quarto", "score_diff": "Differenza Punteggio", "spacing": "Spaziatura (metri)",
+        "x_position": "Posizione X", "y_position": "Posizione Y", "select_player_movement": "Seleziona Giocatore",
+        "no_imu_data": "Nessun dato IMU caricato", "total_jumps": "Salti Totali",
+        "risk_low": "BASSO - Continua cosi", "risk_medium": "MEDIO - Monitora", "risk_high": "ALTO - Riduci carico",
+        "acwr": "ACWR (Acuto/Cronico)", "acwr_desc": "Rapporto carico recente vs cronico. Ideale: 0.8-1.3",
         "asymmetry": "Asimmetria", "asymmetry_desc": "Differenza dx/sx. Ideale: <15%",
         "fatigue": "Fatica", "fatigue_desc": "Calo velocita. Ideale: <10%",
-        "risk_low": "BASSO - Continua cosi", "risk_medium": "MEDIO - Monitora", "risk_high": "ALTO - Riduci carico"
+        "configure_smtp": "Configura le impostazioni SMTP", "email_saved": "Configurazione email salvata",
+        "email_disabled": "Invio email disabilitato - configura SMTP", "upload_uwb": "Carica file UWB",
+        "edit_mappings": "Modifica i nomi dei giocatori", "physical_desc": "Inserisci i dati fisici per AI training/nutrition"
     },
     "en": {
         "logout": "Logout", "welcome": "Welcome Coach!", "tab_config": "Configuration",
@@ -59,14 +85,40 @@ translations = {
         "brand_color": "Brand Color", "data_source": "Data Source", "use_sample": "Use sample data (recommended)",
         "period_filter": "Period Filter", "min_quality": "Min Quality", "max_speed": "Max Speed Clip",
         "match": "Match", "training": "Training", "period": "Period", "full_session": "Full Session",
-        "email_config": "Email Configuration", "player_mapping": "Player Mapping",
-        "injury_risk_title": "Injury Risk Predictor",
-        "injury_risk_desc": "AI injury risk analysis based on workload, asymmetries and fatigue",
-        "risk_level": "Risk Level", "risk_score": "Score", "acwr": "ACWR (Acute/Chronic)",
-        "acwr_desc": "Recent vs chronic load ratio. Optimal: 0.8-1.3",
+        "email_config": "Email Configuration (Optional)", "player_mapping": "Player Name Mapping",
+        "injury_risk_title": "Injury Risk Predictor", "offensive_ai_title": "Offensive Play Recommender",
+        "defense_ai_title": "Defensive Matchup Optimizer", "movement_ai_title": "Movement Pattern Analyzer",
+        "shot_quality_title": "Shot Quality Simulator", "imu_jumps_title": "IMU Jump Detection",
+        "physical_header": "Athlete Physical Data Management", "select_player_physical": "Select Player to Edit Physical Profile",
+        "personal_info": "Personal Information", "physical_measures": "Physical Measurements",
+        "email": "Email", "phone": "Phone", "birthdate": "Birthdate", "nationality": "Nationality",
+        "height": "Height (cm)", "weight": "Weight (kg)", "age": "Age", "gender": "Gender",
+        "male": "Male", "female": "Female", "bodyfat": "Body Fat (%)",
+        "vertical": "Vertical Jump (cm)", "wingspan": "Wingspan (cm)", "position": "Position",
+        "save_profile": "Save Physical Profile", "profile_saved": "Profile saved for",
+        "ai_training_title": "AI Personalized Training Plan", "select_player_training": "Select Player for Training Plan",
+        "generate_training": "Generate AI Training Plan", "download_training": "Download Training Plan PDF",
+        "send_email": "Send via Email", "ai_nutrition_title": "AI Personalized Nutrition Plan",
+        "select_player_nutrition": "Select Player for Nutrition Plan", "activity_level": "Activity Level",
+        "goal": "Goal", "maintenance": "Maintenance", "muscle_gain": "Muscle Gain",
+        "fat_loss": "Fat Loss", "performance": "Performance", "generate_nutrition": "Generate AI Nutrition Plan",
+        "download_nutrition": "Download Nutrition Plan PDF", "team_overview": "Team Physical Overview",
+        "team_performance": "Team Performance Summary", "total_distance": "Total Distance",
+        "max_speed": "Max Speed", "avg_speed": "Avg Speed", "avg_quality": "Avg Quality",
+        "export_reports": "Export Reports", "team_report": "Team Report", "player_report": "Player Report",
+        "download_team_pdf": "Download Team PDF", "download_player_pdf": "Download Player PDF",
+        "select_player_report": "Select Player", "team_kpi": "Team KPI", "export_csv": "Export KPI as CSV",
+        "smtp_server": "SMTP Server", "smtp_port": "SMTP Port", "smtp_user": "SMTP User (Email)", "smtp_password": "SMTP Password",
+        "quarter": "Quarter", "score_diff": "Score Difference", "spacing": "Spacing (meters)",
+        "x_position": "X Position", "y_position": "Y Position", "select_player_movement": "Select Player",
+        "no_imu_data": "No IMU data loaded", "total_jumps": "Total Jumps",
+        "risk_low": "LOW - Keep it up", "risk_medium": "MEDIUM - Monitor", "risk_high": "HIGH - Reduce load",
+        "acwr": "ACWR (Acute/Chronic)", "acwr_desc": "Recent vs chronic load ratio. Optimal: 0.8-1.3",
         "asymmetry": "Asymmetry", "asymmetry_desc": "Left/right difference. Optimal: <15%",
         "fatigue": "Fatigue", "fatigue_desc": "Speed drop. Optimal: <10%",
-        "risk_low": "LOW - Keep it up", "risk_medium": "MEDIUM - Monitor", "risk_high": "HIGH - Reduce load"
+        "configure_smtp": "Configure SMTP settings", "email_saved": "Email configuration saved",
+        "email_disabled": "Email disabled - configure SMTP", "upload_uwb": "Upload UWB file",
+        "edit_mappings": "Edit player name mappings", "physical_desc": "Insert physical data for AI training/nutrition"
     }
 }
 
@@ -125,7 +177,6 @@ st.markdown("<style>header {visibility: hidden;}.main { background-color: #f8faf
 st.sidebar.title(t("welcome"))
 logout()
 st.sidebar.divider()
-
 
 import streamlit as st
 import pandas as pd
