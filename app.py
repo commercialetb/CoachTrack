@@ -1498,6 +1498,7 @@ with tab_analytics:
     col1, col2 = st.columns(2)
 
 with col1:
+    
     st.markdown("🗺️ **Player Trajectories**")
     traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
     traj_data = uwb[uwb['player_id'] == traj_player]
@@ -1512,6 +1513,7 @@ with col1:
     st.plotly_chart(fig_traj, use_container_width=True)
 
 with col2:
+    
     st.markdown("🌡️ **Density Heatmap**")
     heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
     heat_data = uwb[uwb['player_id'] == heat_player]
