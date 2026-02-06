@@ -1496,8 +1496,8 @@ with tab_analytics:
     st.subheader("📍 Court Visualizations")
     
     col1, col2 = st.columns(2)
-    
-    with col1:
+
+with col1:
     st.markdown("🗺️ **Player Trajectories**")
     traj_player = st.selectbox("Select Player", all_players, key='traj_viz')
     traj_data = uwb[uwb['player_id'] == traj_player]
@@ -1511,18 +1511,18 @@ with tab_analytics:
                           plot_bgcolor='rgba(34,139,34,0.2)', height=500, showlegend=True)
     st.plotly_chart(fig_traj, use_container_width=True)
 
-    with col2:
-        st.markdown("**🔥 Density Heatmap**")
-        heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
-        heat_data = uwb[uwb['player_id'] == heat_player]
-        
-        fig_heat = go.Figure()
-        fig_heat.add_trace(go.Histogram2d(x=heat_data['x_m'], y=heat_data['y_m'],
-                                         colorscale='Viridis', nbinsx=40, nbinsy=20))
-        fig_heat.update_layout(shapes=draw_basketball_court(), xaxis=dict(range=[0,28], showgrid=False),
-                              yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
-                              plot_bgcolor='rgba(34,139,34,0.2)', height=500)
-        st.plotly_chart(fig_heat, use_container_width=True)
+with col2:
+    st.markdown("🌡️ **Density Heatmap**")
+    heat_player = st.selectbox("Select Player", all_players, key='heat_viz')
+    heat_data = uwb[uwb['player_id'] == heat_player]
+    fig_heat = go.Figure()
+    fig_heat.add_trace(go.Histogram2dcontour(x=heat_data['x_m'], y=heat_data['y_m'], colorscale='Viridis', nbinsx=40, nbinsy=20))
+    fig_heat.update_layout(shapes=draw_basketball_court(), 
+                          xaxis=dict(range=[0,28], showgrid=False), 
+                          yaxis=dict(range=[0,15], scaleanchor='x', scaleratio=1, showgrid=False),
+                          plot_bgcolor='rgba(34,139,34,0.2)', height=500)
+    st.plotly_chart(fig_heat, use_container_width=True)
+
     
     st.divider()
     
