@@ -610,22 +610,36 @@ with tab1:
             st.error(f"❌ Errore: {e}")
 
 # =================================================================
-# TAB 2: PHYSICAL PROFILE
+# TAB 2: PHYSICAL PROFILE (VERSIONE COMPLETA E FUNZIONALE)
 # =================================================================
 
 with tab2:
-    st.header("🏋️ Profilo Fisico & AI Nutrition Enhanced")
+    st.header("🏋️ Profilo Fisico & AI Nutrition")
     st.markdown("### 📊 Gestione Dati Fisici Completi")
     
-    with st.expander("📥 Carica Dati Fisici", expanded=False):
+    with st.expander("📥 Carica Dati Fisici", expanded=True):
         upload_tab, apple_tab, manual_tab = st.tabs(["📄 CSV Upload", "🍎 Apple Health", "✏️ Manuale"])
         
+        # =================================================================
+        # CSV UPLOAD TAB
+        # =================================================================
         with upload_tab:
-            st.markdown("#### Upload CSV con Dati Fisici")
+            st.markdown("#### 📄 Upload CSV con Dati Fisici")
+            
+            # Template download
             template_csv = create_physical_csv_template()
-            st.download_button("📥 Scarica Template CSV", template_csv, "physical_data_template.csv", "text/csv")
+            st.download_button(
+                "📥 Scarica Template CSV", 
+                template_csv, 
+                "physical_data_template.csv", 
+                "text/csv",
+                help="Scarica template con formato corretto"
+            )
+            
+            st.info("📋 Il CSV deve contenere: player_id, date, weight_kg, bmi, body_fat_pct, lean_mass_kg, body_water_pct, muscle_pct, bone_mass_kg, bmr, amr")
             
             uploaded_physical = st.file_uploader("Carica CSV Dati Fisici", type=['csv'], key='physical_csv')
+            
             if uploaded_physical:
                 df_physical, error = parse_physical_csv(uploaded_physical)
                 if error:
@@ -633,64 +647,391 @@ with tab2:
                 else:
                     st.success(f"✅ File caricato: {len(df_physical)} righe")
                     st.dataframe(df_physical.head())
+                    
+                    if st.button("💾 Importa tutti i profili", type="primary"):
+                        saved_count = 0
+                        for _, row in df_physical.iterrows():
+                            player_id = row['player_id']
+                            
+                            profile = {
+                                'date': row.get('date', datetime.now().strftime('%Y-%m-%d')),
+                                'source': 'CSV Upload',
+                                'weight_kg': float(row.get('weight_kg', 80)),
+                                'bmi': float(row.get('bmi', 22.5)),
+                                'body_fat_pct': float(row.get('body_fat_pct', 12)),
+                                'lean_mass_kg': float(row.get('lean_mass_kg', 68)),
+                                'body_water_pct': float(row.get('body_water_pct', 60)),
+                                'muscle_pct': float(row.get('muscle_pct', 45)),
+                                'bone_mass_kg': float(row.get('bone_mass_kg', 3.2)),
+                                'bmr': int(row.get('bmr', 1800)),
+                                'amr': int(row.get('amr', 2700))
+                            }
+                            
+                            st.session_state.physical_profiles[player_id] = profile
+                            saved_count += 1
+                        
+                        st.success(f"✅ Salvati {saved_count} profili!")
+                        st.rerun()
         
+        # =================================================================
+        # APPLE HEALTH TAB (SIMULAZIONE COMPLETA)
+        # =================================================================
         with apple_tab:
-            st.markdown("#### 🍎 Sincronizza Apple Health (Demo)")
-            st.info("ℹ️ Questa è una simulazione.")
-            if st.session_state.tracking_data:
-                player_for_sync = st.selectbox("Seleziona Giocatore", list(st.session_state.tracking_data.keys()))
-                if st.button("🔄 Sincronizza Apple Health (Demo)", type="primary"):
-                    health_data = simulate_apple_health_sync(player_for_sync)
-                    st.session_state.physical_profiles[player_for_sync] = health_data
-                    st.success(f"✅ Dati sincronizzati per {player_for_sync}")
-        
-        with manual_tab:
-            st.markdown("#### ✏️ Inserimento Manuale")
-            if st.session_state.tracking_data:
-                player_manual = st.selectbox("Giocatore", list(st.session_state.tracking_data.keys()), key='manual_player')
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    weight = st.number_input("Peso (kg)", 50.0, 150.0, 80.0, 0.1)
-                with col2:
-                    bmi = st.number_input("BMI", 15.0, 35.0, 22.5, 0.1)
-                with col3:
-                    body_fat = st.number_input("Grasso (%)", 3.0, 40.0, 12.0, 0.1)
+            st.markdown("#### 🍎 Sincronizza Apple Health (Simulazione)")
+            st.info("ℹ️ Questa è una simulazione realistica di Apple Health sync. In produzione userebbe l'API HealthKit.")
+            
+            if not st.session_state.tracking_
+                st.warning("⚠️ Carica prima dati UWB in Tab 1 per associare i profili fisici")
+            else:
+                player_for_sync = st.selectbox(
+                    "Seleziona Giocatore da sincronizzare", 
+                    list(st.session_state.tracking_data.keys()),
+                    key='apple_health_player'
+                )
                 
-                if st.button("💾 Salva Dati Manuali", type="primary"):
+                st.markdown("---")
+                st.markdown("##### 📱 Parametri Apple Health da simulare:")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Metriche Base**")
+                    apple_weight = st.number_input("Peso (kg)", 50.0, 150.0, 80.0, 0.1, key='apple_weight')
+                    apple_height = st.number_input("Altezza (cm)", 150.0, 220.0, 180.0, 0.1, key='apple_height')
+                    apple_age = st.number_input("Età", 16, 45, 25, 1, key='apple_age')
+                    apple_sex = st.selectbox("Sesso", ["M", "F"], key='apple_sex')
+                
+                with col2:
+                    st.markdown("**Composizione Corporea**")
+                    apple_body_fat = st.slider("Grasso Corporeo (%)", 5.0, 30.0, 12.0, 0.1, key='apple_fat')
+                    apple_muscle = st.slider("Massa Muscolare (%)", 30.0, 60.0, 45.0, 0.1, key='apple_muscle')
+                    apple_water = st.slider("Acqua Corporea (%)", 45.0, 70.0, 60.0, 0.1, key='apple_water')
+                    apple_bone = st.number_input("Massa Ossea (kg)", 2.0, 5.0, 3.2, 0.1, key='apple_bone')
+                
+                st.markdown("---")
+                
+                col3, col4 = st.columns(2)
+                
+                with col3:
+                    st.markdown("**Metabolismo**")
+                    calc_bmr = st.checkbox("Calcola BMR automaticamente", value=True, key='calc_bmr')
+                    if calc_bmr:
+                        # Formula Harris-Benedict
+                        if apple_sex == "M":
+                            bmr = int(88.362 + (13.397 * apple_weight) + (4.799 * apple_height) - (5.677 * apple_age))
+                        else:
+                            bmr = int(447.593 + (9.247 * apple_weight) + (3.098 * apple_height) - (4.330 * apple_age))
+                        st.info(f"🔥 BMR calcolato: {bmr} kcal/giorno")
+                        apple_bmr = bmr
+                    else:
+                        apple_bmr = st.number_input("BMR (kcal/giorno)", 1200, 3000, 1800, 10, key='apple_bmr_manual')
+                    
+                    activity_multiplier = st.selectbox(
+                        "Livello Attività",
+                        ["Sedentario (1.2)", "Leggero (1.375)", "Moderato (1.55)", "Intenso (1.725)", "Molto Intenso (1.9)"],
+                        index=3,
+                        key='apple_activity'
+                    )
+                    multiplier = float(activity_multiplier.split("(")[1].replace(")", ""))
+                    apple_amr = int(apple_bmr * multiplier)
+                
+                with col4:
+                    st.markdown("**Calcoli Automatici**")
+                    # BMI
+                    height_m = apple_height / 100
+                    apple_bmi = round(apple_weight / (height_m ** 2), 2)
+                    st.metric("BMI", apple_bmi)
+                    
+                    # Massa magra
+                    lean_mass = round(apple_weight * (1 - apple_body_fat/100), 1)
+                    st.metric("Massa Magra", f"{lean_mass} kg")
+                    
+                    st.metric("AMR", f"{apple_amr} kcal/giorno")
+                
+                st.markdown("---")
+                
+                if st.button("🔄 Sincronizza da Apple Health", type="primary", use_container_width=True):
+                    with st.spinner("📱 Sincronizzazione in corso..."):
+                        import time
+                        time.sleep(1.5)  # Simula sync
+                        
+                        health_data = {
+                            'player_id': player_for_sync,
+                            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                            'source': 'Apple Health Sync',
+                            'weight_kg': apple_weight,
+                            'height_cm': apple_height,
+                            'age': apple_age,
+                            'sex': apple_sex,
+                            'bmi': apple_bmi,
+                            'body_fat_pct': apple_body_fat,
+                            'lean_mass_kg': lean_mass,
+                            'body_water_pct': apple_water,
+                            'muscle_pct': apple_muscle,
+                            'bone_mass_kg': apple_bone,
+                            'bmr': apple_bmr,
+                            'amr': apple_amr
+                        }
+                        
+                        st.session_state.physical_profiles[player_for_sync] = health_data
+                        
+                        # Add to history
+                        if player_for_sync not in st.session_state.physical_history:
+                            st.session_state.physical_history[player_for_sync] = []
+                        st.session_state.physical_history[player_for_sync].append(health_data)
+                    
+                    st.success(f"✅ Dati Apple Health sincronizzati per {player_for_sync}!")
+                    
+                    with st.expander("📊 Dati salvati"):
+                        st.json(health_data)
+                    
+                    st.balloons()
+                    time.sleep(1)
+                    st.rerun()
+        
+        # =================================================================
+        # MANUAL ENTRY TAB (COMPLETO E FUNZIONALE)
+        # =================================================================
+        with manual_tab:
+            st.markdown("#### ✏️ Inserimento Manuale Completo")
+            
+            if not st.session_state.tracking_
+                st.warning("⚠️ Carica prima dati UWB in Tab 1")
+            else:
+                player_manual = st.selectbox(
+                    "Seleziona Giocatore", 
+                    list(st.session_state.tracking_data.keys()), 
+                    key='manual_player'
+                )
+                
+                st.markdown("---")
+                st.markdown("##### 📏 Dati Antropometrici")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    manual_weight = st.number_input("Peso (kg)", 50.0, 150.0, 80.0, 0.1, key='man_weight')
+                    manual_height = st.number_input("Altezza (cm)", 150.0, 220.0, 180.0, 1.0, key='man_height')
+                
+                with col2:
+                    manual_age = st.number_input("Età", 16, 45, 25, key='man_age')
+                    manual_sex = st.selectbox("Sesso", ["M", "F"], key='man_sex')
+                
+                with col3:
+                    # Auto-calculate BMI
+                    height_m = manual_height / 100
+                    manual_bmi = round(manual_weight / (height_m ** 2), 2)
+                    st.metric("BMI (calcolato)", manual_bmi)
+                
+                st.markdown("---")
+                st.markdown("##### 🔬 Composizione Corporea")
+                
+                col4, col5, col6 = st.columns(3)
+                
+                with col4:
+                    manual_body_fat = st.number_input("Grasso Corporeo (%)", 3.0, 40.0, 12.0, 0.1, key='man_fat')
+                    manual_muscle = st.number_input("Massa Muscolare (%)", 25.0, 60.0, 45.0, 0.1, key='man_muscle')
+                
+                with col5:
+                    manual_water = st.number_input("Acqua Corporea (%)", 45.0, 75.0, 60.0, 0.1, key='man_water')
+                    manual_bone = st.number_input("Massa Ossea (kg)", 2.0, 5.0, 3.2, 0.1, key='man_bone')
+                
+                with col6:
+                    # Auto-calculate lean mass
+                    manual_lean = round(manual_weight * (1 - manual_body_fat/100), 1)
+                    st.metric("Massa Magra (calc)", f"{manual_lean} kg")
+                
+                st.markdown("---")
+                st.markdown("##### 🔥 Metabolismo")
+                
+                col7, col8 = st.columns(2)
+                
+                with col7:
+                    auto_calc_bmr = st.checkbox("Calcola BMR automaticamente (Harris-Benedict)", value=True, key='man_auto_bmr')
+                    
+                    if auto_calc_bmr:
+                        if manual_sex == "M":
+                            calc_bmr = int(88.362 + (13.397 * manual_weight) + (4.799 * manual_height) - (5.677 * manual_age))
+                        else:
+                            calc_bmr = int(447.593 + (9.247 * manual_weight) + (3.098 * manual_height) - (4.330 * manual_age))
+                        manual_bmr = calc_bmr
+                        st.info(f"🔥 BMR: {manual_bmr} kcal/giorno")
+                    else:
+                        manual_bmr = st.number_input("BMR (kcal/giorno)", 1200, 3000, 1800, 10, key='man_bmr')
+                
+                with col8:
+                    activity_level_manual = st.selectbox(
+                        "Livello Attività per AMR",
+                        ["Sedentario (1.2)", "Leggero (1.375)", "Moderato (1.55)", "Intenso (1.725)", "Molto Intenso (1.9)"],
+                        index=3,
+                        key='man_activity'
+                    )
+                    mult = float(activity_level_manual.split("(")[1].replace(")", ""))
+                    manual_amr = int(manual_bmr * mult)
+                    st.metric("AMR (calcolato)", f"{manual_amr} kcal/giorno")
+                
+                st.markdown("---")
+                
+                # Save button
+                if st.button("💾 Salva Profilo Fisico", type="primary", use_container_width=True):
                     manual_data = {
-                        'weight_kg': weight,
-                        'bmi': bmi,
-                        'body_fat_pct': body_fat,
-                        'date': datetime.now().strftime('%Y-%m-%d'),
-                        'source': 'Manual Entry'
+                        'player_id': player_manual,
+                        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'source': 'Manual Entry',
+                        'weight_kg': manual_weight,
+                        'height_cm': manual_height,
+                        'age': manual_age,
+                        'sex': manual_sex,
+                        'bmi': manual_bmi,
+                        'body_fat_pct': manual_body_fat,
+                        'lean_mass_kg': manual_lean,
+                        'body_water_pct': manual_water,
+                        'muscle_pct': manual_muscle,
+                        'bone_mass_kg': manual_bone,
+                        'bmr': manual_bmr,
+                        'amr': manual_amr
                     }
+                    
+                    # Validate
+                    warnings = validate_physical_data(manual_data)
+                    if warnings:
+                        st.warning("⚠️ Avvisi: " + ", ".join(warnings))
+                    
+                    # Save
                     st.session_state.physical_profiles[player_manual] = manual_data
-                    st.success(f"✅ Dati salvati per {player_manual}")
+                    
+                    # Add to history
+                    if player_manual not in st.session_state.physical_history:
+                        st.session_state.physical_history[player_manual] = []
+                    st.session_state.physical_history[player_manual].append(manual_data)
+                    
+                    st.success(f"✅ Profilo salvato per {player_manual}!")
+                    
+                    with st.expander("📊 Riepilogo dati salvati"):
+                        st.json(manual_data)
+                    
+                    st.balloons()
+                    time.sleep(1)
+                    st.rerun()
+    
+    # =================================================================
+    # VISUALIZZAZIONE PROFILI ESISTENTI
+    # =================================================================
+    
+    if st.session_state.physical_profiles:
+        st.divider()
+        st.markdown("### 📊 Profili Fisici Esistenti")
+        
+        selected_viz = st.selectbox(
+            "Seleziona giocatore per visualizzare", 
+            list(st.session_state.physical_profiles.keys()), 
+            key='viz_player'
+        )
+        
+        if selected_viz in st.session_state.physical_profiles:
+            viz_data = st.session_state.physical_profiles[selected_viz]
+            
+            # Metrics overview
+            col1, col2, col3, col4, col5 = st.columns(5)
+            
+            with col1:
+                st.metric("Peso", f"{viz_data.get('weight_kg', 'N/A')} kg")
+            with col2:
+                st.metric("BMI", f"{viz_data.get('bmi', 'N/A')}")
+            with col3:
+                st.metric("Grasso", f"{viz_data.get('body_fat_pct', 'N/A')}%")
+            with col4:
+                st.metric("BMR", f"{viz_data.get('bmr', 'N/A')} kcal")
+            with col5:
+                st.metric("AMR", f"{viz_data.get('amr', 'N/A')} kcal")
+            
+            # Visualizations
+            fig = create_body_composition_viz(viz_data)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Full data
+            with st.expander("📋 Tutti i dati"):
+                st.json(viz_data)
+    
+    # =================================================================
+    # PIANO NUTRIZIONALE
+    # =================================================================
     
     if st.session_state.physical_profiles:
         st.divider()
         st.markdown("### 🥗 Piano Nutrizionale AI")
-        selected_nutrition = st.selectbox("Giocatore Nutrition", list(st.session_state.physical_profiles.keys()))
-        activity_level = st.selectbox("Livello Attività", ["Low (Recovery)", "Moderate (Training)", "High (Intense/Match)"], index=1)
-        goal = st.selectbox("Obiettivo", ["Maintenance", "Muscle Gain", "Fat Loss", "Performance"], index=3)
+        
+        selected_nutrition = st.selectbox(
+            "Giocatore per Piano Nutrizionale", 
+            list(st.session_state.physical_profiles.keys()),
+            key='nutrition_player'
+        )
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            activity_level = st.selectbox(
+                "Livello Attività",
+                ["Low (Recovery)", "Moderate (Training)", "High (Intense/Match)", "Very High (Tournament)"],
+                index=1
+            )
+        
+        with col2:
+            goal = st.selectbox(
+                "Obiettivo",
+                ["Maintenance", "Muscle Gain", "Fat Loss", "Performance"],
+                index=3
+            )
         
         if st.button("🚀 Genera Piano Nutrizionale AI", type="primary"):
-            nutrition_plan = generate_enhanced_nutrition(selected_nutrition, st.session_state.physical_profiles[selected_nutrition], activity_level, goal)
-            st.session_state.current_nutrition_plan = nutrition_plan
-            st.success(f"✅ Piano generato per {selected_nutrition}")
-            
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Calorie", f"{nutrition_plan['target_calories']} kcal")
-            with col2:
-                st.metric("Proteine", f"{nutrition_plan['protein_g']}g")
-            with col3:
-                st.metric("Carboidrati", f"{nutrition_plan['carbs_g']}g")
-            with col4:
-                st.metric("Grassi", f"{nutrition_plan['fats_g']}g")
-            
-            groq_report = generate_nutrition_report_nlg(selected_nutrition, nutrition_plan, st.session_state.physical_profiles[selected_nutrition], 'it')
-            st.markdown(groq_report)
+            with st.spinner("Generazione piano in corso..."):
+                nutrition_plan = generate_enhanced_nutrition(
+                    selected_nutrition,
+                    st.session_state.physical_profiles[selected_nutrition],
+                    activity_level,
+                    goal
+                )
+                
+                st.session_state.current_nutrition_plan = nutrition_plan
+                
+                st.success(f"✅ Piano generato per {selected_nutrition}")
+                
+                # Targets
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Calorie", f"{nutrition_plan['target_calories']} kcal")
+                with col2:
+                    st.metric("Proteine", f"{nutrition_plan['protein_g']}g")
+                with col3:
+                    st.metric("Carboidrati", f"{nutrition_plan['carbs_g']}g")
+                with col4:
+                    st.metric("Grassi", f"{nutrition_plan['fats_g']}g")
+                
+                # Groq report
+                groq_report = generate_nutrition_report_nlg(
+                    selected_nutrition,
+                    nutrition_plan,
+                    st.session_state.physical_profiles[selected_nutrition],
+                    'it'
+                )
+                st.markdown(groq_report)
+                
+                # Meal plan
+                st.markdown("#### 🍽️ Piano Pasti Dettagliato")
+                for meal in nutrition_plan['meals']:
+                    with st.expander(f"{meal['name']} - {meal['calories']} kcal ({meal.get('timing', '')})"):
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.write(f"**Proteine:** {meal['protein']}g")
+                        with col2:
+                            st.write(f"**Carboidrati:** {meal['carbs']}g")
+                        with col3:
+                            st.write(f"**Grassi:** {meal['fats']}g")
+                        
+                        if 'examples' in meal:
+                            st.info(f"💡 Esempi: {meal['examples']}")
+
 
 # =================================================================
 # TAB 3, 4, 5, 6
