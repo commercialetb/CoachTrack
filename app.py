@@ -192,7 +192,7 @@ with st.sidebar:
     
 # Stats summary
 st.markdown("### 📊 Data Summary")
-if st.session_state.tracking_  # ✅ FIX: Aggiungi '' qui!
+if st.session_state.tracking_ 
     st.metric("Players UWB", len(st.session_state.tracking_data))
 if st.session_state.physical_profiles:
     st.metric("Players Physical", len(st.session_state.physical_profiles))
