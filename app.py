@@ -507,30 +507,35 @@ with st.sidebar:
             else:
                 st.error(f"❌ {message}")
     
-    st.markdown("---")
+        st.markdown("---")
     
-    # ===== DATA SUMMARY SECTION (CORRETTA) =====
+    # ===== DATA SUMMARY SECTION =====
     st.markdown("### 📊 Data Summary")
     
-    if st.session_state.tracking_data or st.session_state.physical_profiles or st.session_state.imu_data:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            uwb_count = len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
-            st.metric("👥 UWB", uwb_count)
-        
-        with col2:
-            phys_count = len(st.session_state.physical_profiles) if st.session_state.physical_profiles else 0
-            st.metric("🏋️ Physical", phys_count)
-        
-        if st.session_state.imu_data:
-            st.metric("📱 IMU Data", len(st.session_state.imu_data))
-        
-        if st.session_state.current_nutrition_plan:
-            st.success("✅ Nutrition Active")
-    else:
-        st.info("📊 Nessun dato caricato")
-        st.caption("Vai a Tab 1 per caricare dati")
+    # Conta i dati disponibili
+    uwb_count = len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
+    phys_count = len(st.session_state.physical_profiles) if st.session_state.physical_profiles else 0
+    imu_count = len(st.session_state.imu_data) if st.session_state.imu_data else 0
+    
+    # Mostra sempre le metriche (anche se 0)
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("👥 Players UWB", uwb_count)
+    
+    with col2:
+        st.metric("🏋️ Physical", phys_count)
+    
+    if imu_count > 0:
+        st.metric("📱 IMU Data", imu_count)
+    
+    # Status nutrition
+    if st.session_state.current_nutrition_plan:
+        st.success("✅ Nutrition Active")
+    
+    # Messaggio se nessun dato
+    if uwb_count == 0 and phys_count == 0 and imu_count == 0:
+        st.caption("⬆️ Carica dati in Tab 1")
     
     st.markdown("---")
     
