@@ -479,7 +479,7 @@ TRANSLATIONS = {
 t = TRANSLATIONS[st.session_state.language]
 
 # =================================================================
-# SIDEBAR
+# SIDEBAR - SEZIONE DATA SUMMARY CORRETTA
 # =================================================================
 
 with st.sidebar:
@@ -508,20 +508,36 @@ with st.sidebar:
                 st.error(f"❌ {message}")
     
     st.markdown("---")
+    
+    # ===== DATA SUMMARY SECTION (CORRETTA) =====
     st.markdown("### 📊 Data Summary")
     
-    # FIXED: Aggiunto nome completo variabile
-    if st.session_state.tracking_data:
-        st.metric("Players UWB", len(st.session_state.tracking_data))
-    
-    if st.session_state.physical_profiles:
-        st.metric("Players Physical", len(st.session_state.physical_profiles))
+    if st.session_state.tracking_data or st.session_state.physical_profiles or st.session_state.imu_
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            uwb_count = len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
+            st.metric("👥 UWB", uwb_count)
+        
+        with col2:
+            phys_count = len(st.session_state.physical_profiles) if st.session_state.physical_profiles else 0
+            st.metric("🏋️ Physical", phys_count)
+        
+        if st.session_state.imu_
+            st.metric("📱 IMU Data", len(st.session_state.imu_data))
+        
+        if st.session_state.current_nutrition_plan:
+            st.success("✅ Nutrition Active")
+    else:
+        st.info("📊 Nessun dato caricato")
+        st.caption("Vai a Tab 1 per caricare dati")
     
     st.markdown("---")
     
     if st.button("🚪 " + t['logout'], use_container_width=True):
         st.session_state.logged_in = False
         st.rerun()
+
 
 # =================================================================
 # MAIN UI - TABS
