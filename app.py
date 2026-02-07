@@ -404,7 +404,7 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.title("🏀 CoachTrack Elite AI v3.0")
+    st.title("🏀 CoachTrack Elite AI")
     st.markdown("### 🔐 Login")
     
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -453,7 +453,7 @@ if 'game_assistant' not in st.session_state:
 
 TRANSLATIONS = {
     'it': {
-        'title': '🏀 CoachTrack Elite AI v3.0 - Sistema Completo',
+        'title': '🏀 CoachTrack Elite AI',
         'welcome': 'Sistema completo con ML Models, Groq AI e Tactical Analytics',
         'config': 'Configurazione & Dati',
         'physical': 'Profilo Fisico & AI',
@@ -464,7 +464,7 @@ TRANSLATIONS = {
         'logout': 'Logout'
     },
     'en': {
-        'title': '🏀 CoachTrack Elite AI v3.0',
+        'title': '🏀 CoachTrack Elite AI',
         'welcome': 'Complete system with ML Models, Groq AI and Tactical Analytics',
         'config': 'Configuration & Data',
         'physical': 'Physical Profile & AI',
