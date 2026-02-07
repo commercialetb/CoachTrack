@@ -680,7 +680,7 @@ with tab2:
             st.markdown("#### 🍎 Sincronizza Apple Health (Simulazione)")
             st.info("ℹ️ Questa è una simulazione realistica di Apple Health sync. In produzione userebbe l'API HealthKit.")
             
-            if not st.session_state.tracking_
+            if not st.session_state.tracking_data:
                 st.warning("⚠️ Carica prima dati UWB in Tab 1 per associare i profili fisici")
             else:
                 player_for_sync = st.selectbox(
