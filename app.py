@@ -62,7 +62,7 @@ def recommend_offensive_plays(player_data):
     return {'recommended_plays': ['Pick and Roll', 'Motion Offense', 'Fast Break'], 'reasoning': ['Gioco versatile consigliato']}
 
 def optimize_defensive_matchups(team_data, opponent_data=None):
-    if not team_
+    if not team_data:
         return []
     return [{'defender': pid, 'opponent': 'Opponent Forward', 'match_score': 75, 'reason': 'Matchup versatile'} for pid in team_data.keys()]
 
