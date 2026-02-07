@@ -625,7 +625,7 @@ with tab2:
         
         with manual_tab:
             st.markdown("#### ✏️ Inserimento Manuale")
-            if st.session_state.tracking_
+            if st.session_state.tracking_data:
                 player_manual = st.selectbox("Giocatore", list(st.session_state.tracking_data.keys()), key='manual_player')
                 col1, col2, col3 = st.columns(3)
                 with col1:
