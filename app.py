@@ -483,7 +483,7 @@ t = TRANSLATIONS[st.session_state.language]
 # =================================================================
 
 with st.sidebar:
-    st.image("https://via.placeholder.com/200x80/1f77b4/ffffff?text=CoachTrack+v3.0", use_container_width=True)
+    st.image("https://i.imgur.com/placeholder_basketball.png", use_container_width=True)
     st.title("CoachTrack Elite")
     st.caption("v3.0 - Complete Edition")
     st.markdown("---")
