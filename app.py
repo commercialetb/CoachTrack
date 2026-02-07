@@ -523,7 +523,7 @@ with st.sidebar:
             phys_count = len(st.session_state.physical_profiles) if st.session_state.physical_profiles else 0
             st.metric("🏋️ Physical", phys_count)
         
-        if st.session_state.imu_
+        if st.session_state.imu_data:
             st.metric("📱 IMU Data", len(st.session_state.imu_data))
         
         if st.session_state.current_nutrition_plan:
