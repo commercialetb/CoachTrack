@@ -387,7 +387,7 @@ def simulate_opponent_stats():
 # =================================================================
 
 st.set_page_config(
-    page_title="CoachTrack Elite AI v3.0",
+    page_title="CoachTrack Elite AI",
     page_icon="🏀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -485,7 +485,7 @@ t = TRANSLATIONS[st.session_state.language]
 with st.sidebar:
     # st.image("https://i.imgur.com/placeholder_basketball.png", use_container_width=True)
     st.title("CoachTrack Elite")
-    st.caption("v3.0 - Complete Edition")
+    # st.caption("v3.0 - Complete Edition")
     st.markdown("---")
     
     lang = st.selectbox("🌐 Language", ["IT", "EN"], index=0 if st.session_state.language == 'it' else 1)
