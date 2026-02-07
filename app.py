@@ -512,7 +512,7 @@ with st.sidebar:
     # ===== DATA SUMMARY SECTION (CORRETTA) =====
     st.markdown("### 📊 Data Summary")
     
-    if st.session_state.tracking_data or st.session_state.physical_profiles or st.session_state.imu_
+    if st.session_state.tracking_data or st.session_state.physical_profiles or st.session_state.imu_data:
         col1, col2 = st.columns(2)
         
         with col1:
