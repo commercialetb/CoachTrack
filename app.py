@@ -464,7 +464,7 @@ TRANSLATIONS = {
         'logout': 'Logout'
     },
     'en': {
-        'title': '🏀 CoachTrack Elite AI v3.0 - Complete System',
+        'title': '🏀 CoachTrack Elite AI v3.0',
         'welcome': 'Complete system with ML Models, Groq AI and Tactical Analytics',
         'config': 'Configuration & Data',
         'physical': 'Physical Profile & AI',
