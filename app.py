@@ -511,7 +511,7 @@ with st.sidebar:
     st.markdown("### 📊 Data Summary")
     
     # FIXED: Aggiunto nome completo variabile
-    if st.session_state.tracking_
+    if st.session_state.tracking_data:
         st.metric("Players UWB", len(st.session_state.tracking_data))
     
     if st.session_state.physical_profiles:
