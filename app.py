@@ -643,7 +643,7 @@ with tab3:
 with tab4:
     st.header("🧠 ML Advanced - Machine Learning Models")
     
-    if not st.session_state.tracking_
+    if not st.session_state.tracking_data:
         st.warning("⚠️ Carica prima dati tracking in Tab 1")
         st.stop()
     
