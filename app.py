@@ -973,7 +973,7 @@ with tab5:
     elif "Pattern Recognition" in tactical_feature:
         st.markdown("### 📊 Tactical Pattern Recognition")
         
-        if st.session_state.tracking_
+        if st.session_state.tracking_data:
             recognizer = TacticalPatternRecognizer()
             
             if st.button("🔍 Analizza Pattern Tattici", type="primary"):
