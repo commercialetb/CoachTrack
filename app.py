@@ -87,7 +87,7 @@ def recommend_offensive_plays(player_data):
     }
 
 def optimize_defensive_matchups(team_data, opponent_data=None):
-    if not team_
+    if not team_data:
         return []
     return [{
         'defender': pid, 
