@@ -190,18 +190,18 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Stats summary
-    st.markdown("### 📊 Data Summary")
-    if st.session_state.tracking_
-        st.metric("Players UWB", len(st.session_state.tracking_data))
-    if st.session_state.physical_profiles:
-        st.metric("Players Physical", len(st.session_state.physical_profiles))
-    
-    st.markdown("---")
-    
-    if st.button("🚪 " + t['logout'], use_container_width=True):
-        st.session_state.logged_in = False
-        st.rerun()
+# Stats summary
+st.markdown("### 📊 Data Summary")
+if st.session_state.tracking_  # ✅ FIX: Aggiungi '' qui!
+    st.metric("Players UWB", len(st.session_state.tracking_data))
+if st.session_state.physical_profiles:
+    st.metric("Players Physical", len(st.session_state.physical_profiles))
+
+st.markdown("---")
+
+if st.button("🚪 " + t['logout'], use_container_width=True):
+    st.session_state.logged_in = False
+    st.rerun()
 
 # =================================================================
 # MAIN UI - TABS
