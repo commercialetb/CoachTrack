@@ -795,7 +795,7 @@ with tab2:
         with manual_tab:
             st.markdown("#### ✏️ Inserimento Manuale Completo")
             
-            if not st.session_state.tracking_
+            if not st.session_state.tracking_data:
                 st.warning("⚠️ Carica prima dati UWB in Tab 1")
             else:
                 player_manual = st.selectbox(
