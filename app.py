@@ -680,8 +680,407 @@ with tab3:
     st.info("Carica dati tracking in Tab 1 per usare le funzioni AI")
 
 with tab4:
-    st.header("🧠 ML Advanced")
-    st.info("Machine Learning Models - In sviluppo")
+    st.header("🧠 ML Advanced - Machine Learning Models")
+    
+    if not st.session_state.tracking_
+        st.warning("⚠️ Carica prima dati tracking in Tab 1")
+        st.stop()
+    
+    ml_feature = st.selectbox(
+        "Seleziona ML Feature",
+        [
+            "🤖 ML Injury Risk Predictor (Random Forest)",
+            "📊 Performance Predictor Next Game (Gradient Boosting)",
+            "📹 Shot Form Analyzer (Computer Vision)"
+        ]
+    )
+    
+    # =================================================================
+    # ML INJURY RISK PREDICTOR
+    # =================================================================
+    
+    if "ML Injury" in ml_feature:
+        st.markdown("### 🤖 ML Injury Risk Predictor")
+        st.info("💡 Usa Random Forest con 12 features avanzate per predire rischio infortuni")
+        
+        selected_ml_player = st.selectbox(
+            "Seleziona Giocatore", 
+            list(st.session_state.tracking_data.keys()), 
+            key='ml_injury_player'
+        )
+        
+        # Advanced settings
+        with st.expander("⚙️ Parametri Avanzati"):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                player_age = st.number_input("Età Giocatore", 18, 40, 25)
+                prev_injuries = st.number_input("Infortuni Precedenti", 0, 10, 0)
+            
+            with col2:
+                rest_days = st.number_input("Giorni Riposo", 0, 7, 2)
+                use_training_history = st.checkbox("Usa Storico Allenamenti (28gg)", value=False)
+            
+            with col3:
+                model_info = st.checkbox("Mostra Info Modello", value=True)
+        
+        if st.button("🚀 Predici Rischio Infortuni (ML)", type="primary"):
+            with st.spinner("🔄 Training Random Forest model..."):
+                player_data = st.session_state.tracking_data[selected_ml_player]
+                physical_data = st.session_state.physical_profiles.get(selected_ml_player)
+                
+                # Generate training history if requested
+                training_history = None
+                if use_training_history:
+                    training_history = create_training_history_sample(days=28)
+                
+                # Extract features
+                features = st.session_state.ml_injury_model.extract_features(
+                    player_data, 
+                    physical_data, 
+                    player_age=player_age,
+                    previous_injuries=prev_injuries,
+                    training_history=training_history
+                )
+                
+                # Predict
+                prediction = st.session_state.ml_injury_model.predict(features)
+                
+                st.success("✅ Predizione completata!")
+                
+                # Main metrics
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    risk_emoji = {"BASSO": "🟢", "MEDIO": "🟡", "ALTO": "🔴"}
+                    st.metric(
+                        "Rischio ML", 
+                        f"{risk_emoji[prediction['risk_level']]} {prediction['risk_level']}", 
+                        f"{prediction['risk_probability']}%"
+                    )
+                
+                with col2:
+                    st.metric("Model Confidence", prediction['confidence'])
+                
+                with col3:
+                    st.metric("Features Used", len(features))
+                
+                with col4:
+                    st.metric("Risk Class", prediction['risk_class'])
+                
+                # Feature importance visualization
+                st.markdown("#### 🔍 Top 5 Fattori di Rischio (Feature Importance)")
+                
+                importance_df = pd.DataFrame(
+                    prediction['top_risk_factors'], 
+                    columns=['Feature', 'Importance']
+                )
+                
+                fig_importance = px.bar(
+                    importance_df,
+                    x='Importance',
+                    y='Feature',
+                    orientation='h',
+                    title='Feature Importance (Random Forest)',
+                    color='Importance',
+                    color_continuous_scale='Reds'
+                )
+                st.plotly_chart(fig_importance, use_container_width=True)
+                
+                # Recommendations
+                st.markdown("#### 💡 Raccomandazioni ML-Based")
+                for i, rec in enumerate(prediction['recommendations'], 1):
+                    st.markdown(f"{i}. {rec}")
+                
+                # Feature values table
+                with st.expander("📊 Feature Values Utilizzati"):
+                    features_df = pd.DataFrame([features]).T
+                    features_df.columns = ['Value']
+                    features_df.index.name = 'Feature'
+                    st.dataframe(features_df.style.highlight_max(color='lightgreen'))
+                
+                # Model info
+                if model_info:
+                    with st.expander("ℹ️ Informazioni Modello"):
+                        st.markdown("""
+                        **Random Forest Classifier**
+                        - N. Estimators: 100
+                        - Max Depth: 10
+                        - Training Samples: 500
+                        - Classes: 3 (BASSO, MEDIO, ALTO)
+                        - Features: 12
+                        
+                        **Features Utilizzate:**
+                        1. ACWR (Acute:Chronic Workload Ratio)
+                        2. Asymmetry %
+                        3. Fatigue Index
+                        4. Cumulative Workload (7 days)
+                        5. Rest Days
+                        6. Training Intensity
+                        7. Age
+                        8. BMI
+                        9. Body Fat %
+                        10. Previous Injuries Count
+                        11. Workload Spike %
+                        12. Consistency Score
+                        """)
+    
+    # =================================================================
+    # PERFORMANCE PREDICTOR
+    # =================================================================
+    
+    elif "Performance Predictor" in ml_feature:
+        st.markdown("### 📊 Performance Predictor Next Game")
+        st.info("💡 Usa Gradient Boosting per predire punti, assist, rimbalzi, efficiency della prossima partita")
+        
+        selected_perf_player = st.selectbox(
+            "Seleziona Giocatore", 
+            list(st.session_state.tracking_data.keys()), 
+            key='ml_perf_player'
+        )
+        
+        # Generate or use real stats history
+        st.markdown("#### 📈 Storico Statistiche (Ultimi 10 Match)")
+        
+        # Option to use sample data or manual
+        use_sample = st.checkbox("Usa dati sample", value=True)
+        
+        if use_sample:
+            stats_history = generate_player_stats_history(games=10, avg_points=18)
+            st.dataframe(stats_history)
+        else:
+            st.warning("⚠️ Feature manual input in sviluppo - usa sample data")
+            stats_history = generate_player_stats_history(games=10, avg_points=18)
+        
+        # Opponent info
+        st.markdown("#### ⚔️ Informazioni Prossimo Avversario")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            rest_days = st.slider("Rest Days", 0, 4, 1)
+        
+        with col2:
+            def_rating = st.slider("Opponent Def Rating", 100, 120, 110)
+        
+        with col3:
+            location = st.radio("Location", ['home', 'away'])
+        
+        with col4:
+            usage_rate = st.slider("Usage Rate %", 15, 35, 25)
+        
+        opponent_info = {
+            'rest_days': rest_days,
+            'def_rating': def_rating,
+            'location': location,
+            'usage_rate': usage_rate,
+            'fatigue': 0.2
+        }
+        
+        # Get injury risk for context
+        injury_risk = None
+        if selected_perf_player in st.session_state.physical_profiles:
+            with st.expander("🩺 Considera Injury Risk nel calcolo"):
+                consider_injury = st.checkbox("Usa injury risk come fattore", value=True)
+                
+                if consider_injury:
+                    player_data = st.session_state.tracking_data[selected_perf_player]
+                    physical_data = st.session_state.physical_profiles[selected_perf_player]
+                    features = st.session_state.ml_injury_model.extract_features(
+                        player_data, 
+                        physical_data
+                    )
+                    injury_risk = st.session_state.ml_injury_model.predict(features)
+                    
+                    st.info(f"Injury Risk: {injury_risk['risk_level']} ({injury_risk['risk_probability']}%)")
+        
+        if st.button("🚀 Predici Performance Prossima Partita", type="primary"):
+            with st.spinner("🔄 Training Gradient Boosting models..."):
+                
+                # Extract features
+                perf_features = st.session_state.performance_model.extract_features(
+                    stats_history,
+                    opponent_info,
+                    injury_risk
+                )
+                
+                # Predict
+                predictions = st.session_state.performance_model.predict_next_game(perf_features)
+                
+                st.success("✅ Predizioni completate!")
+                
+                # Show predictions
+                st.markdown("#### 🎯 Predizioni Prossima Partita")
+                
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric(
+                        "Punti", 
+                        f"{predictions['points']:.1f}",
+                        delta=f"{predictions['points'] - stats_history['points'].mean():.1f}"
+                    )
+                
+                with col2:
+                    st.metric(
+                        "Assist", 
+                        f"{predictions['assists']:.1f}",
+                        delta=f"{predictions['assists'] - stats_history['assists'].mean():.1f}"
+                    )
+                
+                with col3:
+                    st.metric(
+                        "Rimbalzi", 
+                        f"{predictions['rebounds']:.1f}",
+                        delta=f"{predictions['rebounds'] - stats_history['rebounds'].mean():.1f}"
+                    )
+                
+                with col4:
+                    st.metric("Efficiency", f"{predictions['efficiency']:.1f}")
+                
+                st.metric("Confidence Level", predictions['confidence'])
+                
+                # Comparison chart
+                st.markdown("#### 📊 Confronto con Storico")
+                
+                comparison_data = {
+                    'Metric': ['Points', 'Assists', 'Rebounds'],
+                    'Avg Last 10': [
+                        stats_history['points'].mean(),
+                        stats_history['assists'].mean(),
+                        stats_history['rebounds'].mean()
+                    ],
+                    'Predicted Next': [
+                        predictions['points'],
+                        predictions['assists'],
+                        predictions['rebounds']
+                    ]
+                }
+                
+                comparison_df = pd.DataFrame(comparison_data)
+                
+                fig_comparison = go.Figure()
+                
+                fig_comparison.add_trace(go.Bar(
+                    name='Avg Last 10',
+                    x=comparison_df['Metric'],
+                    y=comparison_df['Avg Last 10'],
+                    marker_color='lightblue'
+                ))
+                
+                fig_comparison.add_trace(go.Bar(
+                    name='Predicted Next',
+                    x=comparison_df['Metric'],
+                    y=comparison_df['Predicted Next'],
+                    marker_color='orange'
+                ))
+                
+                fig_comparison.update_layout(
+                    title='Confronto Performance',
+                    barmode='group',
+                    yaxis_title='Value'
+                )
+                
+                st.plotly_chart(fig_comparison, use_container_width=True)
+                
+                # Historical trend
+                st.markdown("#### 📈 Trend Storico Punti")
+                
+                fig_trend = px.line(
+                    stats_history.reset_index(),
+                    x='index',
+                    y='points',
+                    title='Ultimi 10 Match - Punti',
+                    labels={'index': 'Game #', 'points': 'Points'}
+                )
+                
+                # Add prediction as point
+                fig_trend.add_scatter(
+                    x=[10],
+                    y=[predictions['points']],
+                    mode='markers',
+                    marker=dict(size=15, color='red'),
+                    name='Predicted Next'
+                )
+                
+                st.plotly_chart(fig_trend, use_container_width=True)
+                
+                # Groq NLG Analysis (optional)
+                if st.checkbox("🤖 Genera Analisi Dettagliata con Groq"):
+                    with st.spinner("Groq sta generando analisi..."):
+                        stats_summary = f"""
+Statistiche ultimi 10 match:
+- Punti: media {stats_history['points'].mean():.1f}, max {stats_history['points'].max()}, min {stats_history['points'].min()}
+- Assist: media {stats_history['assists'].mean():.1f}
+- Rimbalzi: media {stats_history['rebounds'].mean():.1f}
+- Minuti: media {stats_history['minutes'].mean():.1f}
+
+Predizioni prossima partita:
+- Punti: {predictions['points']:.1f}
+- Assist: {predictions['assists']:.1f}
+- Rimbalzi: {predictions['rebounds']:.1f}
+- Efficiency: {predictions['efficiency']:.1f}
+- Confidence: {predictions['confidence']}
+
+Contesto:
+- Avversario Def Rating: {def_rating}
+- Location: {location}
+- Rest Days: {rest_days}
+- Usage Rate: {usage_rate}%
+"""
+                        
+                        groq_analysis = generate_performance_summary(
+                            selected_perf_player,
+                            stats_summary,
+                            predictions,
+                            'it'
+                        )
+                        
+                        st.markdown("#### 📝 Analisi Groq")
+                        st.markdown(groq_analysis)
+    
+    # =================================================================
+    # SHOT FORM ANALYZER
+    # =================================================================
+    
+    elif "Shot Form" in ml_feature:
+        st.markdown("### 📹 Shot Form Analyzer (Computer Vision)")
+        st.warning("⚠️ Feature in sviluppo - Richiede MediaPipe/OpenCV integration")
+        
+        shot_analyzer = ShotFormAnalyzer()
+        
+        # Show placeholder info
+        result = shot_analyzer.analyze_shot_video("placeholder.mp4")
+        
+        st.info(result['message'])
+        
+        st.markdown("#### 🔜 Next Steps per Implementazione:")
+        for i, step in enumerate(result['next_steps'], 1):
+            st.write(f"{i}. {step}")
+        
+        st.markdown("#### 📦 Librerie Richieste:")
+        for lib in result['required_libraries']:
+            st.code(f"pip install {lib}")
+        
+        st.markdown("#### 📊 Sample Output (Futuro):")
+        st.json(result['sample_output'])
+        
+        # Show optimal form guide
+        with st.expander("📚 Guida Tecnica: Shot Form Ottimale"):
+            optimal_form = shot_analyzer.get_optimal_form_guide()
+            
+            st.markdown("##### 🎯 Preparazione")
+            for key, value in optimal_form['preparation'].items():
+                st.write(f"**{key.title()}**: {value}")
+            
+            st.markdown("##### 🚀 Release")
+            for key, value in optimal_form['release'].items():
+                st.write(f"**{key.replace('_', ' ').title()}**: {value}")
+            
+            st.markdown("##### ✋ Follow Through")
+            for key, value in optimal_form['follow_through'].items():
+                st.write(f"**{key.replace('_', ' ').title()}**: {value}")
+
 
 with tab5:
     st.header("⚔️ Tactical AI & Scout")
