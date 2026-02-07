@@ -359,7 +359,7 @@ with tab2:
             st.markdown("#### 🍎 Sincronizza Apple Health (Demo)")
             st.info("ℹ️ Questa è una simulazione. In produzione userà Apple HealthKit API.")
             
-            if st.session_state.tracking_
+            if st.session_state.tracking_data:
                 player_for_sync = st.selectbox("Seleziona Giocatore", list(st.session_state.tracking_data.keys()))
                 
                 if st.button("🔄 Sincronizza Apple Health (Demo)", type="primary"):
