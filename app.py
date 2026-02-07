@@ -192,8 +192,11 @@ with st.sidebar:
     
 # Stats summary
 st.markdown("### 📊 Data Summary")
-if st.session_state.tracking_
+
+# Corretto: aggiunto il nome completo della variabile e i due punti
+if st.session_state.tracking_data:
     st.metric("Players UWB", len(st.session_state.tracking_data))
+
 if st.session_state.physical_profiles:
     st.metric("Players Physical", len(st.session_state.physical_profiles))
 
@@ -202,6 +205,7 @@ st.markdown("---")
 if st.button("🚪 " + t['logout'], use_container_width=True):
     st.session_state.logged_in = False
     st.rerun()
+
 
 
 # =================================================================
