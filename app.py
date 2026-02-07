@@ -1062,7 +1062,7 @@ with tab5:
 with tab6:
     st.header("📈 Analytics & Report Generation")
     
-    if not st.session_state.tracking_
+    if not st.session_state.tracking_data:
         st.warning("⚠️ Carica prima dati in Tab 1")
         st.stop()
     
