@@ -11,6 +11,8 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from io import BytesIO
 import json
+import time  # ← AGGIUNGI QUESTA RIGA
+
 
 # =================================================================
 # FUNZIONI INLINE - TRACKING & AI BASE
@@ -301,53 +303,70 @@ Il giocatore dovrebbe ottenere circa {predictions['points']:.1f} punti nella pro
 """
 
 # =================================================================
-# ML MODELS (MOCK)
+# IMPORT ML MODELS (REAL)
 # =================================================================
 
-class MLInjuryPredictor:
-    def extract_features(self, player_data, physical_data=None, player_age=25):
-        return {
-            'acwr': 1.2,
-            'asymmetry': 10.0,
-            'fatigue': 8.0,
-            'workload': 100.0,
-            'rest_days': 2,
-            'age': player_age
-        }
+try:
+    from ml_models import MLInjuryPredictor, PerformancePredictor, ShotFormAnalyzer
+    print("✅ ml_models.py caricato con successo!")
+except ImportError as e:
+    print(f"⚠️ ml_models.py non disponibile ({e}), uso mock")
     
-    def predict(self, features):
-        risk_prob = 35
-        risk_level = 'MEDIO'
-        return {
-            'risk_level': risk_level,
-            'risk_probability': risk_prob,
-            'top_risk_factors': [('ACWR', 0.25), ('Fatigue', 0.20), ('Workload', 0.18)],
-            'recommendations': ['Monitorare carico', 'Aumentare recupero']
-        }
-
-class PerformancePredictor:
-    def extract_features(self, stats_history, opponent_info, injury_risk=None):
-        return {
-            'avg_points': stats_history['points'].mean(),
-            'rest_days': opponent_info['rest_days'],
-            'def_rating': opponent_info['def_rating']
-        }
+    # Fallback MOCK classes (mantieni quelle che hai già)
+    class MLInjuryPredictor:
+        def extract_features(self, player_data, physical_data=None, player_age=25):
+            return {'acwr': 1.2, 'asymmetry': 10.0, 'fatigue': 8.0, 'workload': 100.0, 'rest_days': 2, 'age': player_age}
+        
+        def predict(self, features):
+            return {'risk_level': 'MEDIO', 'risk_probability': 35, 'top_risk_factors': [('ACWR', 0.25)], 'recommendations': ['Mock mode'], 'confidence': 'Media', 'risk_class': 1}
     
-    def predict_next_game(self, features):
-        return {
-            'points': 18.5,
-            'assists': 5.2,
-            'rebounds': 6.8,
-            'efficiency': 22.3,
-            'confidence': 'Alta'
-        }
+    class PerformancePredictor:
+        def extract_features(self, stats_history, opponent_info, injury_risk=None):
+            return {'avg_points': stats_history['points'].mean() if 'points' in stats_history else 15}
+        
+        def predict_next_game(self, features):
+            return {'points': 18.5, 'assists': 5.2, 'rebounds': 6.8, 'efficiency': 22.3, 'confidence': 'Alta'}
+    
+    class ShotFormAnalyzer:
+        def analyze_shot_video(self, video_path):
+            return {'message': 'Mock mode', 'next_steps': ['Install MediaPipe'], 'required_libraries': ['mediapipe', 'opencv-python'], 'sample_output': {}}
+        
+        def get_optimal_form_guide(self):
+            return {'preparation': {'stance': 'Shoulder width', 'knee_bend': '45-60 degrees'}, 'release': {'elbow_angle': '90 degrees', 'release_height': '2.4m'}, 'follow_through': {'wrist_snap': 'Full extension', 'hold': '0.5s'}}
 
-class ShotFormAnalyzer:
-    def analyze_shot_video(self, video_path):
-        return {
-            'message': 'Feature in sviluppo',
-            'next_steps': ['Integrare MediaPipe', 'Analisi angoli corpo', 'Tracking mano/gomito']
-        }
+# =================================================================
+# HELPER FUNCTIONS
+# =================================================================
+
+def generate_player_stats_history(games=10, avg_points=18):
+    """Generate synthetic player stats history"""
+    import numpy as np
+    import pandas as pd
+    
+    np.random.seed(42)
+    stats = {
+        'points': np.random.randint(int(avg_points*0.7), int(avg_points*1.3), games),
+        'assists': np.random.randint(3, 8, games),
+        'rebounds': np.random.randint(4, 10, games),
+        'minutes': np.random.randint(25, 38, games)
+    }
+    return pd.DataFrame(stats)
+
+def create_training_history_sample(days=28):
+    """Generate synthetic training history"""
+    import numpy as np
+    import pandas as pd
+    from datetime import datetime, timedelta
+    
+    np.random.seed(42)
+    dates = [datetime.now() - timedelta(days=i) for i in range(days)]
+    training = {
+        'date': dates,
+        'workload': np.random.randint(50, 150, days),
+        'duration_min': np.random.randint(60, 120, days),
+        'intensity': np.random.choice(['Low', 'Medium', 'High'], days)
+    }
+    return pd.DataFrame(training)
 
 # =================================================================
 # TACTICAL AI (MOCK)
