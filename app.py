@@ -12,26 +12,88 @@ from io import BytesIO
 import json
 import time
 
-# IMPORT AI FUNCTIONS MODULE
-from ai_functions import (
-    predict_injury_risk,
-    recommend_offensive_plays,
-    optimize_defensive_matchups,
-    analyze_movement_patterns,
-    simulate_shot_quality,
-    generate_ai_training_plan,
-    generate_nutrition_report_nlg,
-    generate_scout_report_nlg,
-    game_assistant_chat,
-    generate_performance_summary,
-    generate_training_plan_nlg,
-    test_groq_connection,
-    calculate_distance,
-    calculate_speed,
-    detect_jumps_imu,
-    GROQ_AVAILABLE,
-    GROQ_STATUS
-)
+# =================================================================
+# IMPORT AI FUNCTIONS (CON FALLBACK)
+# =================================================================
+
+try:
+    from ai_functions import (
+        predict_injury_risk,
+        recommend_offensive_plays,
+        optimize_defensive_matchups,
+        analyze_movement_patterns,
+        simulate_shot_quality,
+        generate_ai_training_plan,
+        generate_nutrition_report_nlg,
+        generate_scout_report_nlg,
+        game_assistant_chat,
+        generate_performance_summary,
+        generate_training_plan_nlg,
+        test_groq_connection,
+        calculate_distance,
+        calculate_speed,
+        detect_jumps_imu,
+        GROQ_AVAILABLE,
+        GROQ_STATUS
+    )
+    AI_FUNCTIONS_LOADED = True
+except ImportError as e:
+    print(f"⚠️ Impossibile caricare ai_functions.py: {e}")
+    AI_FUNCTIONS_LOADED = False
+    
+    # FALLBACK - Definisci funzioni mock inline
+    def predict_injury_risk(player_data, player_id):
+        return {'player_id': player_id, 'risk_level': 'MEDIO', 'risk_score': 50, 'acwr': 1.0, 'asymmetry': 5.0, 'fatigue': 5.0, 'risk_factors': ['ai_functions.py non caricato'], 'recommendations': ['Verificare ai_functions.py']}
+    
+    def recommend_offensive_plays(player_data):
+        return {'recommended_plays': ['Mock - ai_functions.py mancante'], 'reasoning': ['Caricare ai_functions.py']}
+    
+    def optimize_defensive_matchups(team_data, opponent_data=None):
+        return []
+    
+    def analyze_movement_patterns(player_data, player_id):
+        return {'player_id': player_id, 'pattern_type': 'UNKNOWN', 'insights': ['Mock'], 'anomalies': []}
+    
+    def simulate_shot_quality(player_data, player_id):
+        return {'player_id': player_id, 'avg_quality': 0, 'shots': [], 'recommendations': ['Mock']}
+    
+    def generate_ai_training_plan(player_id, injury_risk_data, physical_data=None):
+        return {'player_id': player_id, 'risk_level': 'MEDIO', 'intensity': 'MODERATA', 'duration': '60min', 'frequency': '5x/settimana', 'focus_areas': 'Mock', 'exercises': [], 'notes': 'Mock'}
+    
+    def generate_nutrition_report_nlg(player_id, nutrition_plan, physical_data, language='it'):
+        return f"## Mock Report per {player_id}\n\nai_functions.py non caricato."
+    
+    def generate_scout_report_nlg(team_name, report_data, language='it'):
+        return f"## Mock Scout Report: {team_name}"
+    
+    def game_assistant_chat(query, context, language='it'):
+        return "Mock response - ai_functions.py non caricato"
+    
+    def generate_performance_summary(player_id, stats_summary, predictions, language='it'):
+        return f"## Mock Performance {player_id}"
+    
+    def generate_training_plan_nlg(player_id, training_plan, language='it'):
+        return f"Mock training plan {player_id}"
+    
+    def test_groq_connection():
+        return False, "ai_functions.py non caricato"
+    
+    def calculate_distance(df):
+        if len(df) < 2:
+            return 0.0
+        dx = np.diff(df['x'].values)
+        dy = np.diff(df['y'].values)
+        return float(np.sum(np.sqrt(dx**2 + dy**2)))
+    
+    def calculate_speed(df):
+        return df
+    
+    def detect_jumps_imu(df, threshold_g=1.5):
+        return []
+    
+    GROQ_AVAILABLE = False
+    GROQ_STATUS = "ai_functions.py non caricato"
+
 
 
 # =================================================================
