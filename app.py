@@ -12,6 +12,70 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import json
 import time  # ← AGGIUNGI QUESTA RIGA
+import time
+import os
+from groq import Groq
+
+# =================================================================
+# GROQ CLIENT CONFIGURATION
+# =================================================================
+
+def initialize_groq_client():
+    """Inizializza client Groq con API key"""
+    api_key = os.environ.get("GROQ_API_KEY")
+    
+    if not api_key:
+        # Prova anche da Streamlit secrets
+        try:
+            api_key = st.secrets.get("GROQ_API_KEY")
+        except:
+            pass
+    
+    if api_key:
+        try:
+            client = Groq(api_key=api_key)
+            return client, True, "Groq API connesso"
+        except Exception as e:
+            return None, False, f"Errore Groq: {str(e)}"
+    else:
+        return None, False, "API Key non configurata"
+
+# Inizializza client globale
+GROQ_CLIENT, GROQ_AVAILABLE, GROQ_STATUS = initialize_groq_client()
+
+# =================================================================
+# GROQ HELPER FUNCTION
+# =================================================================
+
+def call_groq_llm(prompt, system_message="Sei un esperto di sport science e analisi basket.", temperature=0.7, max_tokens=2000):
+    """
+    Chiama Groq LLM in modo sicuro
+    
+    Args:
+        prompt: Il prompt da inviare
+        system_message: Messaggio di sistema
+        temperature: Creatività (0-1)
+        max_tokens: Lunghezza massima risposta
+    
+    Returns:
+        str: Risposta del modello o messaggio di errore
+    """
+    if not GROQ_AVAILABLE or GROQ_CLIENT is None:
+        return f"⚠️ Groq non disponibile: {GROQ_STATUS}"
+    
+    try:
+        response = GROQ_CLIENT.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"❌ Errore Groq: {str(e)}"
 
 
 # =================================================================
@@ -1193,9 +1257,215 @@ with tab2:
 # TAB 3, 4, 5, 6
 # =================================================================
 
+# =================================================================
+# TAB 3: AI ELITE FEATURES (COMPLETO)
+# =================================================================
+
 with tab3:
-    st.header("🤖 Funzionalità AI Elite")
-    st.info("Carica dati tracking in Tab 1 per usare le funzioni AI")
+    st.header("🤖 AI Elite Features")
+    
+    if not st.session_state.tracking_
+        st.warning("⚠️ Carica prima dati tracking in Tab 1 per usare le funzioni AI")
+    else:
+        st.success(f"✅ {len(st.session_state.tracking_data)} giocatori disponibili")
+        
+        # Selettore giocatore
+        selected_player_ai = st.selectbox(
+            "Seleziona Giocatore",
+            list(st.session_state.tracking_data.keys()),
+            key='ai_player'
+        )
+        
+        # Selettore funzionalità
+        ai_feature = st.selectbox(
+            "Seleziona Funzionalità AI",
+            [
+                "🩺 Injury Risk Prediction",
+                "🏀 Offensive Plays Recommendation",
+                "🛡️ Defensive Matchups Optimization",
+                "🏃 Movement Patterns Analysis",
+                "🎯 Shot Quality Simulation",
+                "💪 AI Training Plan Generator"
+            ]
+        )
+        
+        st.markdown("---")
+        
+        # Esegui analisi
+        if st.button("🚀 Esegui Analisi AI", type="primary", use_container_width=True):
+            player_data = st.session_state.tracking_data[selected_player_ai]
+            
+            with st.spinner("🔄 Elaborazione AI in corso..."):
+                
+                # =================================================================
+                # INJURY RISK PREDICTION
+                # =================================================================
+                if "Injury Risk" in ai_feature:
+                    st.markdown("### 🩺 Injury Risk Prediction")
+                    
+                    result = predict_injury_risk(player_data, selected_player_ai)
+                    
+                    # Mostra rischio
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        risk_emoji = {"BASSO": "🟢", "MEDIO": "🟡", "ALTO": "🔴"}
+                        st.metric(
+                            "Livello Rischio",
+                            f"{risk_emoji[result['risk_level']]} {result['risk_level']}",
+                            f"Score: {result['risk_score']}"
+                        )
+                    
+                    with col2:
+                        st.metric("ACWR", f"{result['acwr']:.2f}")
+                    
+                    with col3:
+                        st.metric("Asimmetria", f"{result['asymmetry']:.1f}%")
+                    
+                    # Fattori di rischio
+                    st.markdown("#### 📊 Fattori di Rischio")
+                    for factor in result['risk_factors']:
+                        st.write(f"- {factor}")
+                    
+                    # Raccomandazioni
+                    st.markdown("#### 💡 Raccomandazioni")
+                    for rec in result['recommendations']:
+                        st.info(f"✓ {rec}")
+                
+                # =================================================================
+                # OFFENSIVE PLAYS
+                # =================================================================
+                elif "Offensive Plays" in ai_feature:
+                    st.markdown("### 🏀 Offensive Plays Recommendation")
+                    
+                    result = recommend_offensive_plays(player_data)
+                    
+                    st.markdown("#### 🎯 Giocate Consigliate")
+                    for i, play in enumerate(result['recommended_plays'], 1):
+                        st.success(f"{i}. **{play}**")
+                    
+                    st.markdown("#### 📝 Reasoning")
+                    for reason in result['reasoning']:
+                        st.write(f"- {reason}")
+                
+                # =================================================================
+                # DEFENSIVE MATCHUPS
+                # =================================================================
+                elif "Defensive Matchups" in ai_feature:
+                    st.markdown("### 🛡️ Defensive Matchups Optimization")
+                    
+                    result = optimize_defensive_matchups({selected_player_ai: player_data})
+                    
+                    st.markdown("#### 🎯 Matchups Ottimali")
+                    for matchup in result:
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.write(f"**Defender:** {matchup['defender']}")
+                        with col2:
+                            st.write(f"**Opponent:** {matchup['opponent']}")
+                        with col3:
+                            st.metric("Match Score", matchup['match_score'])
+                        st.caption(f"💡 {matchup['reason']}")
+                        st.divider()
+                
+                # =================================================================
+                # MOVEMENT PATTERNS
+                # =================================================================
+                elif "Movement Patterns" in ai_feature:
+                    st.markdown("### 🏃 Movement Patterns Analysis")
+                    
+                    result = analyze_movement_patterns(player_data, selected_player_ai)
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.metric("Pattern Type", result['pattern_type'])
+                    
+                    with col2:
+                        distance = calculate_distance(player_data)
+                        st.metric("Distanza Totale", f"{distance:.1f}m")
+                    
+                    st.markdown("#### 🔍 Insights")
+                    for insight in result['insights']:
+                        st.write(f"- {insight}")
+                    
+                    if result['anomalies']:
+                        st.markdown("#### ⚠️ Anomalie Rilevate")
+                        for anomaly in result['anomalies']:
+                            st.warning(f"⚠️ {anomaly}")
+                
+                # =================================================================
+                # SHOT QUALITY
+                # =================================================================
+                elif "Shot Quality" in ai_feature:
+                    st.markdown("### 🎯 Shot Quality Simulation")
+                    
+                    result = simulate_shot_quality(player_data, selected_player_ai)
+                    
+                    st.metric("Qualità Media Tiri", f"{result['avg_quality']}/100")
+                    
+                    st.markdown("#### 📊 Analisi Tiri")
+                    if result['shots']:
+                        shots_df = pd.DataFrame(result['shots'])
+                        st.dataframe(shots_df)
+                        
+                        # Grafico shot chart
+                        fig = px.scatter(
+                            shots_df,
+                            x='x',
+                            y='y',
+                            color='quality',
+                            size='distance',
+                            hover_data=['type'],
+                            title='Shot Chart',
+                            color_continuous_scale='RdYlGn'
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    
+                    st.markdown("#### 💡 Raccomandazioni")
+                    for rec in result['recommendations']:
+                        st.info(f"✓ {rec}")
+                
+                # =================================================================
+                # TRAINING PLAN
+                # =================================================================
+                elif "Training Plan" in ai_feature:
+                    st.markdown("### 💪 AI Training Plan Generator")
+                    
+                    # Prima calcola injury risk
+                    injury_data = predict_injury_risk(player_data, selected_player_ai)
+                    physical_data = st.session_state.physical_profiles.get(selected_player_ai)
+                    
+                    # Genera piano
+                    training_plan = generate_ai_training_plan(
+                        selected_player_ai,
+                        injury_data,
+                        physical_data
+                    )
+                    
+                    # Mostra piano
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.metric("Intensità", training_plan['intensity'])
+                    
+                    with col2:
+                        st.metric("Durata", training_plan['duration'])
+                    
+                    with col3:
+                        st.metric("Frequenza", training_plan['frequency'])
+                    
+                    st.markdown(f"#### 🎯 Focus: {training_plan['focus_areas']}")
+                    
+                    st.markdown("#### 📋 Esercizi Consigliati")
+                    for exercise in training_plan['exercises']:
+                        with st.expander(f"💪 {exercise['name']}"):
+                            st.write(f"**Sets:** {exercise['sets']}")
+                            st.write(f"**Focus:** {exercise['focus']}")
+                            st.write(f"**Priorità:** {exercise['priority']}")
+                    
+                    st.info(f"📝 {training_plan['notes']}")
+
 
 with tab4:
     st.header("🧠 ML Advanced - Machine Learning Models")
