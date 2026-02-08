@@ -1,5 +1,5 @@
 # =================================================================
-# COACHTRACK ELITE AI v3.0 - MAIN APPLICATION
+# COACHTRACK ELITE AI v3.0 - MAIN APPLICATION + CV INTEGRATION
 # =================================================================
 
 import streamlit as st
@@ -11,138 +11,59 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import json
 import time
+import os
+from pathlib import Path
 
 # =================================================================
-# IMPORT AI FUNCTIONS (CON FALLBACK)
+# COMPUTER VISION IMPORTS (con fallback)
 # =================================================================
 
 try:
-    from ai_functions import (
-        predict_injury_risk,
-        recommend_offensive_plays,
-        optimize_defensive_matchups,
-        analyze_movement_patterns,
-        simulate_shot_quality,
-        generate_ai_training_plan,
-        generate_nutrition_report_nlg,
-        generate_scout_report_nlg,
-        game_assistant_chat,
-        generate_performance_summary,
-        generate_training_plan_nlg,
-        test_groq_connection,
-        calculate_distance,
-        calculate_speed,
-        detect_jumps_imu,
-        GROQ_AVAILABLE,
-        GROQ_STATUS
-    )
-    AI_FUNCTIONS_LOADED = True
+    from cv_processor import CoachTrackVisionProcessor
+    from cv_camera import CameraManager, CourtCalibrator
+    from cv_tracking import PlayerDetector, SimpleTracker, BallDetector
+    CV_AVAILABLE = True
+    CV_STATUS = "✅ Computer Vision disponibile"
 except ImportError as e:
-    print(f"⚠️ Impossibile caricare ai_functions.py: {e}")
-    AI_FUNCTIONS_LOADED = False
-    
-    # FALLBACK - Definisci funzioni mock inline
-    def predict_injury_risk(player_data, player_id):
-        return {'player_id': player_id, 'risk_level': 'MEDIO', 'risk_score': 50, 'acwr': 1.0, 'asymmetry': 5.0, 'fatigue': 5.0, 'risk_factors': ['ai_functions.py non caricato'], 'recommendations': ['Verificare ai_functions.py']}
-    
-    def recommend_offensive_plays(player_data):
-        return {'recommended_plays': ['Mock - ai_functions.py mancante'], 'reasoning': ['Caricare ai_functions.py']}
-    
-    def optimize_defensive_matchups(team_data, opponent_data=None):
-        return []
-    
-    def analyze_movement_patterns(player_data, player_id):
-        return {'player_id': player_id, 'pattern_type': 'UNKNOWN', 'insights': ['Mock'], 'anomalies': []}
-    
-    def simulate_shot_quality(player_data, player_id):
-        return {'player_id': player_id, 'avg_quality': 0, 'shots': [], 'recommendations': ['Mock']}
-    
-    def generate_ai_training_plan(player_id, injury_risk_data, physical_data=None):
-        return {'player_id': player_id, 'risk_level': 'MEDIO', 'intensity': 'MODERATA', 'duration': '60min', 'frequency': '5x/settimana', 'focus_areas': 'Mock', 'exercises': [], 'notes': 'Mock'}
-    
-    def generate_nutrition_report_nlg(player_id, nutrition_plan, physical_data, language='it'):
-        return f"## Mock Report per {player_id}\n\nai_functions.py non caricato."
-    
-    def generate_scout_report_nlg(team_name, report_data, language='it'):
-        return f"## Mock Scout Report: {team_name}"
-    
-    def game_assistant_chat(query, context, language='it'):
-        return "Mock response - ai_functions.py non caricato"
-    
-    def generate_performance_summary(player_id, stats_summary, predictions, language='it'):
-        return f"## Mock Performance {player_id}"
-    
-    def generate_training_plan_nlg(player_id, training_plan, language='it'):
-        return f"Mock training plan {player_id}"
-    
-    def test_groq_connection():
-        return False, "ai_functions.py non caricato"
-    
-    def calculate_distance(df):
-        if len(df) < 2:
-            return 0.0
-        dx = np.diff(df['x'].values)
-        dy = np.diff(df['y'].values)
-        return float(np.sum(np.sqrt(dx**2 + dy**2)))
-    
-    def calculate_speed(df):
-        return df
-    
-    def detect_jumps_imu(df, threshold_g=1.5):
-        return []
-    
-    GROQ_AVAILABLE = False
-    GROQ_STATUS = "ai_functions.py non caricato"
-
-
+    CV_AVAILABLE = False
+    CV_STATUS = f"⚠️ CV non disponibile: {e}"
+    print(CV_STATUS)
 
 # =================================================================
-# GROQ CLIENT CONFIGURATION
+# GROQ CLIENT INITIALIZATION
 # =================================================================
+
+try:
+    from groq import Groq
+    GROQ_INSTALLED = True
+except ImportError:
+    GROQ_INSTALLED = False
+    Groq = None
 
 def initialize_groq_client():
-    """Inizializza client Groq con API key"""
+    if not GROQ_INSTALLED:
+        return None, False, "Groq library non installata"
+
     api_key = os.environ.get("GROQ_API_KEY")
-    
     if not api_key:
-        # Prova anche da Streamlit secrets
         try:
             api_key = st.secrets.get("GROQ_API_KEY")
         except:
             pass
-    
+
     if api_key:
         try:
             client = Groq(api_key=api_key)
-            return client, True, "Groq API connesso"
+            return client, True, "✅ Groq connesso"
         except Exception as e:
             return None, False, f"Errore Groq: {str(e)}"
-    else:
-        return None, False, "API Key non configurata"
+    return None, False, "API Key non configurata"
 
-# Inizializza client globale
 GROQ_CLIENT, GROQ_AVAILABLE, GROQ_STATUS = initialize_groq_client()
 
-# =================================================================
-# GROQ HELPER FUNCTION
-# =================================================================
-
-def call_groq_llm(prompt, system_message="Sei un esperto di sport science e analisi basket.", temperature=0.7, max_tokens=2000):
-    """
-    Chiama Groq LLM in modo sicuro
-    
-    Args:
-        prompt: Il prompt da inviare
-        system_message: Messaggio di sistema
-        temperature: Creatività (0-1)
-        max_tokens: Lunghezza massima risposta
-    
-    Returns:
-        str: Risposta del modello o messaggio di errore
-    """
+def call_groq_llm(prompt, system_message="Sei un esperto di sport science.", temperature=0.7, max_tokens=2000):
     if not GROQ_AVAILABLE or GROQ_CLIENT is None:
-        return f"⚠️ Groq non disponibile: {GROQ_STATUS}"
-    
+        return f"⚠️ Groq non disponibile"
     try:
         response = GROQ_CLIENT.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -155,11 +76,10 @@ def call_groq_llm(prompt, system_message="Sei un esperto di sport science e anal
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"❌ Errore Groq: {str(e)}"
-
+        return f"❌ Errore: {str(e)}"
 
 # =================================================================
-# FUNZIONI INLINE - TRACKING & AI BASE
+# UTILITY FUNCTIONS
 # =================================================================
 
 def calculate_distance(df):
@@ -191,499 +111,362 @@ def detect_jumps_imu(df, threshold_g=1.5):
     for i, az in enumerate(df['az'].values):
         if az > threshold_g:
             jumps.append({
-                'timestamp': int(df['timestamp'].iloc[i]), 
-                'peak_g': round(float(az), 2), 
-                'duration_ms': 200, 
+                'timestamp': int(df['timestamp'].iloc[i]),
+                'peak_g': round(float(az), 2),
+                'duration_ms': 200,
                 'estimated_height_cm': round((az-1)*20, 1)
             })
     return jumps[:10]
 
+# =================================================================
+# AI FUNCTIONS
+# =================================================================
+
 def predict_injury_risk(player_data, player_id):
     if len(player_data) < 10:
         return {
-            'player_id': player_id, 
-            'risk_level': 'BASSO', 
-            'risk_score': 10, 
-            'acwr': 1.0, 
-            'asymmetry': 5.0, 
-            'fatigue': 5.0, 
-            'risk_factors': ['Dati insufficienti'], 
+            'player_id': player_id,
+            'risk_level': 'BASSO',
+            'risk_score': 10,
+            'acwr': 1.0,
+            'asymmetry': 5.0,
+            'fatigue': 5.0,
+            'risk_factors': ['Dati insufficienti'],
             'recommendations': ['Raccogliere più dati']
         }
+
     distance = calculate_distance(player_data)
-    risk_score = 25 if distance < 200 else 40
+    player_data_with_speed = calculate_speed(player_data)
+    avg_speed = player_data_with_speed['speed_kmh_calc'].mean()
+
+    risk_score = 25 if distance < 200 else 40 if distance < 500 else 60
     risk_level = 'ALTO' if risk_score > 60 else 'MEDIO' if risk_score > 30 else 'BASSO'
+
+    risk_factors = [f'Distanza: {distance:.1f}m', f'Velocità: {avg_speed:.1f} km/h']
+    recommendations = ['Monitorare carico', 'Bilanciare recupero']
+
     return {
-        'player_id': player_id, 
-        'risk_level': risk_level, 
-        'risk_score': risk_score, 
-        'acwr': 1.2, 
-        'asymmetry': 10.0, 
-        'fatigue': 8.0, 
-        'risk_factors': ['ACWR: 1.2', 'Asimmetria: 10%'], 
-        'recommendations': ['Monitorare carico']
+        'player_id': player_id,
+        'risk_level': risk_level,
+        'risk_score': risk_score,
+        'acwr': 1.2,
+        'asymmetry': 10.0,
+        'fatigue': 8.0,
+        'risk_factors': risk_factors,
+        'recommendations': recommendations
     }
 
 def recommend_offensive_plays(player_data):
     if len(player_data) < 5:
-        return {'recommended_plays': ['Dati insufficienti'], 'reasoning': ['Caricare più dati']}
-    return {
-        'recommended_plays': ['Pick and Roll', 'Motion Offense', 'Fast Break'], 
-        'reasoning': ['Gioco versatile consigliato']
-    }
+        return {'recommended_plays': ['Dati insufficienti'], 'reasoning': ['Caricare dati']}
 
-def optimize_defensive_matchups(team_data, opponent_data=None):
-    if not team_data:
-        return []
-    return [{
-        'defender': pid, 
-        'opponent': 'Opponent Forward', 
-        'match_score': 75, 
-        'reason': 'Matchup versatile'
-    } for pid in team_data.keys()]
+    distance = calculate_distance(player_data)
+    return {
+        'recommended_plays': ['Pick and Roll', 'Motion Offense', 'Fast Break'],
+        'reasoning': [f'Movimento: {distance:.0f}m']
+    }
 
 def analyze_movement_patterns(player_data, player_id):
     if len(player_data) < 10:
-        return {
-            'player_id': player_id, 
-            'pattern_type': 'UNKNOWN', 
-            'insights': ['Dati insufficienti'], 
-            'anomalies': []
-        }
+        return {'player_id': player_id, 'pattern_type': 'UNKNOWN', 'insights': ['Dati insufficienti'], 'anomalies': []}
+
     distance = calculate_distance(player_data)
     pattern = 'DYNAMIC' if distance > 100 else 'BALANCED'
-    return {
-        'player_id': player_id, 
-        'pattern_type': pattern, 
-        'insights': [f'Distanza: {distance:.1f}m'], 
-        'anomalies': []
-    }
-
-def simulate_shot_quality(player_data, player_id):
-    if len(player_data) < 5:
-        return {
-            'player_id': player_id, 
-            'avg_quality': 0, 
-            'shots': [], 
-            'recommendations': ['Dati insufficienti']
-        }
-    shots = [{
-        'x': float(player_data.iloc[i]['x']), 
-        'y': float(player_data.iloc[i]['y']), 
-        'distance': 5.0, 
-        'quality': 75, 
-        'type': '2PT'
-    } for i in range(min(5, len(player_data)))]
-    return {
-        'player_id': player_id, 
-        'avg_quality': 75.0, 
-        'shots': shots, 
-        'recommendations': ['Buona selezione']
-    }
-
-def generate_ai_training_plan(player_id, injury_risk_data, physical_data=None):
-    risk_level = injury_risk_data.get('risk_level', 'MEDIO')
-    intensity = 'BASSA' if risk_level == 'ALTO' else 'MODERATA'
-    exercises = [{'name': 'Recovery', 'sets': '3x10', 'focus': 'Recupero', 'priority': 'Alta'}]
-    return {
-        'player_id': player_id, 
-        'risk_level': risk_level, 
-        'intensity': intensity, 
-        'duration': '60min', 
-        'frequency': '5x/settimana', 
-        'focus_areas': 'Condizionamento', 
-        'exercises': exercises, 
-        'notes': f'Piano {risk_level}'
-    }
-
-# =================================================================
-# FUNZIONI PHYSICAL & NUTRITION
-# =================================================================
-
-PHYSICAL_METRICS = {
-    'weight_kg': 'Peso (kg)',
-    'bmi': 'BMI',
-    'body_fat_pct': 'Grasso Corporeo (%)',
-    'lean_mass_kg': 'Massa Magra (kg)',
-    'body_water_pct': 'Acqua Corporea (%)',
-    'muscle_pct': 'Massa Muscolare (%)',
-    'bone_mass_kg': 'Massa Ossea (kg)',
-    'bmr': 'BMR (kcal)',
-    'amr': 'AMR (kcal)'
-}
-
-def parse_physical_csv(uploaded_file):
-    try:
-        df = pd.read_csv(uploaded_file)
-        return df, None
-    except Exception as e:
-        return None, str(e)
-
-def validate_physical_data(profile):
-    warnings = []
-    if profile.get('bmi', 0) < 18 or profile.get('bmi', 0) > 30:
-        warnings.append("BMI fuori range normale")
-    return warnings
-
-def simulate_apple_health_sync(player_id):
-    return {
-        'player_id': player_id,
-        'date': datetime.now().strftime('%Y-%m-%d'),
-        'source': 'Apple Health Sync',
-        'weight_kg': 80.0,
-        'bmi': 22.5,
-        'body_fat_pct': 12.0,
-        'lean_mass_kg': 68.0,
-        'body_water_pct': 60.0,
-        'muscle_pct': 45.0,
-        'bone_mass_kg': 3.2,
-        'bmr': 1800,
-        'amr': 2700
-    }
-
-def generate_enhanced_nutrition(player_id, physical_data, activity_level, goal):
-    base_calories = physical_data.get('amr', 2500)
-    
-    if 'High' in activity_level:
-        target_calories = int(base_calories * 1.3)
-    elif 'Moderate' in activity_level:
-        target_calories = int(base_calories * 1.1)
-    else:
-        target_calories = base_calories
-    
-    protein_g = int(physical_data.get('weight_kg', 80) * 2.2)
-    carbs_g = int(target_calories * 0.5 / 4)
-    fats_g = int(target_calories * 0.25 / 9)
-    
-    meals = [
-        {'name': 'Colazione', 'calories': int(target_calories * 0.25), 'protein': int(protein_g * 0.25), 'carbs': int(carbs_g * 0.25), 'fats': int(fats_g * 0.25), 'timing': '07:00-08:00', 'examples': 'Avena, uova, frutta'},
-        {'name': 'Pranzo', 'calories': int(target_calories * 0.35), 'protein': int(protein_g * 0.35), 'carbs': int(carbs_g * 0.35), 'fats': int(fats_g * 0.35), 'timing': '12:00-13:00', 'examples': 'Riso, pollo, verdure'},
-        {'name': 'Cena', 'calories': int(target_calories * 0.30), 'protein': int(protein_g * 0.30), 'carbs': int(carbs_g * 0.30), 'fats': int(fats_g * 0.30), 'timing': '19:00-20:00', 'examples': 'Pesce, patate, insalata'},
-        {'name': 'Snack', 'calories': int(target_calories * 0.10), 'protein': int(protein_g * 0.10), 'carbs': int(carbs_g * 0.10), 'fats': int(fats_g * 0.10), 'timing': 'Pre/Post workout', 'examples': 'Shake proteico, frutta secca'}
-    ]
-    
-    return {
-        'player_id': player_id,
-        'target_calories': target_calories,
-        'protein_g': protein_g,
-        'carbs_g': carbs_g,
-        'fats_g': fats_g,
-        'activity_level': activity_level,
-        'goal': goal,
-        'meals': meals
-    }
-
-def create_body_composition_viz(data):
-    fig = go.Figure()
-    
-    categories = ['Grasso', 'Muscoli', 'Acqua']
-    values = [
-        data.get('body_fat_pct', 0),
-        data.get('muscle_pct', 0),
-        data.get('body_water_pct', 0)
-    ]
-    
-    fig.add_trace(go.Bar(
-        x=categories,
-        y=values,
-        marker_color=['#ff6b6b', '#4ecdc4', '#45b7d1']
-    ))
-    
-    fig.update_layout(title="Composizione Corporea", yaxis_title="%")
-    return fig
-
-def create_physical_csv_template():
-    template_data = "player_id,date,weight_kg,bmi,body_fat_pct,lean_mass_kg,body_water_pct,muscle_pct,bone_mass_kg,bmr,amr\nP001,2026-02-07,80.0,22.5,12.0,68.0,60.0,45.0,3.2,1800,2700\n"
-    return template_data
-
-def export_physical_data_excel(data):
-    return BytesIO()
-
-# =================================================================
-# GROQ INTEGRATION (MOCK)
-# =================================================================
+    return {'player_id': player_id, 'pattern_type': pattern, 'insights': [f'Distanza: {distance:.1f}m'], 'anomalies': []}
 
 def test_groq_connection():
-    return True, "Groq connesso (mock mode)"
-
-def generate_nutrition_report_nlg(player_id, nutrition_plan, physical_data, language):
-    return f"""
-## 📊 Report Nutrizionale per {player_id}
-
-### Analisi Composizione Corporea
-Il giocatore presenta un peso di {physical_data.get('weight_kg', 'N/A')} kg con un BMI di {physical_data.get('bmi', 'N/A')}, 
-indicando una composizione corporea nella norma per un atleta professionista.
-
-### Piano Nutrizionale Personalizzato
-Target calorico giornaliero: **{nutrition_plan['target_calories']} kcal**
-
-La distribuzione dei macronutrienti è ottimizzata per:
-- **Proteine**: {nutrition_plan['protein_g']}g per supportare il recupero muscolare
-- **Carboidrati**: {nutrition_plan['carbs_g']}g per l'energia durante allenamenti intensi
-- **Grassi**: {nutrition_plan['fats_g']}g per funzioni ormonali e assorbimento vitamine
-
-### Raccomandazioni
-Mantenere idratazione costante (3-4L/giorno) e timing ottimale dei pasti per massimizzare performance e recupero.
-"""
-
-def generate_training_plan_nlg(player_id, training_plan, language):
-    return f"Piano allenamento per {player_id}: Intensità {training_plan['intensity']}, Focus: {training_plan['focus_areas']}"
-
-def generate_scout_report_nlg(team_name, report_data, language):
-    return f"## Scout Report: {team_name}\n\nAnalisi tattica completa generata."
-
-def game_assistant_chat(query, context, language):
-    return f"Risposta assistant: {query}"
-
-def generate_performance_summary(player_id, stats_summary, predictions, language):
-    return f"""
-## 📊 Analisi Performance per {player_id}
-
-{stats_summary}
-
-### Analisi Predittiva
-Le predizioni mostrano un trend positivo con confidence {predictions['confidence']}.
-Il giocatore dovrebbe ottenere circa {predictions['points']:.1f} punti nella prossima partita.
-"""
+    return GROQ_AVAILABLE, GROQ_STATUS
 
 # =================================================================
-# IMPORT ML MODELS CON FALLBACK AUTOMATICO
+# ML MODELS MOCK
 # =================================================================
 
-try:
-    from ml_models import MLInjuryPredictor, PerformancePredictor, ShotFormAnalyzer
-    print("✅ ml_models.py caricato!")
-except (ImportError, SyntaxError) as e:
-    print(f"⚠️ ml_models.py non disponibile: {e}")
-    print("🔄 Uso classi MOCK integrate")
-    
-    # MOCK CLASSES - VERSIONE COMPLETA E FUNZIONANTE
-    class MLInjuryPredictor:
-        def extract_features(self, player_data, physical_data=None, player_age=25, previous_injuries=0, training_history=None):
-            return {
-                'acwr': 1.2,
-                'asymmetry': 10.0,
-                'fatigue': 8.0,
-                'workload': 100.0,
-                'rest_days': 2,
-                'age': player_age,
-                'previous_injuries': previous_injuries,
-                'total_distance_7d': 1000.0,
-                'high_intensity_distance_7d': 150.0,
-                'avg_speed': 12.0,
-                'max_speed': 22.0,
-                'acceleration_events': 50
-            }
-        
-        def predict(self, features):
-            risk_prob = 35 + (features.get('previous_injuries', 0) * 5)
-            risk_prob = min(risk_prob, 90)
-            
-            if risk_prob > 70:
-                risk_level = 'ALTO'
-            elif risk_prob > 40:
-                risk_level = 'MEDIO'
-            else:
-                risk_level = 'BASSO'
-            
-            confidence = 'Alta' if risk_prob > 70 or risk_prob < 30 else 'Media'
-            
-            return {
-                'risk_level': risk_level,
-                'risk_probability': risk_prob,
-                'risk_class': 1 if risk_level == 'ALTO' else 0,
-                'confidence': confidence,
-                'top_risk_factors': [
-                    ('ACWR', 0.25),
-                    ('Fatigue', 0.20),
-                    ('Workload', 0.18),
-                    ('Rest Days', 0.15),
-                    ('Age', 0.10)
-                ],
-                'recommendations': [
-                    f'Rischio {risk_level}: monitorare attentamente',
-                    'Mantenere ACWR tra 0.8 e 1.3',
-                    'Assicurare recupero adeguato (2+ giorni/settimana)'
-                ]
-            }
-    
-    class PerformancePredictor:
-        def extract_features(self, stats_history, opponent_info, injury_risk=None):
-            avg_pts = stats_history['points'].mean() if 'points' in stats_history else 15
-            return {
-                'avg_points': avg_pts,
-                'rest_days': opponent_info.get('rest_days', 1),
-                'def_rating': opponent_info.get('def_rating', 110),
-                'location': 1 if opponent_info.get('location') == 'home' else 0,
-                'injury_risk': injury_risk['risk_probability'] if injury_risk else 20
-            }
-        
-        def predict_next_game(self, features):
-            base_points = features.get('avg_points', 15)
-            
-            # Adjust for rest
-            rest_bonus = features.get('rest_days', 1) * 0.5
-            
-            # Adjust for defense
-            def_penalty = (features.get('def_rating', 110) - 110) * 0.1
-            
-            # Adjust for location
-            location_bonus = 2 if features.get('location', 0) == 1 else 0
-            
-            # Adjust for injury risk
-            injury_penalty = features.get('injury_risk', 20) * 0.05
-            
-            predicted_points = base_points + rest_bonus - def_penalty + location_bonus - injury_penalty
-            predicted_assists = 5.0 + (rest_bonus * 0.3)
-            predicted_rebounds = 6.5 + (rest_bonus * 0.4)
-            predicted_efficiency = (predicted_points + predicted_assists + predicted_rebounds) / 30 * 10
-            
-            confidence = 'Alta' if features.get('injury_risk', 20) < 30 else 'Media' if features.get('injury_risk', 20) < 60 else 'Bassa'
-            
-            return {
-                'points': round(max(0, predicted_points), 1),
-                'assists': round(max(0, predicted_assists), 1),
-                'rebounds': round(max(0, predicted_rebounds), 1),
-                'efficiency': round(max(0, predicted_efficiency), 1),
-                'confidence': confidence
-            }
-    
-    class ShotFormAnalyzer:
-        def analyze_shot_video(self, video_path):
-            return {
-                'status': 'MOCK_MODE',
-                'message': 'Shot form analysis richiede MediaPipe/OpenCV integration',
-                'next_steps': [
-                    'Installare: pip install mediapipe opencv-python',
-                    'Integrare pose estimation con MediaPipe Pose',
-                    'Estrarre angoli chiave: elbow (90°), knee (45-60°), wrist',
-                    'Comparare con reference form NBA'
-                ],
-                'required_libraries': ['mediapipe', 'opencv-python'],
-                'sample_output': {
-                    'elbow_angle': 'N/A',
-                    'release_height': 'N/A',
-                    'knee_bend': 'N/A',
-                    'score': 0
-                }
-            }
-        
-        def get_optimal_form_guide(self):
-            return {
-                'preparation': {
-                    'stance': 'Shoulder width apart',
-                    'knee_bend': '45-60 degrees',
-                    'ball_position': 'Above shooting shoulder'
-                },
-                'release': {
-                    'elbow_angle': '90 degrees',
-                    'release_height': '2.4m minimum',
-                    'wrist_snap': 'Full extension',
-                    'release_angle': '48-52 degrees'
-                },
-                'follow_through': {
-                    'hand_position': 'Gooseneck position',
-                    'hold': '0.5 seconds minimum',
-                    'arc': '45-50 degrees optimal'
-                }
-            }
+class MLInjuryPredictor:
+    def extract_features(self, player_data, physical_data=None, player_age=25, previous_injuries=0, training_history=None):
+        return {'acwr': 1.2, 'asymmetry': 10.0, 'fatigue': 8.0, 'workload': 100.0, 'restdays': 2, 'age': player_age}
 
-# Helper functions per ML
-def generate_player_stats_history(games=10, avg_points=18):
-    """Generate synthetic player stats history"""
-    import numpy as np
-    np.random.seed(42)
-    stats = {
-        'points': np.random.randint(int(avg_points*0.7), int(avg_points*1.3), games),
-        'assists': np.random.randint(3, 8, games),
-        'rebounds': np.random.randint(4, 10, games),
-        'minutes': np.random.randint(25, 38, games)
-    }
-    return pd.DataFrame(stats)
-
-def create_training_history_sample(days=28):
-    """Generate synthetic training history"""
-    import numpy as np
-    from datetime import timedelta
-    np.random.seed(42)
-    dates = [datetime.now() - timedelta(days=i) for i in range(days)]
-    training = {
-        'date': dates,
-        'workload': np.random.randint(50, 150, days),
-        'duration_min': np.random.randint(60, 120, days),
-        'intensity': np.random.choice(['Low', 'Medium', 'High'], days)
-    }
-    return pd.DataFrame(training)
-
-# =================================================================
-# HELPER FUNCTIONS
-# =================================================================
-
-def generate_player_stats_history(games=10, avg_points=18):
-    """Generate synthetic player stats history"""
-    import numpy as np
-    import pandas as pd
-    
-    np.random.seed(42)
-    stats = {
-        'points': np.random.randint(int(avg_points*0.7), int(avg_points*1.3), games),
-        'assists': np.random.randint(3, 8, games),
-        'rebounds': np.random.randint(4, 10, games),
-        'minutes': np.random.randint(25, 38, games)
-    }
-    return pd.DataFrame(stats)
-
-def create_training_history_sample(days=28):
-    """Generate synthetic training history"""
-    import numpy as np
-    import pandas as pd
-    from datetime import datetime, timedelta
-    
-    np.random.seed(42)
-    dates = [datetime.now() - timedelta(days=i) for i in range(days)]
-    training = {
-        'date': dates,
-        'workload': np.random.randint(50, 150, days),
-        'duration_min': np.random.randint(60, 120, days),
-        'intensity': np.random.choice(['Low', 'Medium', 'High'], days)
-    }
-    return pd.DataFrame(training)
-
-# =================================================================
-# TACTICAL AI (MOCK)
-# =================================================================
-
-class TacticalPatternRecognizer:
-    pass
-
-class ScoutReportGenerator:
-    def generate_full_report(self, team_name, tracking_data, stats, language):
+    def predict(self, features):
+        risk_prob = 35
+        risk_level = 'MEDIO'
         return {
-            'team_name': team_name,
-            'offensive_rating': 112,
-            'defensive_rating': 108,
-            'key_players': ['Player A', 'Player B']
+            'risk_level': risk_level,
+            'risk_probability': risk_prob,
+            'confidence': 'Media',
+            'top_risk_factors': [('ACWR', 0.25), ('Fatigue', 0.20)],
+            'recommendations': ['Monitorare carico', 'Aumentare recupero']
         }
 
-class LineupOptimizer:
-    def optimize(self, team_data, constraints):
-        return {'lineup': ['P1', 'P2', 'P3', 'P4', 'P5'], 'score': 85}
+# =================================================================
+# CV TAB FUNCTION
+# =================================================================
 
-class GameAssistant:
-    pass
+def add_computer_vision_tab():
+    """Tab Computer Vision completo"""
+    st.header("🎥 Computer Vision System")
 
-def simulate_opponent_stats():
-    return {
-        'points_per_game': 110,
-        'assists_per_game': 25,
-        'three_pt_pct': 36,
-        'pace': 98,
-        'offensive_rating': 112,
-        'defensive_rating': 108
-    }
+    if not CV_AVAILABLE:
+        st.error("❌ Moduli CV non disponibili")
+        st.info("📦 Installa dipendenze:")
+        st.code("pip install -r requirements_cv.txt", language="bash")
+        st.markdown("### 📋 File necessari:")
+        st.markdown("- `cv_camera.py`\n- `cv_processor.py`\n- `cv_tracking.py`")
+        return
+
+    st.success(CV_STATUS)
+
+    # Tabs CV
+    cv_tab1, cv_tab2, cv_tab3, cv_tab4 = st.tabs([
+        "📹 Live Tracking",
+        "📁 Process Video",
+        "🎯 Calibrazione",
+        "📊 Analysis"
+    ])
+
+    # ============ TAB 1: LIVE TRACKING ============
+    with cv_tab1:
+        st.subheader("📹 Live Camera Tracking")
+
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            camera_source = st.text_input(
+                "Camera Source",
+                value="0",
+                help="0 = USB webcam, rtsp://ip/stream = WiFi camera"
+            )
+        with col2:
+            duration = st.number_input(
+                "Durata (sec)",
+                min_value=0,
+                max_value=3600,
+                value=60,
+                help="0 = infinito"
+            )
+
+        col3, col4 = st.columns(2)
+        with col3:
+            output_file = st.text_input("Output JSON", value="live_tracking.json")
+        with col4:
+            visualize = st.checkbox("Mostra Video", value=False, help="Disabilita per migliori performance")
+
+        if st.button("🎬 Start Live Tracking", type="primary"):
+            with st.spinner("Inizializzazione camera..."):
+                processor = CoachTrackVisionProcessor(camera_source)
+                if processor.initialize():
+                    st.success("✅ Camera connessa")
+
+                    if not processor.is_calibrated:
+                        st.warning("⚠️ Sistema non calibrato. Vai alla tab Calibrazione.")
+
+                    st.info("🎬 Processing avviato... Premi 'q' nella finestra video per fermare")
+
+                    try:
+                        processor.run_realtime(
+                            output_file=output_file,
+                            visualize=visualize,
+                            duration=duration
+                        )
+                        st.success(f"✅ Tracking completato! Dati: {output_file}")
+                        st.balloons()
+                    except Exception as e:
+                        st.error(f"❌ Errore: {e}")
+                else:
+                    st.error("❌ Impossibile connettersi alla camera")
+
+        # Show recent files
+        st.markdown("---")
+        st.subheader("📂 Recent Tracking Files")
+        tracking_files = list(Path(".").glob("*tracking*.json"))
+        if tracking_files:
+            selected_file = st.selectbox("Seleziona file", tracking_files)
+            if st.button("📊 Carica Dati"):
+                with open(selected_file, 'r') as f:
+                    data = json.load(f)
+
+                st.json(data['metadata'])
+
+                # Convert to dataframe
+                frames_data = []
+                for frame in data['frames']:
+                    for player in frame.get('players', []):
+                        frames_data.append({
+                            'frame': frame['frame_number'],
+                            'timestamp': frame['timestamp'],
+                            'player_id': player['player_id'],
+                            'x': player['x'],
+                            'y': player['y'],
+                            'conf': player['conf']
+                        })
+
+                if frames_data:
+                    df = pd.DataFrame(frames_data)
+                    st.dataframe(df.head(50))
+                    st.session_state.cv_tracking_data = df
+                    st.session_state.tracking_data = {pid: df[df['player_id']==pid] for pid in df['player_id'].unique()}
+                    st.success(f"✅ Caricati {len(df)} punti tracking per {df['player_id'].nunique()} giocatori")
+        else:
+            st.info("ℹ️ Nessun file tracking trovato")
+
+    # ============ TAB 2: PROCESS VIDEO ============
+    with cv_tab2:
+        st.subheader("📁 Process Video File")
+
+        uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov'])
+
+        if uploaded_video:
+            video_path = f"uploaded_{uploaded_video.name}"
+            with open(video_path, 'wb') as f:
+                f.write(uploaded_video.read())
+            st.success(f"✅ Video caricato: {video_path}")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                output_json = st.text_input("Output JSON", value="video_tracking.json")
+            with col2:
+                create_annotated = st.checkbox("Crea Video Annotato", value=False)
+
+            if st.button("🎬 Process Video", type="primary"):
+                with st.spinner("Processing video..."):
+                    processor = CoachTrackVisionProcessor(video_path)
+                    output_video = f"annotated_{video_path}" if create_annotated else None
+
+                    success = processor.process_video_file(
+                        video_path,
+                        output_json,
+                        output_video
+                    )
+
+                    if success:
+                        st.success("✅ Video processato!")
+
+                        with open(output_json, 'r') as f:
+                            json_data = f.read()
+                        st.download_button(
+                            "📥 Download JSON",
+                            data=json_data,
+                            file_name=output_json,
+                            mime="application/json"
+                        )
+                    else:
+                        st.error("❌ Errore processing")
+
+    # ============ TAB 3: CALIBRAZIONE ============
+    with cv_tab3:
+        st.subheader("🎯 Court Calibration")
+
+        st.markdown("""
+        ### 📐 Procedura Calibrazione:
+        1. Connetti la camera
+        2. Assicurati che il campo sia **completamente visibile**
+        3. Clicca sui 4 angoli del campo nell'ordine:
+           - **Basso-Sinistra**
+           - **Basso-Destra**
+           - **Alto-Destra**
+           - **Alto-Sinistra**
+        4. Premi 'q' per salvare
+        """)
+
+        camera_source_calib = st.text_input(
+            "Camera Source",
+            value="0",
+            key="calib_source"
+        )
+
+        if st.button("🎯 Start Calibration", type="primary"):
+            with st.spinner("Inizializzazione..."):
+                processor = CoachTrackVisionProcessor(camera_source_calib)
+                if processor.initialize(calibration_file=None):
+                    st.info("📍 Clicca sui 4 angoli nella finestra che si apre...")
+                    success = processor.calibrate_court()
+                    if success:
+                        st.success("✅ Calibrazione completata e salvata!")
+                        st.balloons()
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Calibrazione fallita")
+                else:
+                    st.error("❌ Impossibile connettersi alla camera")
+
+        # Show current calibration
+        st.markdown("---")
+        st.subheader("Current Calibration")
+        calib_file = Path("camera_calibration.json")
+        if calib_file.exists():
+            with open(calib_file, 'r') as f:
+                calib = json.load(f)
+            st.json(calib)
+            if st.button("🗑️ Delete Calibration"):
+                calib_file.unlink()
+                st.success("✅ Calibrazione eliminata")
+                st.rerun()
+        else:
+            st.info("ℹ️ Nessuna calibrazione presente")
+
+    # ============ TAB 4: ANALYSIS ============
+    with cv_tab4:
+        st.subheader("📊 Tracking Data Analysis")
+
+        if 'cv_tracking_data' not in st.session_state:
+            st.info("ℹ️ Carica tracking data dalla tab 'Live Tracking'")
+            return
+
+        df = st.session_state.cv_tracking_data
+
+        # Stats
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Frames", df['frame'].nunique())
+        with col2:
+            st.metric("Players", df['player_id'].nunique())
+        with col3:
+            st.metric("Avg Confidence", f"{df['conf'].mean():.2%}")
+        with col4:
+            duration = (df['timestamp'].max() - df['timestamp'].min())
+            st.metric("Duration", f"{duration:.1f}s")
+
+        # Player selection
+        selected_player = st.selectbox(
+            "Select Player",
+            options=sorted(df['player_id'].unique())
+        )
+
+        player_df = df[df['player_id'] == selected_player]
+
+        # Trajectory plot
+        st.subheader(f"Player {selected_player} Trajectory")
+        fig = go.Figure()
+
+        # Court background
+        fig.add_shape(
+            type="rect",
+            x0=0, y0=0, x1=28, y1=15,
+            line=dict(color="white", width=2),
+            fillcolor="rgba(0,100,0,0.1)"
+        )
+
+        # Trajectory
+        fig.add_trace(go.Scatter(
+            x=player_df['x'],
+            y=player_df['y'],
+            mode='lines+markers',
+            name=f'Player {selected_player}',
+            line=dict(color='red', width=2),
+            marker=dict(size=4)
+        ))
+
+        fig.update_layout(
+            title=f"Court Position - Player {selected_player}",
+            xaxis_title="X (meters)",
+            yaxis_title="Y (meters)",
+            width=800,
+            height=500,
+            plot_bgcolor='darkgreen'
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
 # =================================================================
-# PAGE CONFIG
+# STREAMLIT APP
 # =================================================================
 
 st.set_page_config(
@@ -693,10 +476,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =================================================================
-# AUTHENTICATION
-# =================================================================
-
+# Login
 def check_login(username, password):
     return username == "admin" and password == "admin"
 
@@ -706,1275 +486,165 @@ if 'logged_in' not in st.session_state:
 if not st.session_state.logged_in:
     st.title("🏀 CoachTrack Elite AI")
     st.markdown("### 🔐 Login")
-    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         username = st.text_input("Username", value="admin")
         password = st.text_input("Password", type="password", value="admin")
-        
-        if st.button("🚀 Login", use_container_width=True, type="primary"):
+        if st.button("Login", use_container_width=True, type="primary"):
             if check_login(username, password):
                 st.session_state.logged_in = True
                 st.rerun()
             else:
                 st.error("❌ Credenziali errate")
-    
-    st.info("💡 Default: admin / admin")
+        st.info("💡 Default: admin / admin")
     st.stop()
 
-# =================================================================
-# SESSION STATE
-# =================================================================
-
-if 'language' not in st.session_state:
-    st.session_state.language = 'it'
+# Session state
 if 'tracking_data' not in st.session_state:
     st.session_state.tracking_data = {}
 if 'imu_data' not in st.session_state:
     st.session_state.imu_data = {}
 if 'physical_profiles' not in st.session_state:
     st.session_state.physical_profiles = {}
-if 'physical_history' not in st.session_state:
-    st.session_state.physical_history = {}
-if 'current_nutrition_plan' not in st.session_state:
-    st.session_state.current_nutrition_plan = None
 if 'ml_injury_model' not in st.session_state:
     st.session_state.ml_injury_model = MLInjuryPredictor()
-if 'performance_model' not in st.session_state:
-    st.session_state.performance_model = PerformancePredictor()
-if 'lineup_optimizer' not in st.session_state:
-    st.session_state.lineup_optimizer = LineupOptimizer()
-if 'game_assistant' not in st.session_state:
-    st.session_state.game_assistant = GameAssistant()
 
-# =================================================================
-# TRANSLATIONS
-# =================================================================
-
-TRANSLATIONS = {
-    'it': {
-        'title': '🏀 CoachTrack Elite AI',
-        'welcome': 'Sistema completo con ML Models, Groq AI e Tactical Analytics',
-        'config': 'Configurazione & Dati',
-        'physical': 'Profilo Fisico & AI',
-        'ai_features': 'AI Elite Features',
-        'ml_advanced': 'ML Advanced',
-        'tactical': 'Tactical AI & Scout',
-        'analytics': 'Analytics & Reports',
-        'logout': 'Logout'
-    },
-    'en': {
-        'title': '🏀 CoachTrack Elite AI',
-        'welcome': 'Complete system with ML Models, Groq AI and Tactical Analytics',
-        'config': 'Configuration & Data',
-        'physical': 'Physical Profile & AI',
-        'ai_features': 'Elite AI Features',
-        'ml_advanced': 'ML Advanced',
-        'tactical': 'Tactical AI & Scout',
-        'analytics': 'Analytics & Reports',
-        'logout': 'Logout'
-    }
-}
-
-t = TRANSLATIONS[st.session_state.language]
-
-# =================================================================
-# SIDEBAR - SEZIONE DATA SUMMARY CORRETTA
-# =================================================================
-
+# Sidebar
 with st.sidebar:
-    # st.image("https://i.imgur.com/placeholder_basketball.png", use_container_width=True)
-    st.title("CoachTrack Elite")
-    # st.caption("v3.0 - Complete Edition")
+    st.title("🏀 CoachTrack Elite")
     st.markdown("---")
-    
-    lang = st.selectbox("🌐 Language", ["IT", "EN"], index=0 if st.session_state.language == 'it' else 1)
-    if lang == "IT" and st.session_state.language != 'it':
-        st.session_state.language = 'it'
-        st.rerun()
-    elif lang == "EN" and st.session_state.language != 'en':
-        st.session_state.language = 'en'
-        st.rerun()
-    
-    st.markdown("---")
-    
-    st.markdown("### 🤖 Groq Status")
-    if st.button("Test Groq Connection", use_container_width=True):
-        with st.spinner("Testing..."):
-            success, message = test_groq_connection()
-            if success:
-                st.success(f"✅ {message}")
-            else:
-                st.error(f"❌ {message}")
-    
-        st.markdown("---")
-    
-    # ===== DATA SUMMARY SECTION =====
-    st.markdown("### 📊 Data Summary")
-    
-    # Conta i dati disponibili
-    uwb_count = len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
-    phys_count = len(st.session_state.physical_profiles) if st.session_state.physical_profiles else 0
-    imu_count = len(st.session_state.imu_data) if st.session_state.imu_data else 0
-    
-    # Mostra sempre le metriche (anche se 0)
+
+    st.markdown("### 🔌 System Status")
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.metric("👥 Players UWB", uwb_count)
-    
+        if GROQ_AVAILABLE:
+            st.success("Groq ✅")
+        else:
+            st.error("Groq ❌")
     with col2:
-        st.metric("🏋️ Physical", phys_count)
-    
-    if imu_count > 0:
-        st.metric("📱 IMU Data", imu_count)
-    
-    # Status nutrition
-    if st.session_state.current_nutrition_plan:
-        st.success("✅ Nutrition Active")
-    
-    # Messaggio se nessun dato
-    if uwb_count == 0 and phys_count == 0 and imu_count == 0:
-        st.caption("⬆️ Carica dati in Tab 1")
-    
+        if CV_AVAILABLE:
+            st.success("CV ✅")
+        else:
+            st.warning("CV ⚠️")
+
     st.markdown("---")
-    
-    if st.button("🚪 " + t['logout'], use_container_width=True):
+    st.markdown("### 📈 Data Summary")
+    uwb_count = len(st.session_state.tracking_data)
+    phys_count = len(st.session_state.physical_profiles)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Players", uwb_count)
+    with col2:
+        st.metric("Physical", phys_count)
+
+    if uwb_count == 0 and not CV_AVAILABLE:
+        st.caption("⚠️ Carica dati CSV o usa CV")
+
+    st.markdown("---")
+    if st.button("🚪 Logout", use_container_width=True):
         st.session_state.logged_in = False
         st.rerun()
 
+# Main
+st.title("🏀 CoachTrack Elite AI v3.0")
+st.markdown("Sistema completo: ML, Groq AI, Computer Vision e Tactical Analytics")
 
-# =================================================================
-# MAIN UI - TABS
-# =================================================================
-
-st.title(t['title'])
-st.markdown(t['welcome'])
-
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "📊 " + t['config'],
-    "🏋️ " + t['physical'],
-    "🤖 " + t['ai_features'],
-    "🧠 " + t['ml_advanced'],
-    "⚔️ " + t['tactical'],
-    "📈 " + t['analytics']
+# TABS PRINCIPALI
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "⚙️ Configurazione",
+    "🤖 AI Features",
+    "🎥 Computer Vision",
+    "🧠 ML Advanced",
+    "📊 Analytics"
 ])
 
-# =================================================================
-# TAB 1: CONFIGURATION
-# =================================================================
-
+# TAB 1: CONFIGURAZIONE
 with tab1:
-    st.header("⚙️ Configurazione e Caricamento Dati")
+    st.header("⚙️ Configurazione Dati")
     st.markdown("### 📡 Carica Dati Tracking UWB")
-    
-    uploaded_uwb = st.file_uploader("Carica CSV Tracking UWB", type=['csv'], key='uwb_upload')
-    
+
+    uploaded_uwb = st.file_uploader("Carica CSV Tracking", type=['csv'], key='uwb_upload')
+
     if uploaded_uwb:
         try:
             df = pd.read_csv(uploaded_uwb, sep=';')
             st.success(f"✅ File caricato: {len(df)} righe")
-            
+
             required_cols = ['player_id', 'timestamp', 'x', 'y']
             if all(col in df.columns for col in required_cols):
                 for player_id in df['player_id'].unique():
                     player_df = df[df['player_id'] == player_id].copy()
                     st.session_state.tracking_data[player_id] = player_df
-                
                 st.success(f"✅ Dati importati per {len(df['player_id'].unique())} giocatori")
-                
-                with st.expander("👁️ Anteprima Dati"):
+                with st.expander("📋 Anteprima"):
                     st.dataframe(df.head(20))
             else:
                 st.error(f"❌ CSV deve contenere: {', '.join(required_cols)}")
         except Exception as e:
-            st.error(f"❌ Errore lettura file: {e}")
-    
-    st.markdown("---")
-    st.markdown("### 📱 Carica Dati IMU (Salti)")
-    
-    uploaded_imu = st.file_uploader("Carica CSV IMU", type=['csv'], key='imu_upload')
-    
-    if uploaded_imu:
-        try:
-            imu_df = pd.read_csv(uploaded_imu)
-            required_imu = ['player_id', 'timestamp', 'ax', 'ay', 'az']
-            if all(col in imu_df.columns for col in required_imu):
-                for player_id in imu_df['player_id'].unique():
-                    player_imu = imu_df[imu_df['player_id'] == player_id].copy()
-                    st.session_state.imu_data[player_id] = player_imu
-                st.success(f"✅ Dati IMU importati per {len(imu_df['player_id'].unique())} giocatori")
-            else:
-                st.error(f"❌ CSV IMU deve contenere: {', '.join(required_imu)}")
-        except Exception as e:
             st.error(f"❌ Errore: {e}")
 
-# =================================================================
-# TAB 2: PHYSICAL PROFILE (VERSIONE COMPLETA E FUNZIONALE)
-# =================================================================
-
+# TAB 2: AI FEATURES
 with tab2:
-    st.header("🏋️ Profilo Fisico & AI Nutrition")
-    st.markdown("### 📊 Gestione Dati Fisici Completi")
-    
-    with st.expander("📥 Carica Dati Fisici", expanded=True):
-        upload_tab, apple_tab, manual_tab = st.tabs(["📄 CSV Upload", "🍎 Apple Health", "✏️ Manuale"])
-        
-        # =================================================================
-        # CSV UPLOAD TAB
-        # =================================================================
-        with upload_tab:
-            st.markdown("#### 📄 Upload CSV con Dati Fisici")
-            
-            # Template download
-            template_csv = create_physical_csv_template()
-            st.download_button(
-                "📥 Scarica Template CSV", 
-                template_csv, 
-                "physical_data_template.csv", 
-                "text/csv",
-                help="Scarica template con formato corretto"
-            )
-            
-            st.info("📋 Il CSV deve contenere: player_id, date, weight_kg, bmi, body_fat_pct, lean_mass_kg, body_water_pct, muscle_pct, bone_mass_kg, bmr, amr")
-            
-            uploaded_physical = st.file_uploader("Carica CSV Dati Fisici", type=['csv'], key='physical_csv')
-            
-            if uploaded_physical:
-                df_physical, error = parse_physical_csv(uploaded_physical)
-                if error:
-                    st.error(f"❌ {error}")
-                else:
-                    st.success(f"✅ File caricato: {len(df_physical)} righe")
-                    st.dataframe(df_physical.head())
-                    
-                    if st.button("💾 Importa tutti i profili", type="primary"):
-                        saved_count = 0
-                        for _, row in df_physical.iterrows():
-                            player_id = row['player_id']
-                            
-                            profile = {
-                                'date': row.get('date', datetime.now().strftime('%Y-%m-%d')),
-                                'source': 'CSV Upload',
-                                'weight_kg': float(row.get('weight_kg', 80)),
-                                'bmi': float(row.get('bmi', 22.5)),
-                                'body_fat_pct': float(row.get('body_fat_pct', 12)),
-                                'lean_mass_kg': float(row.get('lean_mass_kg', 68)),
-                                'body_water_pct': float(row.get('body_water_pct', 60)),
-                                'muscle_pct': float(row.get('muscle_pct', 45)),
-                                'bone_mass_kg': float(row.get('bone_mass_kg', 3.2)),
-                                'bmr': int(row.get('bmr', 1800)),
-                                'amr': int(row.get('amr', 2700))
-                            }
-                            
-                            st.session_state.physical_profiles[player_id] = profile
-                            saved_count += 1
-                        
-                        st.success(f"✅ Salvati {saved_count} profili!")
-                        st.rerun()
-        
-        # =================================================================
-        # APPLE HEALTH TAB (SIMULAZIONE COMPLETA)
-        # =================================================================
-        with apple_tab:
-            st.markdown("#### 🍎 Sincronizza Apple Health (Simulazione)")
-            st.info("ℹ️ Questa è una simulazione realistica di Apple Health sync. In produzione userebbe l'API HealthKit.")
-            
-            if not st.session_state.tracking_data:
-                st.warning("⚠️ Carica prima dati UWB in Tab 1 per associare i profili fisici")
-            else:
-                player_for_sync = st.selectbox(
-                    "Seleziona Giocatore da sincronizzare", 
-                    list(st.session_state.tracking_data.keys()),
-                    key='apple_health_player'
-                )
-                
-                st.markdown("---")
-                st.markdown("##### 📱 Parametri Apple Health da simulare:")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("**Metriche Base**")
-                    apple_weight = st.number_input("Peso (kg)", 50.0, 150.0, 80.0, 0.1, key='apple_weight')
-                    apple_height = st.number_input("Altezza (cm)", 150.0, 220.0, 180.0, 0.1, key='apple_height')
-                    apple_age = st.number_input("Età", 16, 45, 25, 1, key='apple_age')
-                    apple_sex = st.selectbox("Sesso", ["M", "F"], key='apple_sex')
-                
-                with col2:
-                    st.markdown("**Composizione Corporea**")
-                    apple_body_fat = st.slider("Grasso Corporeo (%)", 5.0, 30.0, 12.0, 0.1, key='apple_fat')
-                    apple_muscle = st.slider("Massa Muscolare (%)", 30.0, 60.0, 45.0, 0.1, key='apple_muscle')
-                    apple_water = st.slider("Acqua Corporea (%)", 45.0, 70.0, 60.0, 0.1, key='apple_water')
-                    apple_bone = st.number_input("Massa Ossea (kg)", 2.0, 5.0, 3.2, 0.1, key='apple_bone')
-                
-                st.markdown("---")
-                
-                col3, col4 = st.columns(2)
-                
-                with col3:
-                    st.markdown("**Metabolismo**")
-                    calc_bmr = st.checkbox("Calcola BMR automaticamente", value=True, key='calc_bmr')
-                    if calc_bmr:
-                        # Formula Harris-Benedict
-                        if apple_sex == "M":
-                            bmr = int(88.362 + (13.397 * apple_weight) + (4.799 * apple_height) - (5.677 * apple_age))
-                        else:
-                            bmr = int(447.593 + (9.247 * apple_weight) + (3.098 * apple_height) - (4.330 * apple_age))
-                        st.info(f"🔥 BMR calcolato: {bmr} kcal/giorno")
-                        apple_bmr = bmr
-                    else:
-                        apple_bmr = st.number_input("BMR (kcal/giorno)", 1200, 3000, 1800, 10, key='apple_bmr_manual')
-                    
-                    activity_multiplier = st.selectbox(
-                        "Livello Attività",
-                        ["Sedentario (1.2)", "Leggero (1.375)", "Moderato (1.55)", "Intenso (1.725)", "Molto Intenso (1.9)"],
-                        index=3,
-                        key='apple_activity'
-                    )
-                    multiplier = float(activity_multiplier.split("(")[1].replace(")", ""))
-                    apple_amr = int(apple_bmr * multiplier)
-                
-                with col4:
-                    st.markdown("**Calcoli Automatici**")
-                    # BMI
-                    height_m = apple_height / 100
-                    apple_bmi = round(apple_weight / (height_m ** 2), 2)
-                    st.metric("BMI", apple_bmi)
-                    
-                    # Massa magra
-                    lean_mass = round(apple_weight * (1 - apple_body_fat/100), 1)
-                    st.metric("Massa Magra", f"{lean_mass} kg")
-                    
-                    st.metric("AMR", f"{apple_amr} kcal/giorno")
-                
-                st.markdown("---")
-                
-                if st.button("🔄 Sincronizza da Apple Health", type="primary", use_container_width=True):
-                    with st.spinner("📱 Sincronizzazione in corso..."):
-                        import time
-                        time.sleep(1.5)  # Simula sync
-                        
-                        health_data = {
-                            'player_id': player_for_sync,
-                            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                            'source': 'Apple Health Sync',
-                            'weight_kg': apple_weight,
-                            'height_cm': apple_height,
-                            'age': apple_age,
-                            'sex': apple_sex,
-                            'bmi': apple_bmi,
-                            'body_fat_pct': apple_body_fat,
-                            'lean_mass_kg': lean_mass,
-                            'body_water_pct': apple_water,
-                            'muscle_pct': apple_muscle,
-                            'bone_mass_kg': apple_bone,
-                            'bmr': apple_bmr,
-                            'amr': apple_amr
-                        }
-                        
-                        st.session_state.physical_profiles[player_for_sync] = health_data
-                        
-                        # Add to history
-                        if player_for_sync not in st.session_state.physical_history:
-                            st.session_state.physical_history[player_for_sync] = []
-                        st.session_state.physical_history[player_for_sync].append(health_data)
-                    
-                    st.success(f"✅ Dati Apple Health sincronizzati per {player_for_sync}!")
-                    
-                    with st.expander("📊 Dati salvati"):
-                        st.json(health_data)
-                    
-                    st.balloons()
-                    time.sleep(1)
-                    st.rerun()
-        
-        # =================================================================
-        # MANUAL ENTRY TAB (COMPLETO E FUNZIONALE)
-        # =================================================================
-        with manual_tab:
-            st.markdown("#### ✏️ Inserimento Manuale Completo")
-            
-            if not st.session_state.tracking_data:
-                st.warning("⚠️ Carica prima dati UWB in Tab 1")
-            else:
-                player_manual = st.selectbox(
-                    "Seleziona Giocatore", 
-                    list(st.session_state.tracking_data.keys()), 
-                    key='manual_player'
-                )
-                
-                st.markdown("---")
-                st.markdown("##### 📏 Dati Antropometrici")
-                
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    manual_weight = st.number_input("Peso (kg)", 50.0, 150.0, 80.0, 0.1, key='man_weight')
-                    manual_height = st.number_input("Altezza (cm)", 150.0, 220.0, 180.0, 1.0, key='man_height')
-                
-                with col2:
-                    manual_age = st.number_input("Età", 16, 45, 25, key='man_age')
-                    manual_sex = st.selectbox("Sesso", ["M", "F"], key='man_sex')
-                
-                with col3:
-                    # Auto-calculate BMI
-                    height_m = manual_height / 100
-                    manual_bmi = round(manual_weight / (height_m ** 2), 2)
-                    st.metric("BMI (calcolato)", manual_bmi)
-                
-                st.markdown("---")
-                st.markdown("##### 🔬 Composizione Corporea")
-                
-                col4, col5, col6 = st.columns(3)
-                
-                with col4:
-                    manual_body_fat = st.number_input("Grasso Corporeo (%)", 3.0, 40.0, 12.0, 0.1, key='man_fat')
-                    manual_muscle = st.number_input("Massa Muscolare (%)", 25.0, 60.0, 45.0, 0.1, key='man_muscle')
-                
-                with col5:
-                    manual_water = st.number_input("Acqua Corporea (%)", 45.0, 75.0, 60.0, 0.1, key='man_water')
-                    manual_bone = st.number_input("Massa Ossea (kg)", 2.0, 5.0, 3.2, 0.1, key='man_bone')
-                
-                with col6:
-                    # Auto-calculate lean mass
-                    manual_lean = round(manual_weight * (1 - manual_body_fat/100), 1)
-                    st.metric("Massa Magra (calc)", f"{manual_lean} kg")
-                
-                st.markdown("---")
-                st.markdown("##### 🔥 Metabolismo")
-                
-                col7, col8 = st.columns(2)
-                
-                with col7:
-                    auto_calc_bmr = st.checkbox("Calcola BMR automaticamente (Harris-Benedict)", value=True, key='man_auto_bmr')
-                    
-                    if auto_calc_bmr:
-                        if manual_sex == "M":
-                            calc_bmr = int(88.362 + (13.397 * manual_weight) + (4.799 * manual_height) - (5.677 * manual_age))
-                        else:
-                            calc_bmr = int(447.593 + (9.247 * manual_weight) + (3.098 * manual_height) - (4.330 * manual_age))
-                        manual_bmr = calc_bmr
-                        st.info(f"🔥 BMR: {manual_bmr} kcal/giorno")
-                    else:
-                        manual_bmr = st.number_input("BMR (kcal/giorno)", 1200, 3000, 1800, 10, key='man_bmr')
-                
-                with col8:
-                    activity_level_manual = st.selectbox(
-                        "Livello Attività per AMR",
-                        ["Sedentario (1.2)", "Leggero (1.375)", "Moderato (1.55)", "Intenso (1.725)", "Molto Intenso (1.9)"],
-                        index=3,
-                        key='man_activity'
-                    )
-                    mult = float(activity_level_manual.split("(")[1].replace(")", ""))
-                    manual_amr = int(manual_bmr * mult)
-                    st.metric("AMR (calcolato)", f"{manual_amr} kcal/giorno")
-                
-                st.markdown("---")
-                
-                # Save button
-                if st.button("💾 Salva Profilo Fisico", type="primary", use_container_width=True):
-                    manual_data = {
-                        'player_id': player_manual,
-                        'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'source': 'Manual Entry',
-                        'weight_kg': manual_weight,
-                        'height_cm': manual_height,
-                        'age': manual_age,
-                        'sex': manual_sex,
-                        'bmi': manual_bmi,
-                        'body_fat_pct': manual_body_fat,
-                        'lean_mass_kg': manual_lean,
-                        'body_water_pct': manual_water,
-                        'muscle_pct': manual_muscle,
-                        'bone_mass_kg': manual_bone,
-                        'bmr': manual_bmr,
-                        'amr': manual_amr
-                    }
-                    
-                    # Validate
-                    warnings = validate_physical_data(manual_data)
-                    if warnings:
-                        st.warning("⚠️ Avvisi: " + ", ".join(warnings))
-                    
-                    # Save
-                    st.session_state.physical_profiles[player_manual] = manual_data
-                    
-                    # Add to history
-                    if player_manual not in st.session_state.physical_history:
-                        st.session_state.physical_history[player_manual] = []
-                    st.session_state.physical_history[player_manual].append(manual_data)
-                    
-                    st.success(f"✅ Profilo salvato per {player_manual}!")
-                    
-                    with st.expander("📊 Riepilogo dati salvati"):
-                        st.json(manual_data)
-                    
-                    st.balloons()
-                    time.sleep(1)
-                    st.rerun()
-    
-    # =================================================================
-    # VISUALIZZAZIONE PROFILI ESISTENTI
-    # =================================================================
-    
-    if st.session_state.physical_profiles:
-        st.divider()
-        st.markdown("### 📊 Profili Fisici Esistenti")
-        
-        selected_viz = st.selectbox(
-            "Seleziona giocatore per visualizzare", 
-            list(st.session_state.physical_profiles.keys()), 
-            key='viz_player'
-        )
-        
-        if selected_viz in st.session_state.physical_profiles:
-            viz_data = st.session_state.physical_profiles[selected_viz]
-            
-            # Metrics overview
-            col1, col2, col3, col4, col5 = st.columns(5)
-            
-            with col1:
-                st.metric("Peso", f"{viz_data.get('weight_kg', 'N/A')} kg")
-            with col2:
-                st.metric("BMI", f"{viz_data.get('bmi', 'N/A')}")
-            with col3:
-                st.metric("Grasso", f"{viz_data.get('body_fat_pct', 'N/A')}%")
-            with col4:
-                st.metric("BMR", f"{viz_data.get('bmr', 'N/A')} kcal")
-            with col5:
-                st.metric("AMR", f"{viz_data.get('amr', 'N/A')} kcal")
-            
-            # Visualizations
-            fig = create_body_composition_viz(viz_data)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Full data
-            with st.expander("📋 Tutti i dati"):
-                st.json(viz_data)
-    
-    # =================================================================
-    # PIANO NUTRIZIONALE
-    # =================================================================
-    
-    if st.session_state.physical_profiles:
-        st.divider()
-        st.markdown("### 🥗 Piano Nutrizionale AI")
-        
-        selected_nutrition = st.selectbox(
-            "Giocatore per Piano Nutrizionale", 
-            list(st.session_state.physical_profiles.keys()),
-            key='nutrition_player'
-        )
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            activity_level = st.selectbox(
-                "Livello Attività",
-                ["Low (Recovery)", "Moderate (Training)", "High (Intense/Match)", "Very High (Tournament)"],
-                index=1
-            )
-        
-        with col2:
-            goal = st.selectbox(
-                "Obiettivo",
-                ["Maintenance", "Muscle Gain", "Fat Loss", "Performance"],
-                index=3
-            )
-        
-        if st.button("🚀 Genera Piano Nutrizionale AI", type="primary"):
-            with st.spinner("Generazione piano in corso..."):
-                nutrition_plan = generate_enhanced_nutrition(
-                    selected_nutrition,
-                    st.session_state.physical_profiles[selected_nutrition],
-                    activity_level,
-                    goal
-                )
-                
-                st.session_state.current_nutrition_plan = nutrition_plan
-                
-                st.success(f"✅ Piano generato per {selected_nutrition}")
-                
-                # Targets
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.metric("Calorie", f"{nutrition_plan['target_calories']} kcal")
-                with col2:
-                    st.metric("Proteine", f"{nutrition_plan['protein_g']}g")
-                with col3:
-                    st.metric("Carboidrati", f"{nutrition_plan['carbs_g']}g")
-                with col4:
-                    st.metric("Grassi", f"{nutrition_plan['fats_g']}g")
-                
-                # Groq report
-                groq_report = generate_nutrition_report_nlg(
-                    selected_nutrition,
-                    nutrition_plan,
-                    st.session_state.physical_profiles[selected_nutrition],
-                    'it'
-                )
-                st.markdown(groq_report)
-                
-                # Meal plan
-                st.markdown("#### 🍽️ Piano Pasti Dettagliato")
-                for meal in nutrition_plan['meals']:
-                    with st.expander(f"{meal['name']} - {meal['calories']} kcal ({meal.get('timing', '')})"):
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.write(f"**Proteine:** {meal['protein']}g")
-                        with col2:
-                            st.write(f"**Carboidrati:** {meal['carbs']}g")
-                        with col3:
-                            st.write(f"**Grassi:** {meal['fats']}g")
-                        
-                        if 'examples' in meal:
-                            st.info(f"💡 Esempi: {meal['examples']}")
-
-
-# =================================================================
-# TAB 3, 4, 5, 6
-# =================================================================
-
-# =================================================================
-# TAB 3: AI ELITE FEATURES (COMPLETO)
-# =================================================================
-
-with tab3:
     st.header("🤖 AI Elite Features")
-    
+
     if not st.session_state.tracking_data:
-        st.warning("⚠️ Carica prima dati tracking in Tab 1 per usare le funzioni AI")
+        st.warning("⚠️ Carica dati in Tab 1 o usa Computer Vision in Tab 3")
     else:
         st.success(f"✅ {len(st.session_state.tracking_data)} giocatori disponibili")
-        
-        # Selettore giocatore
-        selected_player_ai = st.selectbox(
-            "Seleziona Giocatore",
-            list(st.session_state.tracking_data.keys()),
-            key='ai_player'
-        )
-        
-        # Selettore funzionalità
-        ai_feature = st.selectbox(
-            "Seleziona Funzionalità AI",
-            [
-                "🩺 Injury Risk Prediction",
-                "🏀 Offensive Plays Recommendation",
-                "🛡️ Defensive Matchups Optimization",
-                "🏃 Movement Patterns Analysis",
-                "🎯 Shot Quality Simulation",
-                "💪 AI Training Plan Generator"
-            ]
-        )
-        
-        st.markdown("---")
-        
-        # Esegui analisi
-        if st.button("🚀 Esegui Analisi AI", type="primary", use_container_width=True):
-            player_data = st.session_state.tracking_data[selected_player_ai]
-            
-            with st.spinner("🔄 Elaborazione AI in corso..."):
-                
-                # =================================================================
-                # INJURY RISK PREDICTION
-                # =================================================================
-                if "Injury Risk" in ai_feature:
-                    st.markdown("### 🩺 Injury Risk Prediction")
-                    
-                    result = predict_injury_risk(player_data, selected_player_ai)
-                    
-                    # Mostra rischio
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        risk_emoji = {"BASSO": "🟢", "MEDIO": "🟡", "ALTO": "🔴"}
-                        st.metric(
-                            "Livello Rischio",
-                            f"{risk_emoji[result['risk_level']]} {result['risk_level']}",
-                            f"Score: {result['risk_score']}"
-                        )
-                    
-                    with col2:
-                        st.metric("ACWR", f"{result['acwr']:.2f}")
-                    
-                    with col3:
-                        st.metric("Asimmetria", f"{result['asymmetry']:.1f}%")
-                    
-                    # Fattori di rischio
-                    st.markdown("#### 📊 Fattori di Rischio")
-                    for factor in result['risk_factors']:
-                        st.write(f"- {factor}")
-                    
-                    # Raccomandazioni
-                    st.markdown("#### 💡 Raccomandazioni")
-                    for rec in result['recommendations']:
-                        st.info(f"✓ {rec}")
-                
-                # =================================================================
-                # OFFENSIVE PLAYS
-                # =================================================================
-                elif "Offensive Plays" in ai_feature:
-                    st.markdown("### 🏀 Offensive Plays Recommendation")
-                    
-                    result = recommend_offensive_plays(player_data)
-                    
-                    st.markdown("#### 🎯 Giocate Consigliate")
-                    for i, play in enumerate(result['recommended_plays'], 1):
-                        st.success(f"{i}. **{play}**")
-                    
-                    st.markdown("#### 📝 Reasoning")
-                    for reason in result['reasoning']:
-                        st.write(f"- {reason}")
-                
-                # =================================================================
-                # DEFENSIVE MATCHUPS
-                # =================================================================
-                elif "Defensive Matchups" in ai_feature:
-                    st.markdown("### 🛡️ Defensive Matchups Optimization")
-                    
-                    result = optimize_defensive_matchups({selected_player_ai: player_data})
-                    
-                    st.markdown("#### 🎯 Matchups Ottimali")
-                    for matchup in result:
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.write(f"**Defender:** {matchup['defender']}")
-                        with col2:
-                            st.write(f"**Opponent:** {matchup['opponent']}")
-                        with col3:
-                            st.metric("Match Score", matchup['match_score'])
-                        st.caption(f"💡 {matchup['reason']}")
-                        st.divider()
-                
-                # =================================================================
-                # MOVEMENT PATTERNS
-                # =================================================================
-                elif "Movement Patterns" in ai_feature:
-                    st.markdown("### 🏃 Movement Patterns Analysis")
-                    
-                    result = analyze_movement_patterns(player_data, selected_player_ai)
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.metric("Pattern Type", result['pattern_type'])
-                    
-                    with col2:
-                        distance = calculate_distance(player_data)
-                        st.metric("Distanza Totale", f"{distance:.1f}m")
-                    
-                    st.markdown("#### 🔍 Insights")
-                    for insight in result['insights']:
-                        st.write(f"- {insight}")
-                    
-                    if result['anomalies']:
-                        st.markdown("#### ⚠️ Anomalie Rilevate")
-                        for anomaly in result['anomalies']:
-                            st.warning(f"⚠️ {anomaly}")
-                
-                # =================================================================
-                # SHOT QUALITY
-                # =================================================================
-                elif "Shot Quality" in ai_feature:
-                    st.markdown("### 🎯 Shot Quality Simulation")
-                    
-                    result = simulate_shot_quality(player_data, selected_player_ai)
-                    
-                    st.metric("Qualità Media Tiri", f"{result['avg_quality']}/100")
-                    
-                    st.markdown("#### 📊 Analisi Tiri")
-                    if result['shots']:
-                        shots_df = pd.DataFrame(result['shots'])
-                        st.dataframe(shots_df)
-                        
-                        # Grafico shot chart
-                        fig = px.scatter(
-                            shots_df,
-                            x='x',
-                            y='y',
-                            color='quality',
-                            size='distance',
-                            hover_data=['type'],
-                            title='Shot Chart',
-                            color_continuous_scale='RdYlGn'
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
-                    
-                    st.markdown("#### 💡 Raccomandazioni")
-                    for rec in result['recommendations']:
-                        st.info(f"✓ {rec}")
-                
-                # =================================================================
-                # TRAINING PLAN
-                # =================================================================
-                elif "Training Plan" in ai_feature:
-                    st.markdown("### 💪 AI Training Plan Generator")
-                    
-                    # Prima calcola injury risk
-                    injury_data = predict_injury_risk(player_data, selected_player_ai)
-                    physical_data = st.session_state.physical_profiles.get(selected_player_ai)
-                    
-                    # Genera piano
-                    training_plan = generate_ai_training_plan(
-                        selected_player_ai,
-                        injury_data,
-                        physical_data
-                    )
-                    
-                    # Mostra piano
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        st.metric("Intensità", training_plan['intensity'])
-                    
-                    with col2:
-                        st.metric("Durata", training_plan['duration'])
-                    
-                    with col3:
-                        st.metric("Frequenza", training_plan['frequency'])
-                    
-                    st.markdown(f"#### 🎯 Focus: {training_plan['focus_areas']}")
-                    
-                    st.markdown("#### 📋 Esercizi Consigliati")
-                    for exercise in training_plan['exercises']:
-                        with st.expander(f"💪 {exercise['name']}"):
-                            st.write(f"**Sets:** {exercise['sets']}")
-                            st.write(f"**Focus:** {exercise['focus']}")
-                            st.write(f"**Priorità:** {exercise['priority']}")
-                    
-                    st.info(f"📝 {training_plan['notes']}")
 
+        selected_ai = st.selectbox("Giocatore", list(st.session_state.tracking_data.keys()), key='ai_player')
+        ai_feature = st.selectbox("Funzionalità", [
+            "🩺 Injury Risk",
+            "🏀 Offensive Plays",
+            "🏃 Movement Patterns"
+        ])
 
+        if st.button("🚀 Esegui Analisi", type="primary"):
+            player_data = st.session_state.tracking_data[selected_ai]
+
+            if "Injury" in ai_feature:
+                result = predict_injury_risk(player_data, selected_ai)
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Rischio", result['risk_level'])
+                with col2:
+                    st.metric("Score", result['risk_score'])
+                with col3:
+                    st.metric("ACWR", result['acwr'])
+
+                st.markdown("#### Fattori di Rischio")
+                for f in result['risk_factors']:
+                    st.write(f"- {f}")
+
+                st.markdown("#### Raccomandazioni")
+                for r in result['recommendations']:
+                    st.info(f"✓ {r}")
+
+            elif "Offensive" in ai_feature:
+                result = recommend_offensive_plays(player_data)
+                st.markdown("#### Giocate Consigliate")
+                for play in result['recommended_plays']:
+                    st.success(f"🏀 {play}")
+
+            elif "Movement" in ai_feature:
+                result = analyze_movement_patterns(player_data, selected_ai)
+                st.metric("Pattern Type", result['pattern_type'])
+                for insight in result['insights']:
+                    st.info(insight)
+
+# TAB 3: COMPUTER VISION
+with tab3:
+    add_computer_vision_tab()
+
+# TAB 4: ML ADVANCED
 with tab4:
-    st.header("🧠 ML Advanced - Machine Learning Models")
-    
-    if not st.session_state.tracking_data:
-        st.warning("⚠️ Carica prima dati tracking in Tab 1")
-        st.stop()
-    
-    ml_feature = st.selectbox(
-        "Seleziona ML Feature",
-        [
-            "🤖 ML Injury Risk Predictor (Random Forest)",
-            "📊 Performance Predictor Next Game (Gradient Boosting)",
-            "📹 Shot Form Analyzer (Computer Vision)"
-        ]
-    )
-    
-    # =================================================================
-    # ML INJURY RISK PREDICTOR
-    # =================================================================
-    
-    if "ML Injury" in ml_feature:
-        st.markdown("### 🤖 ML Injury Risk Predictor")
-        st.info("💡 Usa Random Forest con 12 features avanzate per predire rischio infortuni")
-        
-        selected_ml_player = st.selectbox(
-            "Seleziona Giocatore", 
-            list(st.session_state.tracking_data.keys()), 
-            key='ml_injury_player'
-        )
-        
-        # Advanced settings
-        with st.expander("⚙️ Parametri Avanzati"):
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                player_age = st.number_input("Età Giocatore", 18, 40, 25)
-                prev_injuries = st.number_input("Infortuni Precedenti", 0, 10, 0)
-            
-            with col2:
-                rest_days = st.number_input("Giorni Riposo", 0, 7, 2)
-                use_training_history = st.checkbox("Usa Storico Allenamenti (28gg)", value=False)
-            
-            with col3:
-                model_info = st.checkbox("Mostra Info Modello", value=True)
-        
-        if st.button("🚀 Predici Rischio Infortuni (ML)", type="primary"):
-            with st.spinner("🔄 Training Random Forest model..."):
-                player_data = st.session_state.tracking_data[selected_ml_player]
-                physical_data = st.session_state.physical_profiles.get(selected_ml_player)
-                
-                # Generate training history if requested
-                training_history = None
-                if use_training_history:
-                    training_history = create_training_history_sample(days=28)
-                
-                # Extract features
-                features = st.session_state.ml_injury_model.extract_features(
-                    player_data, 
-                    physical_data, 
-                    player_age=player_age,
-                    previous_injuries=prev_injuries,
-                    training_history=training_history
-                )
-                
-                # Predict
-                prediction = st.session_state.ml_injury_model.predict(features)
-                
-                st.success("✅ Predizione completata!")
-                
-                # Main metrics
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    risk_emoji = {"BASSO": "🟢", "MEDIO": "🟡", "ALTO": "🔴"}
-                    st.metric(
-                        "Rischio ML", 
-                        f"{risk_emoji[prediction['risk_level']]} {prediction['risk_level']}", 
-                        f"{prediction['risk_probability']}%"
-                    )
-                
-                with col2:
-                    st.metric("Model Confidence", prediction['confidence'])
-                
-                with col3:
-                    st.metric("Features Used", len(features))
-                
-                with col4:
-                    st.metric("Risk Class", prediction['risk_class'])
-                
-                # Feature importance visualization
-                st.markdown("#### 🔍 Top 5 Fattori di Rischio (Feature Importance)")
-                
-                importance_df = pd.DataFrame(
-                    prediction['top_risk_factors'], 
-                    columns=['Feature', 'Importance']
-                )
-                
-                fig_importance = px.bar(
-                    importance_df,
-                    x='Importance',
-                    y='Feature',
-                    orientation='h',
-                    title='Feature Importance (Random Forest)',
-                    color='Importance',
-                    color_continuous_scale='Reds'
-                )
-                st.plotly_chart(fig_importance, use_container_width=True)
-                
-                # Recommendations
-                st.markdown("#### 💡 Raccomandazioni ML-Based")
-                for i, rec in enumerate(prediction['recommendations'], 1):
-                    st.markdown(f"{i}. {rec}")
-                
-                # Feature values table
-                with st.expander("📊 Feature Values Utilizzati"):
-                    features_df = pd.DataFrame([features]).T
-                    features_df.columns = ['Value']
-                    features_df.index.name = 'Feature'
-                    st.dataframe(features_df.style.highlight_max(color='lightgreen'))
-                
-                # Model info
-                if model_info:
-                    with st.expander("ℹ️ Informazioni Modello"):
-                        st.markdown("""
-                        **Random Forest Classifier**
-                        - N. Estimators: 100
-                        - Max Depth: 10
-                        - Training Samples: 500
-                        - Classes: 3 (BASSO, MEDIO, ALTO)
-                        - Features: 12
-                        
-                        **Features Utilizzate:**
-                        1. ACWR (Acute:Chronic Workload Ratio)
-                        2. Asymmetry %
-                        3. Fatigue Index
-                        4. Cumulative Workload (7 days)
-                        5. Rest Days
-                        6. Training Intensity
-                        7. Age
-                        8. BMI
-                        9. Body Fat %
-                        10. Previous Injuries Count
-                        11. Workload Spike %
-                        12. Consistency Score
-                        """)
-    
-    # =================================================================
-    # PERFORMANCE PREDICTOR
-    # =================================================================
-    
-    elif "Performance Predictor" in ml_feature:
-        st.markdown("### 📊 Performance Predictor Next Game")
-        st.info("💡 Usa Gradient Boosting per predire punti, assist, rimbalzi, efficiency della prossima partita")
-        
-        selected_perf_player = st.selectbox(
-            "Seleziona Giocatore", 
-            list(st.session_state.tracking_data.keys()), 
-            key='ml_perf_player'
-        )
-        
-        # Generate or use real stats history
-        st.markdown("#### 📈 Storico Statistiche (Ultimi 10 Match)")
-        
-        # Option to use sample data or manual
-        use_sample = st.checkbox("Usa dati sample", value=True)
-        
-        if use_sample:
-            stats_history = generate_player_stats_history(games=10, avg_points=18)
-            st.dataframe(stats_history)
-        else:
-            st.warning("⚠️ Feature manual input in sviluppo - usa sample data")
-            stats_history = generate_player_stats_history(games=10, avg_points=18)
-        
-        # Opponent info
-        st.markdown("#### ⚔️ Informazioni Prossimo Avversario")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            rest_days = st.slider("Rest Days", 0, 4, 1)
-        
-        with col2:
-            def_rating = st.slider("Opponent Def Rating", 100, 120, 110)
-        
-        with col3:
-            location = st.radio("Location", ['home', 'away'])
-        
-        with col4:
-            usage_rate = st.slider("Usage Rate %", 15, 35, 25)
-        
-        opponent_info = {
-            'rest_days': rest_days,
-            'def_rating': def_rating,
-            'location': location,
-            'usage_rate': usage_rate,
-            'fatigue': 0.2
-        }
-        
-        # Get injury risk for context
-        injury_risk = None
-        if selected_perf_player in st.session_state.physical_profiles:
-            with st.expander("🩺 Considera Injury Risk nel calcolo"):
-                consider_injury = st.checkbox("Usa injury risk come fattore", value=True)
-                
-                if consider_injury:
-                    player_data = st.session_state.tracking_data[selected_perf_player]
-                    physical_data = st.session_state.physical_profiles[selected_perf_player]
-                    features = st.session_state.ml_injury_model.extract_features(
-                        player_data, 
-                        physical_data
-                    )
-                    injury_risk = st.session_state.ml_injury_model.predict(features)
-                    
-                    st.info(f"Injury Risk: {injury_risk['risk_level']} ({injury_risk['risk_probability']}%)")
-        
-        if st.button("🚀 Predici Performance Prossima Partita", type="primary"):
-            with st.spinner("🔄 Training Gradient Boosting models..."):
-                
-                # Extract features
-                perf_features = st.session_state.performance_model.extract_features(
-                    stats_history,
-                    opponent_info,
-                    injury_risk
-                )
-                
-                # Predict
-                predictions = st.session_state.performance_model.predict_next_game(perf_features)
-                
-                st.success("✅ Predizioni completate!")
-                
-                # Show predictions
-                st.markdown("#### 🎯 Predizioni Prossima Partita")
-                
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.metric(
-                        "Punti", 
-                        f"{predictions['points']:.1f}",
-                        delta=f"{predictions['points'] - stats_history['points'].mean():.1f}"
-                    )
-                
-                with col2:
-                    st.metric(
-                        "Assist", 
-                        f"{predictions['assists']:.1f}",
-                        delta=f"{predictions['assists'] - stats_history['assists'].mean():.1f}"
-                    )
-                
-                with col3:
-                    st.metric(
-                        "Rimbalzi", 
-                        f"{predictions['rebounds']:.1f}",
-                        delta=f"{predictions['rebounds'] - stats_history['rebounds'].mean():.1f}"
-                    )
-                
-                with col4:
-                    st.metric("Efficiency", f"{predictions['efficiency']:.1f}")
-                
-                st.metric("Confidence Level", predictions['confidence'])
-                
-                # Comparison chart
-                st.markdown("#### 📊 Confronto con Storico")
-                
-                comparison_data = {
-                    'Metric': ['Points', 'Assists', 'Rebounds'],
-                    'Avg Last 10': [
-                        stats_history['points'].mean(),
-                        stats_history['assists'].mean(),
-                        stats_history['rebounds'].mean()
-                    ],
-                    'Predicted Next': [
-                        predictions['points'],
-                        predictions['assists'],
-                        predictions['rebounds']
-                    ]
-                }
-                
-                comparison_df = pd.DataFrame(comparison_data)
-                
-                fig_comparison = go.Figure()
-                
-                fig_comparison.add_trace(go.Bar(
-                    name='Avg Last 10',
-                    x=comparison_df['Metric'],
-                    y=comparison_df['Avg Last 10'],
-                    marker_color='lightblue'
-                ))
-                
-                fig_comparison.add_trace(go.Bar(
-                    name='Predicted Next',
-                    x=comparison_df['Metric'],
-                    y=comparison_df['Predicted Next'],
-                    marker_color='orange'
-                ))
-                
-                fig_comparison.update_layout(
-                    title='Confronto Performance',
-                    barmode='group',
-                    yaxis_title='Value'
-                )
-                
-                st.plotly_chart(fig_comparison, use_container_width=True)
-                
-                # Historical trend
-                st.markdown("#### 📈 Trend Storico Punti")
-                
-                fig_trend = px.line(
-                    stats_history.reset_index(),
-                    x='index',
-                    y='points',
-                    title='Ultimi 10 Match - Punti',
-                    labels={'index': 'Game #', 'points': 'Points'}
-                )
-                
-                # Add prediction as point
-                fig_trend.add_scatter(
-                    x=[10],
-                    y=[predictions['points']],
-                    mode='markers',
-                    marker=dict(size=15, color='red'),
-                    name='Predicted Next'
-                )
-                
-                st.plotly_chart(fig_trend, use_container_width=True)
-                
-                # Groq NLG Analysis (optional)
-                if st.checkbox("🤖 Genera Analisi Dettagliata con Groq"):
-                    with st.spinner("Groq sta generando analisi..."):
-                        stats_summary = f"""
-Statistiche ultimi 10 match:
-- Punti: media {stats_history['points'].mean():.1f}, max {stats_history['points'].max()}, min {stats_history['points'].min()}
-- Assist: media {stats_history['assists'].mean():.1f}
-- Rimbalzi: media {stats_history['rebounds'].mean():.1f}
-- Minuti: media {stats_history['minutes'].mean():.1f}
+    st.header("🧠 ML Advanced")
+    st.info("Funzionalità ML avanzate disponibili")
 
-Predizioni prossima partita:
-- Punti: {predictions['points']:.1f}
-- Assist: {predictions['assists']:.1f}
-- Rimbalzi: {predictions['rebounds']:.1f}
-- Efficiency: {predictions['efficiency']:.1f}
-- Confidence: {predictions['confidence']}
-
-Contesto:
-- Avversario Def Rating: {def_rating}
-- Location: {location}
-- Rest Days: {rest_days}
-- Usage Rate: {usage_rate}%
-"""
-                        
-                        groq_analysis = generate_performance_summary(
-                            selected_perf_player,
-                            stats_summary,
-                            predictions,
-                            'it'
-                        )
-                        
-                        st.markdown("#### 📝 Analisi Groq")
-                        st.markdown(groq_analysis)
-    
-    # =================================================================
-    # SHOT FORM ANALYZER
-    # =================================================================
-    
-    elif "Shot Form" in ml_feature:
-        st.markdown("### 📹 Shot Form Analyzer (Computer Vision)")
-        st.warning("⚠️ Feature in sviluppo - Richiede MediaPipe/OpenCV integration")
-        
-        shot_analyzer = ShotFormAnalyzer()
-        
-        # Show placeholder info
-        result = shot_analyzer.analyze_shot_video("placeholder.mp4")
-        
-        st.info(result['message'])
-        
-        st.markdown("#### 🔜 Next Steps per Implementazione:")
-        for i, step in enumerate(result['next_steps'], 1):
-            st.write(f"{i}. {step}")
-        
-        st.markdown("#### 📦 Librerie Richieste:")
-        for lib in result['required_libraries']:
-            st.code(f"pip install {lib}")
-        
-        st.markdown("#### 📊 Sample Output (Futuro):")
-        st.json(result['sample_output'])
-        
-        # Show optimal form guide
-        with st.expander("📚 Guida Tecnica: Shot Form Ottimale"):
-            optimal_form = shot_analyzer.get_optimal_form_guide()
-            
-            st.markdown("##### 🎯 Preparazione")
-            for key, value in optimal_form['preparation'].items():
-                st.write(f"**{key.title()}**: {value}")
-            
-            st.markdown("##### 🚀 Release")
-            for key, value in optimal_form['release'].items():
-                st.write(f"**{key.replace('_', ' ').title()}**: {value}")
-            
-            st.markdown("##### ✋ Follow Through")
-            for key, value in optimal_form['follow_through'].items():
-                st.write(f"**{key.replace('_', ' ').title()}**: {value}")
-
-
+# TAB 5: ANALYTICS
 with tab5:
-    st.header("⚔️ Tactical AI & Scout")
-    st.markdown("### 🔍 Auto-Scout Report Generator")
-    
-    opponent_team_name = st.text_input("Nome Squadra Avversaria", "Lakers")
-    
-    if st.button("📊 Genera Scout Report Completo", type="primary"):
-        opponent_stats = simulate_opponent_stats()
-        st.success("✅ Scout Report generato!")
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Punti/Game", opponent_stats['points_per_game'])
-            st.metric("3PT%", f"{opponent_stats['three_pt_pct']}%")
-        with col2:
-            st.metric("Assist/Game", opponent_stats['assists_per_game'])
-            st.metric("Pace", opponent_stats['pace'])
-        with col3:
-            # FIXED: completato st.metric
-            st.metric("Off Rating", opponent_stats['offensive_rating'])
-            st.metric("Def Rating", opponent_stats['defensive_rating'])
+    st.header("📊 Analytics")
+    st.info("Dashboard analytics in sviluppo")
 
-with tab6:
-    st.header("📈 Analytics & Reports")
-    st.info("Sezione report avanzati - In sviluppo")
-
-st.markdown("---")
-st.caption("🏀 CoachTrack Elite AI v3.0 © 2026 - Fixed Version")
+st.caption("CoachTrack Elite AI v3.0 © 2026")
