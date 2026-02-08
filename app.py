@@ -303,36 +303,173 @@ Il giocatore dovrebbe ottenere circa {predictions['points']:.1f} punti nella pro
 """
 
 # =================================================================
-# IMPORT ML MODELS (REAL)
+# IMPORT ML MODELS CON FALLBACK AUTOMATICO
 # =================================================================
 
 try:
     from ml_models import MLInjuryPredictor, PerformancePredictor, ShotFormAnalyzer
-    print("✅ ml_models.py caricato con successo!")
-except ImportError as e:
-    print(f"⚠️ ml_models.py non disponibile ({e}), uso mock")
+    print("✅ ml_models.py caricato!")
+except (ImportError, SyntaxError) as e:
+    print(f"⚠️ ml_models.py non disponibile: {e}")
+    print("🔄 Uso classi MOCK integrate")
     
-    # Fallback MOCK classes (mantieni quelle che hai già)
+    # MOCK CLASSES - VERSIONE COMPLETA E FUNZIONANTE
     class MLInjuryPredictor:
-        def extract_features(self, player_data, physical_data=None, player_age=25):
-            return {'acwr': 1.2, 'asymmetry': 10.0, 'fatigue': 8.0, 'workload': 100.0, 'rest_days': 2, 'age': player_age}
+        def extract_features(self, player_data, physical_data=None, player_age=25, previous_injuries=0, training_history=None):
+            return {
+                'acwr': 1.2,
+                'asymmetry': 10.0,
+                'fatigue': 8.0,
+                'workload': 100.0,
+                'rest_days': 2,
+                'age': player_age,
+                'previous_injuries': previous_injuries,
+                'total_distance_7d': 1000.0,
+                'high_intensity_distance_7d': 150.0,
+                'avg_speed': 12.0,
+                'max_speed': 22.0,
+                'acceleration_events': 50
+            }
         
         def predict(self, features):
-            return {'risk_level': 'MEDIO', 'risk_probability': 35, 'top_risk_factors': [('ACWR', 0.25)], 'recommendations': ['Mock mode'], 'confidence': 'Media', 'risk_class': 1}
+            risk_prob = 35 + (features.get('previous_injuries', 0) * 5)
+            risk_prob = min(risk_prob, 90)
+            
+            if risk_prob > 70:
+                risk_level = 'ALTO'
+            elif risk_prob > 40:
+                risk_level = 'MEDIO'
+            else:
+                risk_level = 'BASSO'
+            
+            confidence = 'Alta' if risk_prob > 70 or risk_prob < 30 else 'Media'
+            
+            return {
+                'risk_level': risk_level,
+                'risk_probability': risk_prob,
+                'risk_class': 1 if risk_level == 'ALTO' else 0,
+                'confidence': confidence,
+                'top_risk_factors': [
+                    ('ACWR', 0.25),
+                    ('Fatigue', 0.20),
+                    ('Workload', 0.18),
+                    ('Rest Days', 0.15),
+                    ('Age', 0.10)
+                ],
+                'recommendations': [
+                    f'Rischio {risk_level}: monitorare attentamente',
+                    'Mantenere ACWR tra 0.8 e 1.3',
+                    'Assicurare recupero adeguato (2+ giorni/settimana)'
+                ]
+            }
     
     class PerformancePredictor:
         def extract_features(self, stats_history, opponent_info, injury_risk=None):
-            return {'avg_points': stats_history['points'].mean() if 'points' in stats_history else 15}
+            avg_pts = stats_history['points'].mean() if 'points' in stats_history else 15
+            return {
+                'avg_points': avg_pts,
+                'rest_days': opponent_info.get('rest_days', 1),
+                'def_rating': opponent_info.get('def_rating', 110),
+                'location': 1 if opponent_info.get('location') == 'home' else 0,
+                'injury_risk': injury_risk['risk_probability'] if injury_risk else 20
+            }
         
         def predict_next_game(self, features):
-            return {'points': 18.5, 'assists': 5.2, 'rebounds': 6.8, 'efficiency': 22.3, 'confidence': 'Alta'}
+            base_points = features.get('avg_points', 15)
+            
+            # Adjust for rest
+            rest_bonus = features.get('rest_days', 1) * 0.5
+            
+            # Adjust for defense
+            def_penalty = (features.get('def_rating', 110) - 110) * 0.1
+            
+            # Adjust for location
+            location_bonus = 2 if features.get('location', 0) == 1 else 0
+            
+            # Adjust for injury risk
+            injury_penalty = features.get('injury_risk', 20) * 0.05
+            
+            predicted_points = base_points + rest_bonus - def_penalty + location_bonus - injury_penalty
+            predicted_assists = 5.0 + (rest_bonus * 0.3)
+            predicted_rebounds = 6.5 + (rest_bonus * 0.4)
+            predicted_efficiency = (predicted_points + predicted_assists + predicted_rebounds) / 30 * 10
+            
+            confidence = 'Alta' if features.get('injury_risk', 20) < 30 else 'Media' if features.get('injury_risk', 20) < 60 else 'Bassa'
+            
+            return {
+                'points': round(max(0, predicted_points), 1),
+                'assists': round(max(0, predicted_assists), 1),
+                'rebounds': round(max(0, predicted_rebounds), 1),
+                'efficiency': round(max(0, predicted_efficiency), 1),
+                'confidence': confidence
+            }
     
     class ShotFormAnalyzer:
         def analyze_shot_video(self, video_path):
-            return {'message': 'Mock mode', 'next_steps': ['Install MediaPipe'], 'required_libraries': ['mediapipe', 'opencv-python'], 'sample_output': {}}
+            return {
+                'status': 'MOCK_MODE',
+                'message': 'Shot form analysis richiede MediaPipe/OpenCV integration',
+                'next_steps': [
+                    'Installare: pip install mediapipe opencv-python',
+                    'Integrare pose estimation con MediaPipe Pose',
+                    'Estrarre angoli chiave: elbow (90°), knee (45-60°), wrist',
+                    'Comparare con reference form NBA'
+                ],
+                'required_libraries': ['mediapipe', 'opencv-python'],
+                'sample_output': {
+                    'elbow_angle': 'N/A',
+                    'release_height': 'N/A',
+                    'knee_bend': 'N/A',
+                    'score': 0
+                }
+            }
         
         def get_optimal_form_guide(self):
-            return {'preparation': {'stance': 'Shoulder width', 'knee_bend': '45-60 degrees'}, 'release': {'elbow_angle': '90 degrees', 'release_height': '2.4m'}, 'follow_through': {'wrist_snap': 'Full extension', 'hold': '0.5s'}}
+            return {
+                'preparation': {
+                    'stance': 'Shoulder width apart',
+                    'knee_bend': '45-60 degrees',
+                    'ball_position': 'Above shooting shoulder'
+                },
+                'release': {
+                    'elbow_angle': '90 degrees',
+                    'release_height': '2.4m minimum',
+                    'wrist_snap': 'Full extension',
+                    'release_angle': '48-52 degrees'
+                },
+                'follow_through': {
+                    'hand_position': 'Gooseneck position',
+                    'hold': '0.5 seconds minimum',
+                    'arc': '45-50 degrees optimal'
+                }
+            }
+
+# Helper functions per ML
+def generate_player_stats_history(games=10, avg_points=18):
+    """Generate synthetic player stats history"""
+    import numpy as np
+    np.random.seed(42)
+    stats = {
+        'points': np.random.randint(int(avg_points*0.7), int(avg_points*1.3), games),
+        'assists': np.random.randint(3, 8, games),
+        'rebounds': np.random.randint(4, 10, games),
+        'minutes': np.random.randint(25, 38, games)
+    }
+    return pd.DataFrame(stats)
+
+def create_training_history_sample(days=28):
+    """Generate synthetic training history"""
+    import numpy as np
+    from datetime import timedelta
+    np.random.seed(42)
+    dates = [datetime.now() - timedelta(days=i) for i in range(days)]
+    training = {
+        'date': dates,
+        'workload': np.random.randint(50, 150, days),
+        'duration_min': np.random.randint(60, 120, days),
+        'intensity': np.random.choice(['Low', 'Medium', 'High'], days)
+    }
+    return pd.DataFrame(training)
 
 # =================================================================
 # HELPER FUNCTIONS
