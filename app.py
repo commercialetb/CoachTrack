@@ -1,6 +1,5 @@
 # =================================================================
-# COACHTRACK ELITE AI v3.0 - MAIN APPLICATION (FIXED)
-# Complete with Physical/Nutrition AI + ML Models + Tactical AI + Groq
+# COACHTRACK ELITE AI v3.0 - MAIN APPLICATION
 # =================================================================
 
 import streamlit as st
@@ -11,10 +10,29 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from io import BytesIO
 import json
-import time  # ← AGGIUNGI QUESTA RIGA
 import time
-import os
-from groq import Groq
+
+# IMPORT AI FUNCTIONS MODULE
+from ai_functions import (
+    predict_injury_risk,
+    recommend_offensive_plays,
+    optimize_defensive_matchups,
+    analyze_movement_patterns,
+    simulate_shot_quality,
+    generate_ai_training_plan,
+    generate_nutrition_report_nlg,
+    generate_scout_report_nlg,
+    game_assistant_chat,
+    generate_performance_summary,
+    generate_training_plan_nlg,
+    test_groq_connection,
+    calculate_distance,
+    calculate_speed,
+    detect_jumps_imu,
+    GROQ_AVAILABLE,
+    GROQ_STATUS
+)
+
 
 # =================================================================
 # GROQ CLIENT CONFIGURATION
