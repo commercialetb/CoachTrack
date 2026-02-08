@@ -1282,7 +1282,7 @@ with tab2:
 with tab3:
     st.header("🤖 AI Elite Features")
     
-    if not st.session_state.tracking_
+    if not st.session_state.tracking_data:
         st.warning("⚠️ Carica prima dati tracking in Tab 1 per usare le funzioni AI")
     else:
         st.success(f"✅ {len(st.session_state.tracking_data)} giocatori disponibili")
