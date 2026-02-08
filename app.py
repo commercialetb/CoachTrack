@@ -728,7 +728,7 @@ with tab1:
     
     if uploaded_uwb:
         try:
-            df = pd.read_csv(uploaded_uwb)
+            df = pd.read_csv(uploaded_uwb, sep=';')
             st.success(f"✅ File caricato: {len(df)} righe")
             
             required_cols = ['player_id', 'timestamp', 'x', 'y']
