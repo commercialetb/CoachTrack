@@ -73,19 +73,273 @@ except: pass
 
 def add_computer_vision_tab():
     st.header("🎥 Computer Vision")
-    if not CV_AVAILABLE:
-        st.error("❌ CV non disponibile")
-        missing_pkgs=[]
-        try: import cv2
-        except: missing_pkgs.append('opencv-python')
-        try: from ultralytics import YOLO
-        except: missing_pkgs.append('ultralytics')
-        if missing_pkgs: st.error(f"Mancanti: {','.join(missing_pkgs)}")
-        st.info("Aggiungi a requirements.txt per Streamlit Cloud")
 
-# =================================================================
-# BIOMETRIC MODULE (NUOVO)
-# =================================================================
+    if not CV_AVAILABLE:
+        st.error("❌ Computer Vision non disponibile")
+        missing_pkgs = []
+        try: 
+            import cv2
+        except: 
+            missing_pkgs.append('opencv-python')
+        try: 
+            from ultralytics import YOLO
+        except: 
+            missing_pkgs.append('ultralytics')
+
+        if missing_pkgs:
+            st.error(f"Pacchetti mancanti: {', '.join(missing_pkgs)}")
+            st.code(f"pip install {' '.join(missing_pkgs)}")
+        st.info("💡 Aggiungi a requirements.txt per Streamlit Cloud")
+        return
+
+    # CV DISPONIBILE - Mostra interfaccia completa
+    st.success("✅ Computer Vision Online")
+
+    # 3 Sub-tabs
+    cv_tab1, cv_tab2, cv_tab3 = st.tabs([
+        "🎬 Video Processing",
+        "🎯 Court Calibration", 
+        "📊 Analysis Dashboard"
+    ])
+
+    # ============================================================
+    # TAB 1: VIDEO PROCESSING
+    # ============================================================
+    with cv_tab1:
+        st.subheader("🎬 Video Processing")
+        st.info("📹 Carica un video di partita/allenamento per tracking automatico")
+
+        uploaded_video = st.file_uploader(
+            "Carica Video", 
+            type=['mp4', 'avi', 'mov', 'mkv'],
+            help="Formati supportati: MP4, AVI, MOV, MKV"
+        )
+
+        if uploaded_video:
+            import os
+            import json
+            import cv2
+
+            # Salva video temporaneo
+            video_path = f"temp_{uploaded_video.name}"
+            with st.spinner("📤 Caricamento video..."):
+                with open(video_path, 'wb') as f:
+                    f.write(uploaded_video.read())
+
+            st.success(f"✅ Video caricato: {uploaded_video.name}")
+
+            # Mostra info video
+            try:
+                cap = cv2.VideoCapture(video_path)
+                fps = int(cap.get(cv2.CAP_PROP_FPS))
+                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                duration = frame_count / fps if fps > 0 else 0
+                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                cap.release()
+
+                st.markdown("### 📊 Informazioni Video")
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("⏱️ Durata", f"{duration:.1f}s")
+                col2.metric("🎞️ FPS", fps)
+                col3.metric("📸 Frame", f"{frame_count:,}")
+                col4.metric("📐 Risoluzione", f"{width}x{height}")
+
+            except Exception as e:
+                st.warning(f"⚠️ Impossibile leggere info video: {e}")
+
+            st.markdown("---")
+            st.markdown("### ⚙️ Opzioni Processing")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                output_json = st.text_input(
+                    "📄 File Output JSON", 
+                    "video_tracking.json",
+                    help="Nome file per salvare i dati di tracking"
+                )
+                process_every = st.slider(
+                    "⏩ Processa ogni N frame", 
+                    min_value=1, 
+                    max_value=30, 
+                    value=5,
+                    help="Più alto = più veloce ma meno preciso"
+                )
+
+            with col2:
+                confidence = st.slider(
+                    "🎯 Confidence Threshold", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=0.5, 
+                    step=0.05,
+                    help="Soglia di confidenza per le detection"
+                )
+                save_annotated = st.checkbox(
+                    "💾 Salva Video Annotato",
+                    help="Genera video con bounding box e tracking"
+                )
+
+            st.markdown("---")
+
+            # PULSANTE PROCESSING
+            if st.button("▶️ Avvia Processing", type="primary", use_container_width=True):
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+
+                try:
+                    status_text.text("🔄 Inizializzazione CV processor...")
+                    progress_bar.progress(0.1)
+
+                    # Importa processor
+                    from cv_processor import CoachTrackVisionProcessor
+
+                    processor = CoachTrackVisionProcessor(video_path)
+
+                    status_text.text("🎬 Processing video in corso...")
+                    progress_bar.progress(0.2)
+
+                    # Determina output video
+                    output_video = None
+                    if save_annotated:
+                        base, ext = os.path.splitext(video_path)
+                        output_video = f"{base}_annotated{ext}"
+
+                    # PROCESSA VIDEO
+                    result = processor.process_video_file(
+                        video_path=video_path,
+                        output_file=output_json,
+                        output_video=output_video,
+                        process_every_n_frames=process_every,
+                        confidence_threshold=confidence
+                    )
+
+                    progress_bar.progress(1.0)
+                    status_text.text("✅ Processing completato!")
+
+                    st.success(f"✅ Tracking data salvato: {output_json}")
+
+                    # Se video annotato creato
+                    if save_annotated and output_video and Path(output_video).exists():
+                        st.success(f"✅ Video annotato creato: {output_video}")
+
+                        # Pulsante download
+                        with open(output_video, 'rb') as f:
+                            st.download_button(
+                                label="⬇️ Download Video Annotato",
+                                data=f,
+                                file_name=os.path.basename(output_video),
+                                mime="video/mp4"
+                            )
+
+                    st.balloons()
+
+                    # PREVIEW RISULTATI
+                    if Path(output_json).exists():
+                        with open(output_json, 'r') as f:
+                            tracking_data = json.load(f)
+
+                        st.markdown("### 📊 Risultati Processing")
+
+                        if isinstance(tracking_data, dict) and 'frames' in tracking_data:
+                            frames = tracking_data['frames']
+                            col1, col2, col3 = st.columns(3)
+                            col1.metric("📸 Frame Processati", len(frames))
+
+                            # Conta players unici
+                            all_players = set()
+                            for frame in frames:
+                                for player in frame.get('players', []):
+                                    all_players.add(player.get('player_id'))
+                            col2.metric("👥 Giocatori Rilevati", len(all_players))
+
+                            # Conta detection totali
+                            total_detections = sum(len(f.get('players', [])) for f in frames)
+                            col3.metric("🎯 Detection Totali", total_detections)
+
+                        # Mostra preview JSON
+                        with st.expander("👁️ Preview Dati JSON (primi 10 frame)"):
+                            if isinstance(tracking_data, dict) and 'frames' in tracking_data:
+                                st.json(tracking_data['frames'][:10])
+                            else:
+                                st.json(tracking_data[:10] if isinstance(tracking_data, list) else tracking_data)
+
+                        # Pulsante importa
+                        if st.button("📥 Importa Dati in App", key="import_cv"):
+                            st.info("🔧 Funzione import in sviluppo - i dati sono già salvati in JSON")
+
+                except Exception as e:
+                    progress_bar.empty()
+                    status_text.empty()
+                    st.error(f"❌ Errore durante processing: {str(e)}")
+
+                    with st.expander("🔍 Dettagli Errore"):
+                        import traceback
+                        st.code(traceback.format_exc())
+
+                finally:
+                    # Cleanup file temporaneo
+                    if Path(video_path).exists():
+                        try:
+                            time.sleep(0.5)
+                            os.remove(video_path)
+                        except:
+                            pass
+
+    # ============================================================
+    # TAB 2: COURT CALIBRATION
+    # ============================================================
+    with cv_tab2:
+        st.subheader("🎯 Court Calibration")
+        st.info("📐 Calibrazione campo per coordinate reali - Feature disponibile")
+
+        st.markdown("""
+        ### Come funziona:
+        1. Carica un'immagine del campo vuoto
+        2. Marca i 4 angoli del campo
+        3. Il sistema calcola la matrice di trasformazione
+        4. Le coordinate pixel → coordinate campo reali (metri)
+        """)
+
+        calibration_image = st.file_uploader("Carica Immagine Campo", type=['jpg', 'png', 'jpeg'])
+        if calibration_image:
+            st.image(calibration_image, caption="Campo da calibrare", use_container_width=True)
+            st.info("🔧 Feature in sviluppo - Clicca sui 4 angoli del campo")
+
+    # ============================================================
+    # TAB 3: ANALYSIS DASHBOARD
+    # ============================================================
+    with cv_tab3:
+        st.subheader("📊 Analysis Dashboard")
+        st.info("📈 Visualizzazione dati tracking - Feature disponibile")
+
+        # Cerca file JSON disponibili
+        json_files = list(Path('.').glob('*.json'))
+
+        if json_files:
+            selected_json = st.selectbox(
+                "Seleziona File Tracking", 
+                [f.name for f in json_files]
+            )
+
+            if st.button("📊 Carica e Visualizza"):
+                try:
+                    with open(selected_json, 'r') as f:
+                        data = json.load(f)
+
+                    st.success(f"✅ Caricato: {selected_json}")
+
+                    with st.expander("🔍 Raw Data"):
+                        st.json(data)
+
+                    st.info("📊 Grafici e heatmap in sviluppo")
+
+                except Exception as e:
+                    st.error(f"❌ Errore: {e}")
+        else:
+            st.warning("⚠️ Nessun file JSON trovato - Processa un video prima")
+
+
 
 def render_biometric_module():
     '''Modulo biometrico completo con input manuale'''
