@@ -69,7 +69,9 @@ CV_AVAILABLE=False
 try:
     from cv_processor import CoachTrackVisionProcessor
     CV_AVAILABLE=True
-except: pass
+except Exception as e:
+    st.error(f"Errore caricamento CV: {e}") # Questo ti dirà cosa manca esattamente
+
 
 def add_computer_vision_tab():
     st.header("🎥 Computer Vision")
