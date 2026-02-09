@@ -11,6 +11,19 @@ from datetime import datetime, timedelta
 import time
 from pathlib import Path
 
+# ============ AI ADVANCED MODULE ============
+try:
+    from cv_ai_advanced import (
+        CVAIPipeline, 
+        analyze_video_ai, 
+        MEDIAPIPE_AVAILABLE
+    )
+    AI_ADVANCED_AVAILABLE = True
+except ImportError:
+    AI_ADVANCED_AVAILABLE = False
+# ============================================
+
+
 # =================================================================
 # IMPORTS
 # =================================================================
@@ -98,11 +111,12 @@ def add_computer_vision_tab():
     st.success("✅ Computer Vision Online")
 
     # 3 Sub-tabs
-    cv_tab1, cv_tab2, cv_tab3 = st.tabs([
-        "🎬 Video Processing",
-        "🎯 Court Calibration", 
-        "📊 Analysis Dashboard"
-    ])
+    cv_tab1, cv_tab2, cv_tab3, cv_tab4 = st.tabs([
+    "🎬 Video Processing",
+    "🎯 Court Calibration", 
+    "📊 Analysis Dashboard",
+    "🧠 AI Analysis"  # <-- AGGIUNTO
+])
 
     # ============================================================
     # TAB 1: VIDEO PROCESSING
@@ -341,7 +355,216 @@ def add_computer_vision_tab():
         else:
             st.warning("⚠️ Nessun file JSON trovato - Processa un video prima")
 
+# ============================================================
+    # TAB 4: AI ANALYSIS
+    # ============================================================
+    with cv_tab4:
+        st.subheader("🧠 AI Advanced Analysis")
+        st.markdown("---")
 
+        # Check availability
+        if not AI_ADVANCED_AVAILABLE:
+            st.error("❌ AI Advanced module non disponibile")
+            st.info("📦 Assicurati che cv_ai_advanced.py sia nella cartella")
+            st.code("pip install mediapipe scipy")
+            return
+
+        # Check MediaPipe
+        if not MEDIAPIPE_AVAILABLE:
+            st.warning("⚠️ MediaPipe non installato - Pose Analysis disabilitato")
+            with st.expander("📦 Installa MediaPipe"):
+                st.code("pip install mediapipe")
+
+        # Info panel
+        st.info("🤖 AI Features: Action Recognition + Shot Tracking + Pose Analysis")
+
+        # Upload video
+        st.markdown("### 📹 Upload Video")
+        uploaded_video_ai = st.file_uploader(
+            "Carica video per analisi AI", 
+            type=['mp4', 'avi', 'mov', 'mkv'],
+            key="ai_analysis_upload",
+            help="Carica video di partita o allenamento per analisi AI avanzata"
+        )
+
+        if uploaded_video_ai:
+            # Save temp
+            import os
+            video_path = f"temp_ai_{uploaded_video_ai.name}"
+            with st.spinner("📤 Caricamento video..."):
+                with open(video_path, 'wb') as f:
+                    f.write(uploaded_video_ai.read())
+
+            st.success(f"✅ Video caricato: {uploaded_video_ai.name}")
+
+            # Options
+            st.markdown("### ⚙️ Opzioni Analisi")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                analyze_actions = st.checkbox("🎯 Action Recognition", value=True, 
+                    help="Riconosce azioni: shoot, pass, dribble, rebound")
+                analyze_shots = st.checkbox("🏀 Shot Tracking", value=True,
+                    help="Analizza tiri: angolo, velocità, qualità")
+
+            with col2:
+                analyze_pose = st.checkbox("🤸 Pose Analysis", 
+                    value=MEDIAPIPE_AVAILABLE,
+                    disabled=not MEDIAPIPE_AVAILABLE,
+                    help="Analisi biomeccanica e form")
+                output_json = st.text_input("📄 Output JSON", "ai_analysis.json")
+
+            st.markdown("---")
+
+            # Run analysis button
+            if st.button("🚀 Avvia AI Analysis", type="primary", use_container_width=True):
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+
+                try:
+                    status_text.text("🤖 Inizializzazione AI pipeline...")
+                    progress_bar.progress(0.1)
+
+                    # Import pandas if needed
+                    import pandas as pd
+                    import plotly.express as px
+
+                    status_text.text("🎬 Processing video con AI...")
+                    progress_bar.progress(0.3)
+
+                    # Run AI analysis
+                    result = analyze_video_ai(video_path, output_json)
+
+                    progress_bar.progress(1.0)
+                    status_text.text("✅ AI Analysis completata!")
+
+                    st.balloons()
+
+                    # ===== RESULTS VISUALIZATION =====
+                    st.markdown("### 📊 Risultati AI Analysis")
+
+                    # Summary metrics
+                    col1, col2, col3 = st.columns(3)
+                    stats = result.get('statistics', {})
+                    col1.metric("📸 Pose Detected", stats.get('total_poses_detected', 0))
+                    col2.metric("🎯 Actions", stats.get('total_actions', 0))
+                    col3.metric("🏀 Shots", stats.get('total_shots', 0))
+
+                    st.markdown("---")
+
+                    # Actions Timeline
+                    if analyze_actions and result.get('actions'):
+                        st.markdown("#### 🎯 Action Recognition Results")
+
+                        actions = result['actions']
+                        if len(actions) > 0:
+                            # DataFrame
+                            actions_df = pd.DataFrame(actions)
+                            st.dataframe(actions_df, use_container_width=True)
+
+                            # Distribution chart
+                            if 'action' in actions_df.columns:
+                                action_counts = actions_df['action'].value_counts()
+                                fig = px.bar(
+                                    x=action_counts.index, 
+                                    y=action_counts.values,
+                                    labels={'x': 'Azione', 'y': 'Conteggio'},
+                                    title="📊 Distribuzione Azioni"
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("ℹ️ Nessuna azione rilevata")
+
+                    # Pose Analysis
+                    if analyze_pose and result.get('pose_data') and MEDIAPIPE_AVAILABLE:
+                        st.markdown("#### 🤸 Pose & Biomechanics Analysis")
+
+                        pose_count = len(result['pose_data'])
+                        st.metric("Frame con Pose", pose_count)
+
+                        if pose_count > 0:
+                            st.info("💡 Analisi form disponibile - Espandi per dettagli")
+
+                            with st.expander("📋 Dettagli Pose Analysis"):
+                                st.json(result['pose_data'][:5])  # Prime 5 pose
+
+                    # Shot Tracking
+                    if analyze_shots and result.get('shots'):
+                        st.markdown("#### 🏀 Shot Tracking Results")
+
+                        shots = result['shots']
+                        if len(shots) > 0:
+                            shots_df = pd.DataFrame(shots)
+                            st.dataframe(shots_df, use_container_width=True)
+
+                            # Shot chart (se implementato)
+                            st.info("📊 Shot chart in sviluppo")
+                        else:
+                            st.info("ℹ️ Nessun tiro rilevato in questo video")
+
+                    st.markdown("---")
+
+                    # Download JSON
+                    with open(output_json, 'r') as f:
+                        json_data = f.read()
+
+                    st.download_button(
+                        label="⬇️ Download Complete JSON",
+                        data=json_data,
+                        file_name=output_json,
+                        mime="application/json",
+                        use_container_width=True
+                    )
+
+                    st.success("✅ Analisi completata! Dati salvati in JSON")
+
+                except Exception as e:
+                    progress_bar.empty()
+                    status_text.empty()
+                    st.error(f"❌ Errore durante AI analysis: {str(e)}")
+
+                    with st.expander("🔍 Dettagli Errore"):
+                        import traceback
+                        st.code(traceback.format_exc())
+
+                finally:
+                    # Cleanup temp file
+                    if os.path.exists(video_path):
+                        try:
+                            time.sleep(0.5)
+                            os.remove(video_path)
+                        except:
+                            pass
+
+        else:
+            # No video uploaded - show demo info
+            st.markdown("### 📚 Features AI Analysis:")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.markdown("#### 🎯 Action Recognition")
+                st.write("- Shoot")
+                st.write("- Pass")
+                st.write("- Dribble")
+                st.write("- Rebound")
+                st.write("- Defense")
+
+            with col2:
+                st.markdown("#### 🏀 Shot Tracking")
+                st.write("- Release angle")
+                st.write("- Release speed")
+                st.write("- Arc height")
+                st.write("- Quality score")
+                st.write("- Make probability")
+
+            with col3:
+                st.markdown("#### 🤸 Pose Analysis")
+                st.write("- 33 keypoints")
+                st.write("- Shooting form")
+                st.write("- Biomechanics")
+                st.write("- Form score")
+                st.write("- Recommendations")
 
 def render_biometric_module():
     '''Modulo biometrico completo con input manuale'''
