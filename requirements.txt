@@ -17,3 +17,5 @@ torchvision>=0.15.0
 # Phase 2: AI Advanced Features
 mediapipe>=0.10.0
 scipy>=1.11.0
+mediapipe>=0.10.0
+
