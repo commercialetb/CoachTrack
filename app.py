@@ -251,14 +251,18 @@ def add_computer_vision_tab():
                         base, ext = os.path.splitext(video_path)
                         output_video = f"{base}_annotated{ext}"
 
-                    # PROCESSA VIDEO
+                                        # PROCESSA VIDEO
                     result = processor.process_video_file(
-                        video_path=video_path,
-                        output_file=output_json,
                         output_video=output_video,
                         process_every_n_frames=process_every,
                         confidence_threshold=confidence
                     )
+                    
+                    # Salva JSON manualmente
+                    import json
+                    with open(output_json, 'w') as f:
+                        json.dump(result, f, indent=2)
+
 
                     progress_bar.progress(1.0)
                     status_text.text("✅ Processing completato!")
