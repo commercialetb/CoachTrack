@@ -316,7 +316,7 @@ def add_analytics_tab():
     
     st.header("📊 Analytics Dashboard")
     
-    if not st.session_state.tracking_
+    if not st.session_state.tracking_data:
         st.info("📥 Carica CSV tracking (player_id, timestamp, x, y)")
         
         uploaded = st.file_uploader("📁 Upload CSV", type=['csv'])
