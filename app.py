@@ -34,33 +34,6 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
-# ============ DEBUG MEDIAPIPE ============
-print("\n🔍 TESTING MEDIAPIPE IMPORT", flush=True)
-
-try:
-    import mediapipe as mp
-    print(f"✅ MediaPipe importato: v{mp.__version__}", flush=True)
-    print(f"   Path: {mp.__file__}", flush=True)
-    
-    # Test python.solutions
-    try:
-        from mediapipe.python.solutions import pose as mp_pose_test
-        print("✅ mediapipe.python.solutions.pose importato!", flush=True)
-    except ImportError as e:
-        print(f"❌ mediapipe.python.solutions.pose FAILED: {e}", flush=True)
-        
-        # Try old API
-        try:
-            from mediapipe import solutions
-            print("⚠️ OLD API (solutions) disponibile", flush=True)
-        except:
-            print("❌ OLD API anche fallita", flush=True)
-            
-except ImportError as e:
-    print(f"❌ MediaPipe import FAILED: {e}", flush=True)
-
-print("="*70, flush=True)
-# ============ FINE DEBUG ============
 
  # ============ CHECK OPENCV ============
 CV_AVAILABLE = False
@@ -83,16 +56,15 @@ if not CV_AVAILABLE:
     st.warning("⚠️ OpenCV non disponibile - Check logs per dettagli")
 # ============ FINE CHECK ============
 
-# ============ AI ADVANCED MODULE ============
+# ============ AI ADVANCED MODULE (YOLOv8) ============
 try:
-    from cv_ai_advanced import (
-        CVAIPipeline, 
-        analyze_video_ai, 
-        MEDIAPIPE_AVAILABLE
-    )
+    from cv_ai_advanced import CVAIPipeline
     AI_ADVANCED_AVAILABLE = True
-except ImportError:
+    print("✅ CV AI Pipeline v5.0 (YOLOv8 Pose)")
+except ImportError as e:
     AI_ADVANCED_AVAILABLE = False
+    print(f"❌ CV AI import failed: {e}")
+
 # ============================================
 
 
@@ -428,11 +400,9 @@ def add_computer_vision_tab():
             st.code("pip install mediapipe scipy")
             return
 
-        # Check MediaPipe
-        if not MEDIAPIPE_AVAILABLE:
-            st.warning("⚠️ MediaPipe non installato - Pose Analysis disabilitato")
-            with st.expander("📦 Installa MediaPipe"):
-                st.code("pip install mediapipe")
+        # Check YOLOv8
+            st.success("✅ YOLOv8 Pose Analysis attivo")
+
 
         # Info panel
         st.info("🤖 AI Features: Action Recognition + Shot Tracking + Pose Analysis")
