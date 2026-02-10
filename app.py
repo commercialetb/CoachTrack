@@ -140,24 +140,25 @@ except Exception as e:
 
 def add_computer_vision_tab():
     st.header("🎥 Computer Vision")
-
+    
+    # Check OpenCV (headless o normale)
+    CV_AVAILABLE = False
+    try:
+        import cv2
+        CV_AVAILABLE = True
+    except ImportError:
+        pass
+    
     if not CV_AVAILABLE:
         st.error("❌ Computer Vision non disponibile")
-        missing_pkgs = []
-        try: 
-            import cv2
-        except: 
-            missing_pkgs.append('opencv-python')
-        try: 
-            from ultralytics import YOLO
-        except: 
-            missing_pkgs.append('ultralytics')
-
-        if missing_pkgs:
-            st.error(f"Pacchetti mancanti: {', '.join(missing_pkgs)}")
-            st.code(f"pip install {' '.join(missing_pkgs)}")
-        st.info("💡 Aggiungi a requirements.txt per Streamlit Cloud")
+        st.error("OpenCV non installato")
+        st.code("pip install opencv-python-headless")
+        st.info("💡 Aggiungi a requirements.txt: opencv-python-headless")
         return
+    
+    # CV DISPONIBILE - Mostra interfaccia completa
+    st.success("✅ Computer Vision Online (OpenCV disponibile)")
+
 
     # CV DISPONIBILE - Mostra interfaccia completa
     st.success("✅ Computer Vision Online")
