@@ -9,7 +9,7 @@ scikit-learn
 scipy
 
 # Computer Vision (headless for Streamlit Cloud)
-opencv-python-headless==4.8.1.78
+opencv-python-headless
 # ultralytics
 
 # AI Advanced Features - MediaPipe
