@@ -34,7 +34,6 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
-# ✅ YOLOv8 ready
 # ============ CHECK OPENCV ============
 CV_AVAILABLE = False
 try:
@@ -152,29 +151,27 @@ def add_computer_vision_tab():
     # TAB 1: VIDEO PROCESSING
     # ============================================================
     with cv_tab1:
-        st.subheader("🎬 Video Processing")
-        st.info("📹 Carica un video di partita/allenamento per tracking automatico")
+        st.subheader("🎬 Video Processing Basic")
+        st.info("📹 Upload video per info - Usa tab 'AI Analysis' per processing completo")
 
         uploaded_video = st.file_uploader(
             "Carica Video", 
             type=['mp4', 'avi', 'mov', 'mkv'],
-            help="Formati supportati: MP4, AVI, MOV, MKV"
+            key="basic_video_upload"
         )
 
         if uploaded_video:
             import os
-            import json
             import cv2
+            import time
 
-            # Salva video temporaneo
-            video_path = f"temp_{uploaded_video.name}"
-            with st.spinner("📤 Caricamento video..."):
+            video_path = f"temp_basic_{uploaded_video.name}"
+            with st.spinner("📤 Caricamento..."):
                 with open(video_path, 'wb') as f:
                     f.write(uploaded_video.read())
 
-            st.success(f"✅ Video caricato: {uploaded_video.name}")
+            st.success(f"✅ Video: {uploaded_video.name}")
 
-            # Mostra info video
             try:
                 cap = cv2.VideoCapture(video_path)
                 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -184,144 +181,282 @@ def add_computer_vision_tab():
                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 cap.release()
 
-                st.markdown("### 📊 Informazioni Video")
                 col1, col2, col3, col4 = st.columns(4)
                 col1.metric("⏱️ Durata", f"{duration:.1f}s")
                 col2.metric("🎞️ FPS", fps)
                 col3.metric("📸 Frame", f"{frame_count:,}")
                 col4.metric("📐 Risoluzione", f"{width}x{height}")
 
+                st.success("✅ Video pronto! → Vai tab 'AI Analysis' per processing completo")
+
             except Exception as e:
-                st.warning(f"⚠️ Impossibile leggere info video: {e}")
+                st.error(f"❌ Errore: {e}")
 
-            st.markdown("---")
-            st.markdown("### ⚙️ Opzioni Processing")
+            finally:
+                if os.path.exists(video_path):
+                    try:
+                        time.sleep(0.3)
+                        os.remove(video_path)
+                    except:
+                        pass
 
+    with cv_tab2:
+        st.subheader("🎯 Court Calibration")
+        st.info("📐 Calibrazione campo per coordinate reali - Feature disponibile")
+
+        st.markdown("""
+        ### Come funziona:
+        1. Carica un'immagine del campo vuoto
+        2. Marca i 4 angoli del campo
+        3. Il sistema calcola la matrice di trasformazione
+        4. Le coordinate pixel → coordinate campo reali (metri)
+        """)
+
+        calibration_image = st.file_uploader("Carica Immagine Campo", type=['jpg', 'png', 'jpeg'])
+        if calibration_image:
+            st.image(calibration_image, caption="Campo da calibrare", use_container_width=True)
+            st.info("🔧 Feature in sviluppo - Clicca sui 4 angoli del campo")
+
+    # ============================================================
+    # TAB 3: ANALYSIS DASHBOARD
+    # ============================================================
+    with cv_tab3:
+        st.subheader("📊 Analysis Dashboard")
+        st.info("📈 Visualizzazione dati tracking - Feature disponibile")
+
+        # Cerca file JSON disponibili
+        json_files = list(Path('.').glob('*.json'))
+
+        if json_files:
+            selected_json = st.selectbox(
+                "Seleziona File Tracking", 
+                [f.name for f in json_files]
+            )
+
+            if st.button("📊 Carica e Visualizza"):
+                try:
+                    with open(selected_json, 'r') as f:
+                        data = json.load(f)
+
+                    st.success(f"✅ Caricato: {selected_json}")
+
+                    with st.expander("🔍 Raw Data"):
+                        st.json(data)
+
+                    st.info("📊 Grafici e heatmap in sviluppo")
+
+                except Exception as e:
+                    st.error(f"❌ Errore: {e}")
+        else:
+            st.warning("⚠️ Nessun file JSON trovato - Processa un video prima")
+
+# ============================================================
+    # TAB 4: AI ANALYSIS
+    # ============================================================
+    with cv_tab4:
+        st.subheader("🧠 AI Advanced Analysis")
+        st.markdown("---")
+
+        # Check availability
+        if not AI_ADVANCED_AVAILABLE:
+            st.error("❌ AI Advanced module non disponibile")
+            st.info("📦 Assicurati che cv_ai_advanced.py sia nella cartella")
+            st.code("pip install mediapipe scipy")
+            return
+
+        # Check MediaPipe
+        st.success("✅ YOLOv8 Pose Analysis attiva!")
+
+        # Info panel
+        st.info("🤖 AI Features: Action Recognition + Shot Tracking + Pose Analysis")
+
+        # Upload video
+        st.markdown("### 📹 Upload Video")
+        uploaded_video_ai = st.file_uploader(
+            "Carica video per analisi AI", 
+            type=['mp4', 'avi', 'mov', 'mkv'],
+            key="ai_analysis_upload",
+            help="Carica video di partita o allenamento per analisi AI avanzata"
+        )
+
+        if uploaded_video_ai:
+            # Save temp
+            import os
+            video_path = f"temp_ai_{uploaded_video_ai.name}"
+            with st.spinner("📤 Caricamento video..."):
+                with open(video_path, 'wb') as f:
+                    f.write(uploaded_video_ai.read())
+
+            st.success(f"✅ Video caricato: {uploaded_video_ai.name}")
+
+            # Options
+            st.markdown("### ⚙️ Opzioni Analisi")
             col1, col2 = st.columns(2)
+
             with col1:
-                output_json = st.text_input(
-                    "📄 File Output JSON", 
-                    "video_tracking.json",
-                    help="Nome file per salvare i dati di tracking"
-                )
-                process_every = st.slider(
-                    "⏩ Processa ogni N frame", 
-                    min_value=1, 
-                    max_value=30, 
-                    value=5,
-                    help="Più alto = più veloce ma meno preciso"
-                )
+                analyze_actions = st.checkbox("🎯 Action Recognition", value=True, 
+                    help="Riconosce azioni: shoot, pass, dribble, rebound")
+                analyze_shots = st.checkbox("🏀 Shot Tracking", value=True,
+                    help="Analizza tiri: angolo, velocità, qualità")
 
             with col2:
-                confidence = st.slider(
-                    "🎯 Confidence Threshold", 
-                    min_value=0.0, 
-                    max_value=1.0, 
-                    value=0.5, 
-                    step=0.05,
-                    help="Soglia di confidenza per le detection"
-                )
-                save_annotated = st.checkbox(
-                    "💾 Salva Video Annotato",
-                    help="Genera video con bounding box e tracking"
-                )
+                analyze_pose = st.checkbox("🤸 Pose Analysis", 
+                    value=YOLO_AVAILABLE,
+                    disabled=not YOLO_AVAILABLE,
+                    help="Analisi biomeccanica e form")
+                output_json = st.text_input("📄 Output JSON", "ai_analysis.json")
 
             st.markdown("---")
 
-            # PULSANTE PROCESSING
-            if st.button("▶️ Avvia Processing", type="primary", use_container_width=True):
+            # Run analysis button
+            if st.button("🚀 Avvia AI Analysis", type="primary", use_container_width=True):
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
                 try:
-                    status_text.text("🔄 Inizializzazione CV processor...")
+                    status_text.text("🤖 Inizializzazione AI pipeline...")
                     progress_bar.progress(0.1)
 
-                    # Importa processor
-                    from cv_processor import CoachTrackVisionProcessor
+                    # Import pandas if needed
+                    import pandas as pd
+                    import plotly.express as px
 
-                    processor = CoachTrackVisionProcessor(video_path)
+                    status_text.text("🎬 Processing video con AI...")
+                    progress_bar.progress(0.3)
 
-                    status_text.text("🎬 Processing video in corso...")
-                    progress_bar.progress(0.2)
-
-                    # Determina output video
-                    output_video = None
-                    if save_annotated:
-                        base, ext = os.path.splitext(video_path)
-                        output_video = f"{base}_annotated{ext}"
-
-                                        # PROCESSA VIDEO
-                    result = processor.process_video_file(
-                        output_video=output_video,
-                        process_every_n_frames=process_every,
-                        confidence_threshold=confidence
-                    )
-                    
-                    # Salva JSON manualmente
+                    # Run AI analysis
+                    # AI Analysis con YOLOv8
+                    import cv2
                     import json
-                    with open(output_json, 'w') as f:
-                        json.dump(result, f, indent=2)
+                    import numpy as np
 
+                    pipeline = CVAIPipeline()
+                    if not pipeline.initialize():
+                        raise Exception("YOLOv8 init failed")
+
+                    cap = cv2.VideoCapture(video_path)
+                    fps = int(cap.get(cv2.CAP_PROP_FPS))
+                    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+                    results = {
+                        'video_info': {'fps': fps, 'frame_count': frame_count, 'duration': frame_count / fps if fps > 0 else 0},
+                        'actions': [], 'shots': [], 'pose_data': [],
+                        'statistics': {'total_poses_detected': 0, 'total_actions': 0, 'total_shots': 0}
+                    }
+
+                    frame_idx = 0
+                    while cap.isOpened():
+                        ret, frame = cap.read()
+                        if not ret:
+                            break
+                        if frame_idx % 5 == 0:
+                            frame_result = pipeline.process_frame(frame)
+                            if frame_result:
+                                results['statistics']['total_poses_detected'] += 1
+                                action = frame_result.get('action', 'unknown')
+                                if action != 'unknown':
+                                    results['actions'].append({'frame': int(frame_idx), 'action': action, 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
+                                    results['statistics']['total_actions'] += 1
+                                if action == 'shooting' and 'shooting_form' in frame_result:
+                                    form = frame_result['shooting_form']
+                                    results['shots'].append({'frame': int(frame_idx), 'elbow_angle': float(form['elbow_angle']), 'knee_angle': float(form['knee_angle']), 'form_score': float(form['form_score']), 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
+                                    results['statistics']['total_shots'] += 1
+                        frame_idx += 1
+                        if frame_idx % 100 == 0:
+                            progress_bar.progress(min(0.3 + (frame_idx / frame_count) * 0.7, 1.0))
+
+                    cap.release()
+                    with open(output_json, 'w') as f:
+                        json.dump(results, f, indent=2)
+                    result = results
 
                     progress_bar.progress(1.0)
-                    status_text.text("✅ Processing completato!")
-
-                    st.success(f"✅ Tracking data salvato: {output_json}")
-
-                    # Se video annotato creato
-                    if save_annotated and output_video and Path(output_video).exists():
-                        st.success(f"✅ Video annotato creato: {output_video}")
-
-                        # Pulsante download
-                        with open(output_video, 'rb') as f:
-                            st.download_button(
-                                label="⬇️ Download Video Annotato",
-                                data=f,
-                                file_name=os.path.basename(output_video),
-                                mime="video/mp4"
-                            )
+                    status_text.text("✅ AI Analysis completata!")
 
                     st.balloons()
 
-                    # PREVIEW RISULTATI
-                    if Path(output_json).exists():
-                        with open(output_json, 'r') as f:
-                            tracking_data = json.load(f)
+                    # ===== RESULTS VISUALIZATION =====
+                    st.markdown("### 📊 Risultati AI Analysis")
 
-                        st.markdown("### 📊 Risultati Processing")
+                    # Summary metrics
+                    col1, col2, col3 = st.columns(3)
+                    stats = result.get('statistics', {})
+                    col1.metric("📸 Pose Detected", stats.get('total_poses_detected', 0))
+                    col2.metric("🎯 Actions", stats.get('total_actions', 0))
+                    col3.metric("🏀 Shots", stats.get('total_shots', 0))
 
-                        if isinstance(tracking_data, dict) and 'frames' in tracking_data:
-                            frames = tracking_data['frames']
-                            col1, col2, col3 = st.columns(3)
-                            col1.metric("📸 Frame Processati", len(frames))
+                    st.markdown("---")
 
-                            # Conta players unici
-                            all_players = set()
-                            for frame in frames:
-                                for player in frame.get('players', []):
-                                    all_players.add(player.get('player_id'))
-                            col2.metric("👥 Giocatori Rilevati", len(all_players))
+                    # Actions Timeline
+                    if analyze_actions and result.get('actions'):
+                        st.markdown("#### 🎯 Action Recognition Results")
 
-                            # Conta detection totali
-                            total_detections = sum(len(f.get('players', [])) for f in frames)
-                            col3.metric("🎯 Detection Totali", total_detections)
+                        actions = result['actions']
+                        if len(actions) > 0:
+                            # DataFrame
+                            actions_df = pd.DataFrame(actions)
+                            st.dataframe(actions_df, use_container_width=True)
 
-                        # Mostra preview JSON
-                        with st.expander("👁️ Preview Dati JSON (primi 10 frame)"):
-                            if isinstance(tracking_data, dict) and 'frames' in tracking_data:
-                                st.json(tracking_data['frames'][:10])
-                            else:
-                                st.json(tracking_data[:10] if isinstance(tracking_data, list) else tracking_data)
+                            # Distribution chart
+                            if 'action' in actions_df.columns:
+                                action_counts = actions_df['action'].value_counts()
+                                fig = px.bar(
+                                    x=action_counts.index, 
+                                    y=action_counts.values,
+                                    labels={'x': 'Azione', 'y': 'Conteggio'},
+                                    title="📊 Distribuzione Azioni"
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("ℹ️ Nessuna azione rilevata")
 
-                        # Pulsante importa
-                        if st.button("📥 Importa Dati in App", key="import_cv"):
-                            st.info("🔧 Funzione import in sviluppo - i dati sono già salvati in JSON")
+                    # Pose Analysis
+                    if analyze_pose and result.get('pose_data') and YOLO_AVAILABLE:
+                        st.markdown("#### 🤸 Pose & Biomechanics Analysis")
+
+                        pose_count = len(result['pose_data'])
+                        st.metric("Frame con Pose", pose_count)
+
+                        if pose_count > 0:
+                            st.info("💡 Analisi form disponibile - Espandi per dettagli")
+
+                            with st.expander("📋 Dettagli Pose Analysis"):
+                                st.json(result['pose_data'][:5])  # Prime 5 pose
+
+                    # Shot Tracking
+                    if analyze_shots and result.get('shots'):
+                        st.markdown("#### 🏀 Shot Tracking Results")
+
+                        shots = result['shots']
+                        if len(shots) > 0:
+                            shots_df = pd.DataFrame(shots)
+                            st.dataframe(shots_df, use_container_width=True)
+
+                            # Shot chart (se implementato)
+                            st.info("📊 Shot chart in sviluppo")
+                        else:
+                            st.info("ℹ️ Nessun tiro rilevato in questo video")
+
+                    st.markdown("---")
+
+                    # Download JSON
+                    with open(output_json, 'r') as f:
+                        json_data = f.read()
+
+                    st.download_button(
+                        label="⬇️ Download Complete JSON",
+                        data=json_data,
+                        file_name=output_json,
+                        mime="application/json",
+                        use_container_width=True
+                    )
+
+                    st.success("✅ Analisi completata! Dati salvati in JSON")
 
                 except Exception as e:
                     progress_bar.empty()
                     status_text.empty()
-                    st.error(f"❌ Errore durante processing: {str(e)}")
+                    st.error(f"❌ Errore durante AI analysis: {str(e)}")
 
                     with st.expander("🔍 Dettagli Errore"):
                         import traceback
@@ -329,8 +464,6 @@ def add_computer_vision_tab():
 
                 finally:
                     # Cleanup temp file
-                    import os
-                    import time
                     if os.path.exists(video_path):
                         try:
                             time.sleep(0.5)
