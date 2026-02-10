@@ -130,6 +130,13 @@ except ImportError:
     print("⚠️ OpenCV non disponibile")
 
 def add_computer_vision_tab():
+    """Computer Vision tab con AI Analysis"""
+    
+    # Import necessari per tutti i tab
+    import pandas as pd
+    import plotly.express as px
+    from pathlib import Path
+    
     st.header("🎥 Computer Vision")
     
     if not CV_AVAILABLE:
@@ -138,6 +145,7 @@ def add_computer_vision_tab():
         return
     
     st.success("✅ Computer Vision Online")
+
 
     # 3 Sub-tabs
     cv_tab1, cv_tab2, cv_tab3, cv_tab4 = st.tabs([
