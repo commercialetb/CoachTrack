@@ -997,14 +997,27 @@ with tab1:
     if uploaded:
         try:
             df=pd.read_csv(uploaded,sep=';')
-            if all(c in df.columns for c in ['player_id','timestamp','x','y']):
-                for pid in df['player_id'].unique():
-                    st.session_state.tracking_data[pid]=df[df['player_id']==pid].copy()
-                st.success(f"✅ {len(df['player_id'].unique())} giocatori importati")
-                with st.expander("Anteprima"):
-                    st.dataframe(df.head(20))
-        except Exception as e: st.error(str(e))
-
+                    # MOSTRA ANTEPRIMA COLONNE
+        st.write("**Colonne nel CSV:**", df.columns.tolist())
+        
+        if all(c in df.columns for c in ['player_id','timestamp','x','y']):
+            for pid in df['player_id'].unique():
+                st.session_state.tracking_data[pid]=df[df['player_id']==pid].copy()
+            
+            st.success(f"✅ {len(df['player_id'].unique())} giocatori importati")
+            
+            # CONFERMA SALVATO
+            st.write("**Salvato in session_state:**", list(st.session_state.tracking_data.keys()))
+            
+            with st.expander("Anteprima"):
+                st.dataframe(df.head(20))
+        else:
+            st.error("❌ Colonne mancanti nel CSV!")
+            st.write("Richieste: player_id, timestamp, x, y")
+            st.write("Trovate:", df.columns.tolist())
+            
+    except Exception as e: 
+        st.error(f"Errore: {e}")
     if st.session_state.tracking_data:
         st.markdown("### 📊 Dati Caricati")
         for pid in st.session_state.tracking_data.keys():
@@ -1019,6 +1032,16 @@ with tab1:
 # TAB 2 - AI FEATURES
 with tab2:
     st.header("🤖 AI Elite Features")
+    
+    # DEBUG - RIMUOVI DOPO IL TEST
+    st.write("**DEBUG - Session State:**")
+    st.write(f"tracking_data keys: {list(st.session_state.tracking_data.keys())}")
+    st.write(f"Numero giocatori: {len(st.session_state.tracking_data)}")
+    if st.session_state.tracking_data:
+        for pid, df in st.session_state.tracking_data.items():
+            st.write(f"Player {pid}: {len(df)} rows")
+    # FINE DEBUG
+    
     if not st.session_state.tracking_data:
         st.warning("⚠️ Carica dati tracking nel tab Configurazione")
     else:
