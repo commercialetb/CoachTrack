@@ -13,7 +13,7 @@ opencv-python-headless==4.8.1.78
 ultralytics>=8.0.0
 
 # AI Advanced Features - MediaPipe
-mediapipe==0.10.9
+mediapipe==0.10.32
 
 # NOTA: PyTorch rimosso (troppo pesante per Streamlit Cloud free tier)
 # Se necessario, usa ultralytics che include PyTorch lite
