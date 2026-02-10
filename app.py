@@ -1,6 +1,30 @@
 # =================================================================
 # COACHTRACK ELITE AI v3.1 - WITH BIOMETRICS MODULE
 # =================================================================
+# =================================================================
+# FORCE LOGGING - DEBUG
+# =================================================================
+import sys
+import logging
+
+# Force flush output
+sys.stdout.flush()
+sys.stderr.flush()
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+print("="*70, flush=True)
+print("🚀 COACHTRACK APP STARTING", flush=True)
+print("="*70, flush=True)
+
+# =================================================================
+# REST OF IMPORTS
+# =================================================================
 
 import streamlit as st
 import pandas as pd
@@ -10,6 +34,33 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
+# ============ DEBUG MEDIAPIPE ============
+print("\n🔍 TESTING MEDIAPIPE IMPORT", flush=True)
+
+try:
+    import mediapipe as mp
+    print(f"✅ MediaPipe importato: v{mp.__version__}", flush=True)
+    print(f"   Path: {mp.__file__}", flush=True)
+    
+    # Test python.solutions
+    try:
+        from mediapipe.python.solutions import pose as mp_pose_test
+        print("✅ mediapipe.python.solutions.pose importato!", flush=True)
+    except ImportError as e:
+        print(f"❌ mediapipe.python.solutions.pose FAILED: {e}", flush=True)
+        
+        # Try old API
+        try:
+            from mediapipe import solutions
+            print("⚠️ OLD API (solutions) disponibile", flush=True)
+        except:
+            print("❌ OLD API anche fallita", flush=True)
+            
+except ImportError as e:
+    print(f"❌ MediaPipe import FAILED: {e}", flush=True)
+
+print("="*70, flush=True)
+# ============ FINE DEBUG ============
 
  # ============ CHECK OPENCV ============
 CV_AVAILABLE = False
