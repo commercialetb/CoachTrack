@@ -10,7 +10,7 @@ scipy>=1.11.0
 
 # Computer Vision (headless for Streamlit Cloud)
 opencv-python-headless==4.8.1.78
-ultralytics>=8.0.0
+# ultralytics>=8.0.0
 
 # AI Advanced Features - MediaPipe
 mediapipe==0.10.0
