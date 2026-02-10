@@ -339,44 +339,40 @@ def add_analytics_tab():
         up = st.file_uploader("📁 Upload CSV", type=['csv'])
         
         if up:
-           try:
-    df = pd.read_csv(up, sep=',')
-    if len(df.columns) == 1:  # Se ha solo 1 colonna, delimitatore sbagliato
-        up.seek(0)  # Reset file pointer
-        df = pd.read_csv(up, sep=';')
-except:
-    up.seek(0)
-    df = pd.read_csv(up, sep=';')
+    try:
+        # Auto-detect delimiter
+        try:
+            df = pd.read_csv(up, sep=',')
+            if len(df.columns) == 1:
+                up.seek(0)
+                df = pd.read_csv(up, sep=';')
+        except:
+            up.seek(0)
+            df = pd.read_csv(up, sep=';')
+        
+        # Validazione
+        required = ['player_id', 'timestamp', 'x', 'y']
+        missing = [c for c in required if c not in df.columns]
+        
+        if missing:
+            st.error(f"❌ Colonne mancanti: {', '.join(missing)}")
+            st.info(f"📋 Trovate: {', '.join(df.columns.tolist())}")
+            return
+        
+        # Converti timestamp
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        
+        # Carica
+        for pid in df['player_id'].unique():
+            st.session_state.tracking_data[str(pid)] = df[df['player_id']==pid].reset_index(drop=True)
+        
+        st.success(f"✅ {df['player_id'].nunique()} players, {len(df)} punti")
+        st.balloons()
+        st.rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Errore: {str(e)}")
 
-st.success(f"✅ CSV caricato con delimitatore: {',' if ',' in df.columns[0] else ';'}")
-
-                
-                # Validazione
-                required = ['player_id', 'timestamp', 'x', 'y']
-                missing = [c for c in required if c not in df.columns]
-                
-                if missing:
-                    st.error(f"❌ Colonne mancanti: {', '.join(missing)}")
-                    st.info(f"Trovate: {', '.join(df.columns.tolist())}")
-                    return
-                
-                # Converti timestamp
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
-                
-                # Carica
-                for pid in df['player_id'].unique():
-                    st.session_state.tracking_data[str(pid)] = df[df['player_id']==pid].reset_index(drop=True)
-                
-                st.success(f"✅ {df['player_id'].nunique()} players, {len(df)} punti")
-                
-                with st.expander("👁️ Preview"):
-                    st.dataframe(df.head(10), use_container_width=True)
-                
-                st.balloons()
-                st.rerun()
-
-            except Exception as e: st.error(f"❌ {e}")
-        return
     total=sum(calculate_distance(df) for df in st.session_state.tracking_data.values())
     avg=total/len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
     c1,c2,c3,c4=st.columns(4)
