@@ -6,3 +6,4 @@ plotly
 ultralytics
 scipy
 fpdf
+groq-client
