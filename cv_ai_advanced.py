@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # =================================================================
-# MEDIAPIPE IMPORT - FIXED FOR 0.10.30+
+# MEDIAPIPE IMPORT - FIXED FOR 0.10.32
 # =================================================================
 
 MEDIAPIPE_AVAILABLE = False
@@ -20,29 +20,27 @@ mp_pose = None
 mp_drawing = None
 
 try:
-    # MediaPipe 0.10.30+ structure
     import mediapipe as mp
-
-    # Import pose directly from python module
-    from mediapipe.python.solutions import pose as mp_pose_module
-    from mediapipe.python.solutions import drawing_utils as mp_drawing_module
-
-    mp_pose = mp_pose_module
-    mp_drawing = mp_drawing_module
-    MEDIAPIPE_AVAILABLE = True
-
-    print(f"✅ MediaPipe {mp.__version__} caricato (python.solutions API)")
-
+    
+    # MediaPipe 0.10.30+ - Use solutions directly from mp
+    if hasattr(mp, 'solutions'):
+        mp_pose = mp.solutions.pose
+        mp_drawing = mp.solutions.drawing_utils
+        MEDIAPIPE_AVAILABLE = True
+        print(f"✅ MediaPipe {mp.__version__} caricato (solutions API)")
+    else:
+        print(f"⚠️ MediaPipe {mp.__version__} - solutions not found")
+        
 except ImportError as e:
     MEDIAPIPE_AVAILABLE = False
     print(f"⚠️ MediaPipe non disponibile: {e}")
     print("   Prova: pip install mediapipe")
-
+    
 except Exception as e:
     MEDIAPIPE_AVAILABLE = False
     print(f"⚠️ Errore MediaPipe: {e}")
 
-# Scipy for trajectory fitting
+# Scipy
 SCIPY_AVAILABLE = False
 try:
     from scipy.optimize import curve_fit
