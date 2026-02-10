@@ -1187,7 +1187,7 @@ with tab5:
     add_performance_health_tab()
 
 # TAB 6 - ANALYTICS
-with tab7:
+with tab6:
     st.header("📊 Analytics Dashboard")
     if st.session_state.tracking_data:
         st.markdown("### 🎯 Statistiche Generali")
