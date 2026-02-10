@@ -82,9 +82,75 @@ def add_computer_vision_tab():
                     try: os.remove(vp)
                     except: pass
 
-    with cv_tab2:
-        st.subheader("🎯 Calibration")
-        st.info("In sviluppo")
+   with cv_tab2:
+    st.subheader("🎯 Court Calibration")
+    st.info("📐 Calibrazione campo da basket per conversione coordinate pixel → metri")
+    
+    st.markdown("""
+    ### 🏀 Come funziona la calibrazione:
+    
+    **Step 1:** Carica un'immagine del campo vuoto (vista dall'alto)
+    
+    **Step 2:** Marca i 4 angoli del campo nell'ordine:
+    - Top-left (angolo superiore sinistro)
+    - Top-right (angolo superiore destro)
+    - Bottom-right (angolo inferiore destro)
+    - Bottom-left (angolo inferiore sinistro)
+    
+    **Step 3:** Il sistema calcola la matrice di trasformazione prospettica
+    
+    **Step 4:** Le coordinate pixel vengono convertite in coordinate reali (metri)
+    
+    📏 **Dimensioni campo NBA:** 28.65m × 15.24m  
+    📏 **Dimensioni campo FIBA:** 28m × 15m
+    """)
+    
+    st.markdown("---")
+    
+    # Campo da calibrare
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        calibration_image = st.file_uploader(
+            "📁 Carica Immagine Campo", 
+            type=['jpg', 'png', 'jpeg'],
+            help="Immagine del campo da basket (vista dall'alto)"
+        )
+        
+        if calibration_image:
+            st.image(
+                calibration_image, 
+                caption="Campo da calibrare", 
+                use_container_width=True
+            )
+    
+    with col2:
+        st.markdown("### ⚙️ Impostazioni")
+        
+        court_type = st.selectbox(
+            "Tipo Campo",
+            ["NBA (28.65m × 15.24m)", "FIBA (28m × 15m)", "Custom"]
+        )
+        
+        if court_type == "Custom":
+            court_length = st.number_input("Lunghezza (m)", 20.0, 35.0, 28.0, 0.5)
+            court_width = st.number_input("Larghezza (m)", 10.0, 20.0, 15.0, 0.5)
+        
+        st.markdown("---")
+        
+        if calibration_image:
+            st.warning("🔧 **Feature in sviluppo**")
+            st.info("""
+            Funzionalità in arrivo:
+            - Click interattivo sui 4 angoli
+            - Calcolo matrice trasformazione
+            - Preview coordinate calibrate
+            - Export file calibrazione
+            """)
+            
+            if st.button("🚀 Avvia Calibrazione", disabled=True):
+                st.info("Coming soon!")
+
 
     with cv_tab3:
         st.subheader("📊 Dashboard")
