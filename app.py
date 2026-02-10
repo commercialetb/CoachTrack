@@ -998,31 +998,6 @@ with tab1:
     if uploaded:
         try:
             df=pd.read_csv(uploaded,sep=';')
-            
-            # DEBUG - Mostra colonne
-            st.write("**🔍 DEBUG - Colonne nel CSV:**", df.columns.tolist())
-            st.write("**📊 Righe totali:**", len(df))
-            
-            # Verifica colonne richieste
-            required_cols = ['player_id','timestamp','x','y']
-            missing_cols = [col for col in required_cols if col not in df.columns]
-            
-            if missing_cols:
-                st.error(f"❌ Colonne mancanti: {missing_cols}")
-                st.write("**Richieste:**", required_cols)
-                st.write("**Trovate:**", df.columns.tolist())
-            else:
-                # Carica dati in session_state
-                for pid in df['player_id'].unique():
-                    st.session_state.tracking_data[pid]=df[df['player_id']==pid].copy()
-                
-                st.success(f"✅ {len(df['player_id'].unique())} giocatori importati")
-                
-                # DEBUG - Conferma salvato
-                st.write("**✅ Salvato in session_state:**", list(st.session_state.tracking_data.keys()))
-                
-                with st.expander("👁️ Anteprima Dati"):
-                    st.dataframe(df.head(20))
         
         except Exception as e: 
             st.error(f"❌ Errore durante caricamento: {str(e)}")
