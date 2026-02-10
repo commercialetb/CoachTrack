@@ -81,8 +81,7 @@ def add_computer_vision_tab():
                 if os.path.exists(vp):
                     try: os.remove(vp)
                     except: pass
-
-   with cv_tab2:
+with cv_tab2:
     st.subheader("🎯 Court Calibration")
     st.info("📐 Calibrazione campo da basket per conversione coordinate pixel → metri")
     
