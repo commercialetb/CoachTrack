@@ -11,6 +11,58 @@ from datetime import datetime, timedelta
 import time
 from pathlib import Path
 
+# =================================================================
+# DEBUG MEDIAPIPE - RIMUOVI DOPO IL TEST
+# =================================================================
+print("\n" + "="*70)
+print("🔍 TEST MEDIAPIPE DIRETTO DA APP.PY")
+print("="*70)
+
+# Test 1: Import diretto
+try:
+    import mediapipe as mp
+    print(f"✅ MediaPipe importato: v{mp.__version__}")
+    print(f"   Path: {mp.__file__}")
+    
+    # Test 2: Solutions
+    if hasattr(mp, 'solutions'):
+        print("✅ mp.solutions disponibile")
+        
+        # Test 3: Pose
+        if hasattr(mp.solutions, 'pose'):
+            print("✅ mp.solutions.pose disponibile")
+            
+            # Test 4: Init Pose
+            try:
+                test_pose = mp.solutions.pose.Pose()
+                print("✅ Pose() creato con successo!")
+                test_pose.close()
+            except Exception as e:
+                print(f"❌ Errore creazione Pose: {e}")
+        else:
+            print("❌ mp.solutions.pose NON TROVATO")
+    else:
+        print("❌ mp.solutions NON TROVATO")
+        
+except ImportError as e:
+    print(f"❌ Import MediaPipe FALLITO: {e}")
+except Exception as e:
+    print(f"❌ Errore generico: {e}")
+
+# Test 5: Import cv_ai_advanced
+try:
+    from cv_ai_advanced import MEDIAPIPE_AVAILABLE
+    print(f"\n✅ cv_ai_advanced importato")
+    print(f"   MEDIAPIPE_AVAILABLE = {MEDIAPIPE_AVAILABLE}")
+except ImportError as e:
+    print(f"\n❌ cv_ai_advanced import FALLITO: {e}")
+
+print("="*70 + "\n")
+# =================================================================
+# FINE DEBUG
+# =================================================================
+
+
 # ============ AI ADVANCED MODULE ============
 try:
     from cv_ai_advanced import (
