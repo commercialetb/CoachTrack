@@ -34,8 +34,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
-
- # ============ CHECK OPENCV ============
+# ✅ MediaPipe check rimosso - YOLOv8 attivo# ============ CHECK OPENCV ============
 CV_AVAILABLE = False
 try:
     import cv2
@@ -56,15 +55,14 @@ if not CV_AVAILABLE:
     st.warning("⚠️ OpenCV non disponibile - Check logs per dettagli")
 # ============ FINE CHECK ============
 
-# ============ AI ADVANCED MODULE (YOLOv8) ============
+# ============ AI ADVANCED MODULE ============
 try:
     from cv_ai_advanced import CVAIPipeline
     AI_ADVANCED_AVAILABLE = True
-    print("✅ CV AI Pipeline v5.0 (YOLOv8 Pose)")
-except ImportError as e:
+    YOLO_AVAILABLE = True
+except ImportError:
     AI_ADVANCED_AVAILABLE = False
-    print(f"❌ CV AI import failed: {e}")
-
+    YOLO_AVAILABLE = False
 # ============================================
 
 
@@ -400,9 +398,11 @@ def add_computer_vision_tab():
             st.code("pip install mediapipe scipy")
             return
 
-        # Check YOLOv8
-            st.success("✅ YOLOv8 Pose Analysis attivo")
-
+        # Check MediaPipe
+        if not YOLO_AVAILABLE:
+            st.warning("⚠️ MediaPipe non installato - Pose Analysis disabilitato")
+            with st.expander("📦 Installa MediaPipe"):
+                st.code("pip install mediapipe")
 
         # Info panel
         st.info("🤖 AI Features: Action Recognition + Shot Tracking + Pose Analysis")
@@ -437,9 +437,7 @@ def add_computer_vision_tab():
                     help="Analizza tiri: angolo, velocità, qualità")
 
             with col2:
-                analyze_pose = st.checkbox("🤸 Pose Analysis", 
-                    value=MEDIAPIPE_AVAILABLE,
-                    disabled=not MEDIAPIPE_AVAILABLE,
+                analyze_pose = st.checkbox("🤸 Pose Analysis", value=YOLO_AVAILABLE, disabled=not YOLO_AVAILABLE,
                     help="Analisi biomeccanica e form")
                 output_json = st.text_input("📄 Output JSON", "ai_analysis.json")
 
@@ -505,7 +503,7 @@ def add_computer_vision_tab():
                             st.info("ℹ️ Nessuna azione rilevata")
 
                     # Pose Analysis
-                    if analyze_pose and result.get('pose_data') and MEDIAPIPE_AVAILABLE:
+                    if analyze_pose and result.get('pose_data') and YOLO_AVAILABLE:
                         st.markdown("#### 🤸 Pose & Biomechanics Analysis")
 
                         pose_count = len(result['pose_data'])
