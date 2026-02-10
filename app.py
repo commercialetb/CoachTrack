@@ -202,35 +202,66 @@ def add_computer_vision_tab():
     # ============================================================
     # TAB 3: ANALYSIS DASHBOARD
     # ============================================================
-    with cv_tab3:
+        with cv_tab3:
         st.subheader("📊 Analysis Dashboard")
-        st.info("📈 Visualizzazione dati tracking - Feature disponibile")
+        st.info("📈 Visualizza dati tracking da JSON")
 
-        # Cerca file JSON disponibili
-        json_files = list(Path('.').glob('*.json'))
+        # Upload JSON
+        uploaded_json = st.file_uploader(
+            "📥 Carica JSON", 
+            type=['json'],
+            help="Upload file JSON da AI Analysis"
+        )
 
-        if json_files:
-            selected_json = st.selectbox(
-                "Seleziona File Tracking", 
-                [f.name for f in json_files]
-            )
-
-            if st.button("📊 Carica e Visualizza"):
-                try:
-                    with open(selected_json, 'r') as f:
-                        data = json.load(f)
-
-                    st.success(f"✅ Caricato: {selected_json}")
-
-                    with st.expander("🔍 Raw Data"):
-                        st.json(data)
-
-                    st.info("📊 Grafici e heatmap in sviluppo")
-
-                except Exception as e:
-                    st.error(f"❌ Errore: {e}")
-        else:
-            st.warning("⚠️ Nessun file JSON trovato - Processa un video prima")
+        if uploaded_json:
+            import json
+            try:
+                data = json.load(uploaded_json)
+                st.success(f"✅ Caricato: {uploaded_json.name}")
+                
+                # Mostra statistiche
+                if 'statistics' in data:
+                    stats = data['statistics']
+                    col1, col2, col3 = st.columns(3)
+                    col1.metric("📸 Pose Detected", stats.get('total_poses_detected', 0))
+                    col2.metric("🎯 Actions", stats.get('total_actions', 0))
+                    col3.metric("🏀 Shots", stats.get('total_shots', 0))
+                
+                st.markdown("---")
+                
+                # Actions distribution
+                if 'actions' in data and len(data['actions']) > 0:
+                    st.markdown("### 🎯 Actions")
+                    actions_df = pd.DataFrame(data['actions'])
+                    st.dataframe(actions_df, use_container_width=True)
+                    
+                    # Chart
+                    if 'action' in actions_df.columns:
+                        action_counts = actions_df['action'].value_counts()
+                        fig = px.bar(
+                            x=action_counts.index, 
+                            y=action_counts.values,
+                            labels={'x': 'Azione', 'y': 'Conteggio'},
+                            title="Distribuzione Azioni"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                
+                # Shots
+                if 'shots' in data and len(data['shots']) > 0:
+                    st.markdown("### 🏀 Shots")
+                    shots_df = pd.DataFrame(data['shots'])
+                    st.dataframe(shots_df, use_container_width=True)
+                    
+                    # Average form score
+                    avg_form = shots_df['form_score'].mean()
+                    st.metric("📊 Average Form Score", f"{avg_form:.1f}/100")
+                
+                # Raw JSON
+                with st.expander("📄 Raw JSON"):
+                    st.json(data)
+                    
+            except Exception as e:
+                st.error(f"❌ Errore caricamento JSON: {e}")
 
 # ============================================================
     # TAB 4: AI ANALYSIS
