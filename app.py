@@ -313,19 +313,59 @@ def add_analytics_tab():
     import pandas as pd
     import plotly.express as px
     import plotly.graph_objects as go
-
+    
     st.header("📊 Analytics")
-    if not st.session_state.tracking_data:
-        st.info("Upload CSV")
-        up=st.file_uploader("CSV (player_id,x,y)",type=['csv'])
+    if not st.session_state.tracking_
+        st.info("📥 Carica file CSV con dati tracking")
+        
+        # Formato richiesto
+        st.markdown("### 📋 Formato CSV Richiesto")
+        st.code('''player_id,timestamp,x,y
+1,2024-02-10 10:00:00,10.5,20.3
+1,2024-02-10 10:00:01,10.7,20.5
+2,2024-02-10 10:00:00,15.2,18.7''', language='csv')
+        
+        st.markdown("**Colonne obbligatorie:**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("- `player_id` → ID giocatore")
+            st.markdown("- `timestamp` → Data/ora")
+        with col2:
+            st.markdown("- `x` → Coordinata X (metri)")
+            st.markdown("- `y` → Coordinata Y (metri)")
+        
+        st.markdown("---")
+        
+        up = st.file_uploader("📁 Upload CSV", type=['csv'])
+        
         if up:
             try:
-                df=pd.read_csv(up)
-                if all(c in df.columns for c in ['player_id','x','y']):
-                    for pid in df['player_id'].unique():
-                        st.session_state.tracking_data[str(pid)]=df[df['player_id']==pid].reset_index(drop=True)
-                    st.success(f"✅ {len(df['player_id'].unique())} players")
-                    st.rerun()
+                df = pd.read_csv(up)
+                
+                # Validazione
+                required = ['player_id', 'timestamp', 'x', 'y']
+                missing = [c for c in required if c not in df.columns]
+                
+                if missing:
+                    st.error(f"❌ Colonne mancanti: {', '.join(missing)}")
+                    st.info(f"Trovate: {', '.join(df.columns.tolist())}")
+                    return
+                
+                # Converti timestamp
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
+                # Carica
+                for pid in df['player_id'].unique():
+                    st.session_state.tracking_data[str(pid)] = df[df['player_id']==pid].reset_index(drop=True)
+                
+                st.success(f"✅ {df['player_id'].nunique()} players, {len(df)} punti")
+                
+                with st.expander("👁️ Preview"):
+                    st.dataframe(df.head(10), use_container_width=True)
+                
+                st.balloons()
+                st.rerun()
+
             except Exception as e: st.error(f"❌ {e}")
         return
     total=sum(calculate_distance(df) for df in st.session_state.tracking_data.values())
