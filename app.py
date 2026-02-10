@@ -531,11 +531,29 @@ def add_computer_vision_tab():
 
                     cap.release()
 
-                    # Save JSON
+                                       # Save JSON (fix numpy float32 → Python float)
+                    import numpy as np
+                    
+                    def clean_numpy(obj):
+                        if isinstance(obj, dict):
+                            return {k: clean_numpy(v) for k, v in obj.items()}
+                        elif isinstance(obj, list):
+                            return [clean_numpy(i) for i in obj]
+                        elif isinstance(obj, (np.integer, np.int32, np.int64)):
+                            return int(obj)
+                        elif isinstance(obj, (np.floating, np.float32, np.float64)):
+                            return float(obj)
+                        elif isinstance(obj, np.ndarray):
+                            return obj.tolist()
+                        return obj
+                    
+                    results_clean = clean_numpy(results)
+                    
                     with open(output_json, 'w') as f:
-                        json.dump(results, f, indent=2)
+                        json.dump(results_clean, f, indent=2)
+                    
+                    result = results_clean
 
-                    result = results
 
                     progress_bar.progress(1.0)
                     status_text.text("✅ AI Analysis completata!")
