@@ -1028,16 +1028,7 @@ with tab1:
 # TAB 2 - AI FEATURES
 with tab2:
     st.header("🤖 AI Elite Features")
-    
-    # DEBUG - RIMUOVI DOPO IL TEST
-    st.write("**DEBUG - Session State:**")
-    st.write(f"tracking_data keys: {list(st.session_state.tracking_data.keys())}")
-    st.write(f"Numero giocatori: {len(st.session_state.tracking_data)}")
-    if st.session_state.tracking_data:
-        for pid, df in st.session_state.tracking_data.items():
-            st.write(f"Player {pid}: {len(df)} rows")
-    # FINE DEBUG
-    
+      
     if not st.session_state.tracking_data:
         st.warning("⚠️ Carica dati tracking nel tab Configurazione")
     else:
