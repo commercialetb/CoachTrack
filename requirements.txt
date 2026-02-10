@@ -1,21 +1,19 @@
-# CoachTrack Elite AI v3.1 - Complete Requirements
+# CoachTrack Elite AI v3.2 - Optimized for Streamlit Cloud
 streamlit>=1.28.0
 pandas>=2.0.0
 numpy>=1.24.0
-scipy>=1.11.0
 plotly>=5.17.0
 scikit-learn>=1.3.0
 
-# Computer Vision (headless per Streamlit Cloud)
-opencv-python-headless>=4.8.0
+# Math & Science
+scipy>=1.11.0
+
+# Computer Vision (headless for Streamlit Cloud)
+opencv-python-headless==4.8.1.78
 ultralytics>=8.0.0
 
-# Deep Learning
-torch>=2.0.0
-torchvision>=0.15.0
+# AI Advanced Features - MediaPipe
+mediapipe==0.10.9
 
-# Phase 2: AI Advanced Features
-mediapipe>=0.10.0
-scipy>=1.11.0
-mediapipe>=0.10.0
-
+# NOTA: PyTorch rimosso (troppo pesante per Streamlit Cloud free tier)
+# Se necessario, usa ultralytics che include PyTorch lite
