@@ -1,264 +1,214 @@
-# =================================================================
-# COACHTRACK ELITE AI v4.0 - PRO EDITION
-# =================================================================
-import sys
-import logging
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import time
-from pathlib import Path
-import sqlite3
-import json
-import os
-from collections import deque
 import cv2
-from fpdf import FPDF  # Assicurati di installare: pip install fpdf2
-from groq import Groq  # pip install groq
+import plotly.graph_objects as go
+import plotly.express as px
+from datetime import datetime
+import sqlite3
+import time
+import os
+from fpdf import FPDF
+from groq import Groq
 
 # =================================================================
-# CONFIGURAZIONE GROQ & PDF [web:1]
+# 1. CONFIGURAZIONE E DATABASE
 # =================================================================
-GROQ_API_KEY = st.sidebar.text_input("Groq API Key", type="password")
-client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None [file:1]
+st.set_page_config(page_title="CoachTrack Elite NBA v6.5", layout="wide", page_icon="🏀")
 
-class DietaPDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 16)
-        self.cell(0, 10, 'CoachTrack Elite - Piano Nutrizionale AI', 0, 1, 'C')
-        self.ln(10) [file:1]
+def init_db():
+    conn = sqlite3.connect('coachtrack_nba_v6.db', check_same_thread=False)
+    c = conn.cursor()
+    # Tabella Unificata: Biometria + NBA Stats + AI
+    c.execute('''CREATE TABLE IF NOT EXISTS nba_data 
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, player_name TEXT, timestamp TEXT,
+                  weight REAL, fat REAL, muscle REAL, water REAL, bone REAL, bmr REAL, 
+                  hrv REAL, rpe INTEGER, sleep REAL, qsq REAL, 
+                  ai_diet TEXT, ai_risk TEXT, scout_report TEXT)''')
+    conn.commit()
+    return conn
 
-class PDFReport(FPDF):  # Classe esistente mantenuta per video reports
+db_conn = init_db()
+
+# --- PDF GENERATOR CLASS ---
+class CoachReport(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 15)
-        self.cell(0, 10, 'CoachTrack Elite - Match Report', 0, 1, 'C')
-        self.ln(5)
+        self.cell(0, 10, 'COACHTRACK ELITE - OFFICIAL NBA REPORT', 0, 1, 'C')
+        self.ln(10)
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
 # =================================================================
-# DATABASE - SCHEMA FULL BIOMETRICS (v5.0) [file:1]
+# 2. INTEGRAZIONE AI (GROQ)
 # =================================================================
-def init_db():
-    conn = sqlite3.connect('coachtrack_v5.db')
-    c = conn.cursor()
-    # Nuova tabella full biometrics
-    c.execute('''CREATE TABLE IF NOT EXISTS biometrics_full
-                 (id INTEGER PRIMARY KEY, player_name TEXT, timestamp TEXT, 
-                  weight REAL, fat REAL, muscle REAL, water REAL, bone REAL, 
-                  bmr REAL, hrv REAL, rpe INTEGER, notes TEXT, ai_diet TEXT)''')
-    # Tabella esistente biometrics (per compatibilità ACWR/video)
-    c.execute('''CREATE TABLE IF NOT EXISTS biometrics
-                 (id INTEGER PRIMARY KEY, playerid TEXT, playername TEXT, timestamp TEXT, 
-                  weightkg REAL, rpe INTEGER, hrv REAL, fatiguescore REAL, notes TEXT)''')
-    # Tabella video clips
-    c.execute('''CREATE TABLE IF NOT EXISTS videoclips
-                 (id INTEGER PRIMARY KEY, filename TEXT, eventtype TEXT, timestamp TEXT, 
-                  playerid TEXT, duration REAL)''')
-    conn.commit()
-    conn.close()
-
-# =================================================================
-# FUNZIONI AI (GROQ) [file:1]
-# =================================================================
-def genera_consiglio_ai(data, mode="diet"):
-    if not client: 
-        return "Inserisci la Groq API Key per attivare l'assistente."
-    
-    prompt = f"""
-    Sei un nutrizionista e performance coach NBA. Analizza questi dati: {data}.
-    Genera un piano alimentare {'personalizzato' if mode=='diet' else 'di recupero'} 
-    specificando: calorie totali, grammi di proteine, carboidrati e grassi. 
-    Includi suggerimenti sugli integratori (es. Creatina, Omega-3). 
-    Sii tecnico e preciso.
-    """
-    completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="llama3-8b-8192",
-    )
-    return completion.choices[0].message.content [file:1]
-
-# =================================================================
-# FUNZIONI DB ESISTENTI (adattate per v5)
-# =================================================================
-def savebiodbdata(data):
-    conn = sqlite3.connect('coachtrack_v5.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO biometrics (playerid, playername, timestamp, weightkg, rpe, hrv, fatiguescore, notes) VALUES (?,?,?,?,?,?,?,?)",
-              (data['playerid'], data['playername'], str(datetime.now()), data['weightkg'], data['rpe'], data['hrv'], data['fatiguescore'], data['notes']))
-    conn.commit()
-    conn.close()
-
-def loadbiodb():
-    conn = sqlite3.connect('coachtrack_v5.db')
-    df = pd.read_sql_query("SELECT * FROM biometrics ORDER BY id DESC", conn)
-    conn.close()
-    if not df.empty:
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-    # Fallback/aggiungi da biometrics_full se vuoto
-    df_full = pd.read_sql_query("SELECT player_name as playername, timestamp, weight as weightkg, hrv, rpe, notes FROM biometrics_full ORDER BY id DESC LIMIT 100", conn)
-    if not df_full.empty and df.empty:
-        df = df_full
-    return df [file:1]
-
-init_db()
-
-# =================================================================
-# FUNZIONI VIDEO & ALTRI (invariate da app-6.py)
-# =================================================================
-PDF_AVAILABLE = True  # Assumiamo installato
-logging.basicConfig(level=logging.INFO)
-
-def savevideoclip(frames, fps, filename):
-    if not frames: return False
-    h, w = frames[0].shape[:2]
-    out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-    for f in frames:
-        out.write(f)
-    out.release()
-    return True
-
-# ... (altre funzioni come generatereport, CVAIPipeline mock, drawcourtfig, addanalyticstab, renderbiometricmodule - copiate da app-6.py originale, omesse per brevità)
-
-# =================================================================
-# INTERFACCIA STREAMLIT AGGIORNATA v5.0
-# =================================================================
-st.set_page_config(page_title="CoachTrack Elite v5", layout="wide")
-st.title("🏀 CoachTrack Elite v5.0") [file:1]
-
-# Login sidebar (esistente)
-if 'loggedin' not in st.session_state:
-    st.session_state.loggedin = False
-
 with st.sidebar:
-    st.title("CoachTrack PRO")
-    if not st.session_state.loggedin:
-        u = st.text_input("User")
-        p = st.text_input("Pass", type="password")
-        if st.button("Login"):
-            if u == "admin" and p == "admin":
-                st.session_state.loggedin = True
+    st.title("🏀 NBA Control Center")
+    groq_key = st.text_input("Groq API Key", type="password")
+    st.markdown("---")
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+
+client = Groq(api_key=groq_key) if groq_key else None
+
+def get_ai_insight(prompt_type, data):
+    if not client: return "⚠️ Inserire API Key per attivare l'AI."
+    
+    prompts = {
+        "diet": f"Sei un nutrizionista NBA. Crea dieta post-gara per: {data}. Specifica macro e integratori.",
+        "risk": f"Sei un trainer NBA. Valuta rischio infortuni per: HRV {data['hrv']}, RPE {data['rpe']}, Sonno {data['sleep']}.",
+        "scout": f"Sei un GM NBA. Crea report scout per il prospetto {data['name']}. Note: {data['notes']}. Includi NBA Comp e proiezione Draft."
+    }
+    
+    try:
+        res = client.chat.completions.create(messages=[{"role":"user","content":prompts[prompt_type]}], model="llama3-8b-8192")
+        return res.choices[0].message.content
+    except Exception as e: return f"Errore AI: {str(e)}"
+
+# =================================================================
+# 3. INTERFACCIA PRINCIPALE
+# =================================================================
+
+# --- LOGIN ---
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
+if not st.session_state.logged_in:
+    c1,c2,c3 = st.columns([1,2,1])
+    with c2:
+        st.title("🏀 CoachTrack Login")
+        u = st.text_input("User", value="admin")
+        p = st.text_input("Pass", type="password", value="admin")
+        if st.button("Entra"):
+            if u=="admin" and p=="admin": 
+                st.session_state.logged_in = True
                 st.rerun()
-    else:
-        st.success("Loggato come Admin")
-        if st.button("Logout"):
-            st.session_state.loggedin = False
-            st.rerun()
+    st.stop()
 
-if st.session_state.loggedin:
-    # Nuovi tabs v5 [file:1]
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Dashboard", "⚖️ Bio & Dieta AI", "🎥 Video Analysis", "💬 AI Chat Coach"])
+# --- TABS ---
+tab_vid, tab_bio, tab_nba, tab_scout, tab_chat = st.tabs([
+    "🎥 Video Tracking", "⚖️ Bio-Intelligence", "📊 NBA Analytics", "🔎 Scouting & Draft", "💬 Tactical AI"
+])
 
-    df = loadbiodb()  # Carica dati condivisi
+# --- TAB: VIDEO TRACKING (YOLO Integration) ---
+with tab_vid:
+    st.header("Computer Vision & Play Recognition")
+    vid = st.file_uploader("Carica Filmato Match", type=['mp4', 'mov'])
+    if vid:
+        with open("temp.mp4", "wb") as f: f.write(vid.read())
+        cap = cv2.VideoCapture("temp.mp4")
+        st_frame = st.empty()
+        if st.button("Avvia Analisi Spaziale"):
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret: break
+                frame = cv2.resize(frame, (800, 450))
+                # Mock YOLO Circles
+                cv2.circle(frame, (400, 200), 10, (0, 255, 0), -1) # Ball
+                cv2.putText(frame, "SPACING: OPTIMAL", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+                st_frame.image(frame, channels="BGR")
+                time.sleep(0.01)
+            cap.release()
 
-    with tab1:
-        st.header("📊 Dashboard Team")
-        if not df.empty:
-            st.subheader("🔥 Heatmap Fatica Team")
-            fig_heat = px.density_heatmap(df, x="timestamp", y="playername", z="rpe", text_auto=True, colorscale="Reds")
-            st.plotly_chart(fig_heat, use_container_width=True)
-            
-            st.subheader("📈 Trend Peso vs HRV")
-            fig_trend = px.line(df, x="timestamp", y=["weightkg", "hrv"], color="playername")
-            st.plotly_chart(fig_trend, use_container_width=True) [file:1]
-
-    with tab2:
-        st.header("⚖️ Full Biometrics & AI Nutrition")
+# --- TAB: BIOMETRICS & DIETA AI ---
+with tab_bio:
+    st.header("Full Biometrics (v3.2) + AI Nutrition")
+    with st.form("bio_nba"):
+        c1,c2,c3 = st.columns(3)
+        with c1:
+            name = st.text_input("Giocatore")
+            weight = st.number_input("Peso (kg)", 50.0, 150.0, 90.0)
+            fat = st.number_input("Grasso (%)", 5.0, 30.0, 10.0)
+        with c2:
+            muscle = st.number_input("Muscolo (kg)", 30.0, 100.0, 45.0)
+            water = st.number_input("Acqua (%)", 40.0, 80.0, 60.0)
+            bmr = st.number_input("BMR (kcal)", 1500, 4000, 2200)
+        with c3:
+            hrv = st.number_input("HRV (ms)", 20, 150, 60)
+            rpe = st.slider("RPE Fatica", 1, 10, 5)
+            sleep = st.number_input("Ore Sonno", 4.0, 12.0, 8.0)
         
-        with st.expander("📝 Inserimento Dati Originali (v5.0)"):
-            with st.form("form_bio"):
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    name = st.text_input("Atleta")
-                    w = st.number_input("Peso (kg)", 50.0, 150.0, 85.0)
-                    f = st.number_input("Grasso (%)", 5.0, 30.0, 12.0)
-                with col2:
-                    m = st.number_input("Massa Muscolare (kg)", 30.0, 100.0, 45.0)
-                    h = st.number_input("HRV (ms)", 20, 150, 60)
-                    wat = st.number_input("Acqua (%)", 40.0, 80.0, 60.0)
-                with col3:
-                    bmr = st.number_input("BMR (kcal)", 1500, 4000, 2200)
-                    rpe = st.slider("RPE (Fatica)", 1, 10, 5)
-                    note = st.text_area("Note")
-                
-                if st.form_submit_button("Analizza e Salva"):
-                    data = {"peso": w, "grasso": f, "muscolo": m, "hrv": h, "bmr": bmr}
-                    ai_resp = genera_consiglio_ai(data, "diet")
-                    conn = sqlite3.connect('coachtrack_v5.db')
-                    c = conn.cursor()
-                    c.execute("INSERT INTO biometrics_full (player_name, timestamp, weight, fat, muscle, water, bmr, hrv, rpe, notes, ai_diet) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                              (name, str(datetime.now()), w, f, m, wat, bmr, h, rpe, note, ai_resp))
-                    # Salva anche in biometrics per compatibilità
-                    import hashlib
-                    pid = hashlib.md5(name.encode()).hexdigest()[:8]
-                    savebiodbdata({'playerid': pid, 'playername': name, 'weightkg': w, 'rpe': rpe*60, 'hrv': h, 'fatiguescore': rpe, 'notes': note})  # Approx sRPE
-                    conn.commit()
-                    conn.close()
-                    st.success("Dati e Dieta generati con successo!")
-                    st.rerun()
-
-        # Visualizzazione Dati e Download PDF
-        conn = sqlite3.connect('coachtrack_v5.db')
-        df_full = pd.read_sql_query("SELECT * FROM biometrics_full ORDER BY id DESC", conn)
-        
-        if not df_full.empty:
-            st.subheader("Dati Recenti")
-            p_name = st.selectbox("Seleziona Giocatore", df_full['player_name'].unique())
-            latest = df_full[df_full['player_name'] == p_name].iloc[0]
+        if st.form_submit_button("💾 Salva e Genera Dieta AI"):
+            data_ai = {"weight":weight, "fat":fat, "bmr":bmr, "hrv":hrv, "rpe":rpe, "sleep":sleep}
+            diet = get_ai_insight("diet", data_ai)
+            risk = get_ai_insight("risk", data_ai)
             
-            c1, c2 = st.columns([1, 2])
-            with c1:
-                # Grafico Radar
-                fig = go.Figure()
-                fig.add_trace(go.Scatterpolar(
-                    r=[latest['hrv']/10, latest['muscle']/10, latest['water']/10, 11-latest['rpe'], (150-latest['weight'])/10],
-                    theta=['HRV', 'Muscolo', 'Acqua', 'Recupero', 'Peso-Target'],
-                    fill='toself'
-                ))
-                st.plotly_chart(fig, use_container_width=True)
+            cur = db_conn.cursor()
+            cur.execute('''INSERT INTO nba_data (player_name, timestamp, weight, fat, muscle, water, bmr, hrv, rpe, sleep, ai_diet, ai_risk) 
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''', 
+                        (name, datetime.now().strftime("%Y-%m-%d"), weight, fat, muscle, water, bmr, hrv, rpe, sleep, diet, risk))
+            db_conn.commit()
+            st.success("Dati Bio-Intelligence sincronizzati!")
+
+# --- TAB: NBA ANALYTICS (Spacing, Gravity, Radar) ---
+with tab_nba:
+    st.header("Advanced Analytics & Radar Charts")
+    df = pd.read_sql_query("SELECT * FROM nba_data", db_conn)
+    if not df.empty:
+        sel_p = st.selectbox("Seleziona Atleta per Analisi", df['player_name'].unique())
+        p_data = df[df['player_name'] == sel_p].iloc[-1]
+        
+        col_l, col_r = st.columns(2)
+        with col_l:
+            # RADAR CHART PERFORMANCE
+            categories = ['Muscolo', 'HRV', 'Recupero', 'Sonno', 'Idratazione']
+            values = [p_data['muscle'], p_data['hrv'], (11-p_data['rpe'])*8, p_data['sleep']*10, p_data['water']]
+            
+            fig = go.Figure()
+            fig.add_trace(go.Scatterpolar(r=values, theta=categories, fill='toself', line_color='red'))
+            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 120])), title="NBA Readiness Radar")
+            st.plotly_chart(fig)
+            
+            
+        with col_r:
+            st.subheader("🛡️ Load Management (Injury Risk)")
+            st.warning(p_data['ai_risk'])
+            
+            st.subheader("🍎 Dieta Generata dall'AI")
+            st.info(p_data['ai_diet'])
+            
+            # PDF Download
+            pdf = CoachReport()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.multi_cell(0, 10, txt=f"DIETA E RECUPERO - {sel_p}\n\n{p_data['ai_diet']}")
+            pdf_bytes = pdf.output(dest='S').encode('latin-1', 'ignore')
+            st.download_button("📥 Scarica Report Dieta PDF", data=pdf_bytes, file_name=f"Dieta_{sel_p}.pdf")
+
+# --- TAB: SCOUTING & DRAFT ---
+with tab_scout:
+    st.header("🔎 Scouting & Draft Intelligence")
+    col_v, col_t = st.columns(2)
+    with col_v:
+        s_name = st.text_input("Nome Prospetto")
+        s_notes = st.text_area("Note Tecniche (Tiro, Fisico, Difesa...)")
+        if st.button("Genera Scouting Report AI"):
+            with st.spinner("L'AI sta valutando il prospetto..."):
+                report = get_ai_insight("scout", {"name":s_name, "notes":s_notes})
+                st.session_state.last_scout = report
+                st.markdown(report)
                 
-            with c2:
-                st.markdown("### 🥗 Piano Alimentare AI")
-                st.write(latest['ai_diet'])
-                
-                # Generazione PDF
-                if st.button("📥 Scarica Dieta PDF"):
-                    pdf = DietaPDF()
-                    pdf.add_page()
-                    pdf.set_font("Arial", size=12)
-                    pdf.cell(0, 10, f"Atleta: {latest['player_name']}", ln=1)
-                    pdf.cell(0, 10, f"Data: {latest['timestamp']}", ln=1)
-                    pdf.ln(5)
-                    pdf.multi_cell(0, 10, latest['ai_diet'].replace('•', '-'))
-                    pdf_output = f"dieta_{latest['player_name']}.pdf".replace(" ", "_")
-                    pdf.output(pdf_output)
-                    
-                    with open(pdf_output, "rb") as f:
-                        st.download_button("Clicca qui per il PDF", f.read(), file_name=pdf_output)
-                    os.remove(pdf_output)  # Pulizia [file:1]
+    if "last_scout" in st.session_state:
+        with col_t:
+            st.subheader("Visual Draft Grade")
+            fig_scout = px.line_polar(r=[80, 90, 70, 85, 60], theta=['Slasher', 'Shooting', 'Defense', 'IQ', 'Strength'], line_close=True)
+            st.plotly_chart(fig_scout)
+            
+            # PDF Scouting
+            pdf_s = CoachReport()
+            pdf_s.add_page()
+            pdf_s.multi_cell(0, 10, txt=f"SCOUTING REPORT: {s_name}\n\n{st.session_state.last_scout}")
+            st.download_button("📥 Scarica Scouting Report PDF", data=pdf_s.output(dest='S').encode('latin-1', 'ignore'), file_name="Scout_Report.pdf")
 
-    with tab3:
-        # Video Analysis (ex tab2)
-        # ... Inserisci qui addcomputervisiontab() da app-6.py
-
-    with tab4:
-        st.header("💬 AI Tactical Chat")
-        st.write("Chiedi all'AI consigli sulla rotazione dei giocatori o analisi del carico.")
-        user_q = st.text_input("Esempio: Chi è il giocatore più stanco? Che allenamento fare per chi ha HRV basso?")
-        if user_q and client:
-            with st.spinner("L'AI sta analizzando il database..."):
-                db_context = df.tail(10).to_string()
-                ans = client.chat.completions.create(
-                    messages=[{"role": "system", "content": "Sei un assistente tattico per basket indoor. Usa questi dati: " + db_context},
-                              {"role": "user", "content": user_q}],
-                    model="llama3-8b-8192"
-                )
-                st.chat_message("assistant").write(ans.choices[0].message.content) [file:1]
-
-    # Sposta Biometria ACWR e Tattica in espander o sub-tabs se serve, ma integrati in dashboard
-
-else:
-    st.info("Effettua il login dalla sidebar per accedere alla suite PRO.")
-
-# Fine app [file:1]
+# --- TAB: AI TACTICAL CHAT ---
+with tab_chat:
+    st.header("💬 AI Assistant Coach")
+    user_q = st.text_input("Chiedi consiglio all'AI: (es. Chi è il più stanco della squadra?)")
+    if user_q and client:
+        context = df.tail(10).to_string()
+        res = client.chat.completions.create(
+            messages=[{"role":"system","content":f"Sei un assistente NBA. Dati squadra: {context}"}, {"role":"user","content":user_q}],
+            model="llama3-8b-8192"
+        )
+        st.chat_message("assistant").write(res.choices[0].message.content)
