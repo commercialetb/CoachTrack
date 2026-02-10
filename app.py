@@ -994,40 +994,61 @@ tab1,tab2,tab3,tab4,tab5,tab6=st.tabs([
 with tab1:
     st.header("⚙️ Configurazione")
     uploaded=st.file_uploader("CSV Tracking (player_id,timestamp,x,y)",type=['csv'])
+    
     if uploaded:
         try:
             df=pd.read_csv(uploaded,sep=';')
-                    # MOSTRA ANTEPRIMA COLONNE
-        st.write("**Colonne nel CSV:**", df.columns.tolist())
+            
+            # DEBUG - Mostra colonne
+            st.write("**🔍 DEBUG - Colonne nel CSV:**", df.columns.tolist())
+            st.write("**📊 Righe totali:**", len(df))
+            
+            # Verifica colonne richieste
+            required_cols = ['player_id','timestamp','x','y']
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            
+            if missing_cols:
+                st.error(f"❌ Colonne mancanti: {missing_cols}")
+                st.write("**Richieste:**", required_cols)
+                st.write("**Trovate:**", df.columns.tolist())
+            else:
+                # Carica dati in session_state
+                for pid in df['player_id'].unique():
+                    st.session_state.tracking_data[pid]=df[df['player_id']==pid].copy()
+                
+                st.success(f"✅ {len(df['player_id'].unique())} giocatori importati")
+                
+                # DEBUG - Conferma salvato
+                st.write("**✅ Salvato in session_state:**", list(st.session_state.tracking_data.keys()))
+                
+                with st.expander("👁️ Anteprima Dati"):
+                    st.dataframe(df.head(20))
         
-        if all(c in df.columns for c in ['player_id','timestamp','x','y']):
-            for pid in df['player_id'].unique():
-                st.session_state.tracking_data[pid]=df[df['player_id']==pid].copy()
-            
-            st.success(f"✅ {len(df['player_id'].unique())} giocatori importati")
-            
-            # CONFERMA SALVATO
-            st.write("**Salvato in session_state:**", list(st.session_state.tracking_data.keys()))
-            
-            with st.expander("Anteprima"):
-                st.dataframe(df.head(20))
-        else:
-            st.error("❌ Colonne mancanti nel CSV!")
-            st.write("Richieste: player_id, timestamp, x, y")
-            st.write("Trovate:", df.columns.tolist())
-            
-    except Exception as e: 
-        st.error(f"Errore: {e}")
+        except Exception as e: 
+            st.error(f"❌ Errore durante caricamento: {str(e)}")
+            import traceback
+            with st.expander("🔍 Dettagli Errore"):
+                st.code(traceback.format_exc())
+    
+    # Mostra dati caricati
     if st.session_state.tracking_data:
+        st.markdown("---")
         st.markdown("### 📊 Dati Caricati")
+        
         for pid in st.session_state.tracking_data.keys():
             df_p=st.session_state.tracking_data[pid]
             c1,c2,c3=st.columns(3)
-            with c1: st.metric(f"Player {pid}",len(df_p))
-            with c2: st.metric("Distance",f"{calculate_distance(df_p):.1f}m")
+            
+            with c1: 
+                st.metric(f"Player {pid}",len(df_p))
+            with c2: 
+                st.metric("Distance",f"{calculate_distance(df_p):.1f}m")
             with c3:
                 dur=df_p['timestamp'].max()-df_p['timestamp'].min() if len(df_p)>1 else 0
                 st.metric("Duration",f"{dur:.1f}s")
+    else:
+        st.info("👋 Nessun dato caricato. Carica un CSV per iniziare.")
+
 
 # TAB 2 - AI FEATURES
 with tab2:
