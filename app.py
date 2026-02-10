@@ -314,93 +314,100 @@ def add_analytics_tab():
     import plotly.express as px
     import plotly.graph_objects as go
     
-    st.header("📊 Analytics")
-    if not st.session_state.tracking_data:
-        st.info("📥 Carica file CSV con dati tracking")
+    st.header("📊 Analytics Dashboard")
+    
+    if not st.session_state.tracking_
+        st.info("📥 Carica CSV tracking (player_id, timestamp, x, y)")
         
-        # Formato richiesto
-        st.markdown("### 📋 Formato CSV Richiesto")
-        st.code('''player_id,timestamp,x,y
-1,2024-02-10 10:00:00,10.5,20.3
-1,2024-02-10 10:00:01,10.7,20.5
-2,2024-02-10 10:00:00,15.2,18.7''', language='csv')
+        uploaded = st.file_uploader("📁 Upload CSV", type=['csv'])
         
-        st.markdown("**Colonne obbligatorie:**")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("- `player_id` → ID giocatore")
-            st.markdown("- `timestamp` → Data/ora")
-        with col2:
-            st.markdown("- `x` → Coordinata X (metri)")
-            st.markdown("- `y` → Coordinata Y (metri)")
-        
-        st.markdown("---")
-        
-        up = st.file_uploader("📁 Upload CSV", type=['csv'])
-        
-        if up:
-    try:
-        # Auto-detect delimiter
-        try:
-            df = pd.read_csv(up, sep=',')
-            if len(df.columns) == 1:
-                up.seek(0)
-                df = pd.read_csv(up, sep=';')
-        except:
-            up.seek(0)
-            df = pd.read_csv(up, sep=';')
-        
-        # Validazione
-        required = ['player_id', 'timestamp', 'x', 'y']
-        missing = [c for c in required if c not in df.columns]
-        
-        if missing:
-            st.error(f"❌ Colonne mancanti: {', '.join(missing)}")
-            st.info(f"📋 Trovate: {', '.join(df.columns.tolist())}")
-            return
-        
-        # Converti timestamp
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        # Carica
-        for pid in df['player_id'].unique():
-            st.session_state.tracking_data[str(pid)] = df[df['player_id']==pid].reset_index(drop=True)
-        
-        st.success(f"✅ {df['player_id'].nunique()} players, {len(df)} punti")
-        st.balloons()
-        st.rerun()
-        
-    except Exception as e:
-        st.error(f"❌ Errore: {str(e)}")
-
-    total=sum(calculate_distance(df) for df in st.session_state.tracking_data.values())
-    avg=total/len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
-    c1,c2,c3,c4=st.columns(4)
-    c1.metric("👥",len(st.session_state.tracking_data))
-    c2.metric("📏",f"{total:.0f}m")
-    c3.metric("📊",f"{avg:.0f}m")
-    c4.metric("⚖️",f"{total/len(st.session_state.tracking_data)/10:.1f}" if st.session_state.tracking_data else "0")
+        if uploaded:
+            try:
+                # Auto-detect delimiter (virgola o punto e virgola)
+                try:
+                    df = pd.read_csv(uploaded, sep=',')
+                    if len(df.columns) == 1:
+                        uploaded.seek(0)
+                        df = pd.read_csv(uploaded, sep=';')
+                        st.info("📌 Delimitatore rilevato: ;")
+                    else:
+                        st.info("📌 Delimitatore rilevato: ,")
+                except:
+                    uploaded.seek(0)
+                    df = pd.read_csv(uploaded, sep=';')
+                    st.info("📌 Delimitatore: ;")
+                
+                # Validazione colonne
+                required = ['player_id', 'timestamp', 'x', 'y']
+                missing = [c for c in required if c not in df.columns]
+                
+                if missing:
+                    st.error(f"❌ Colonne mancanti: {', '.join(missing)}")
+                    st.info(f"📋 Trovate: {', '.join(df.columns.tolist())}")
+                    return
+                
+                # Converti timestamp
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
+                # Carica dati
+                for pid in df['player_id'].unique():
+                    st.session_state.tracking_data[str(pid)] = df[df['player_id']==pid].reset_index(drop=True)
+                
+                st.success(f"✅ {df['player_id'].nunique()} players, {len(df)} punti")
+                
+                with st.expander("👁️ Preview"):
+                    st.dataframe(df.head(10), use_container_width=True)
+                
+                st.balloons()
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Errore: {e}")
+        return
+    
+    # VISUALIZZAZIONI
+    st.markdown("### 📈 Statistiche Team")
+    
+    total = sum(calculate_distance(df) for df in st.session_state.tracking_data.values())
+    avg = total / len(st.session_state.tracking_data) if st.session_state.tracking_data else 0
+    
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("👥 Players", len(st.session_state.tracking_data))
+    c2.metric("📏 Distanza Totale", f"{total:.0f}m")
+    c3.metric("📊 Distanza Media", f"{avg:.0f}m")
+    c4.metric("⚖️ Load Index", f"{total/len(st.session_state.tracking_data)/10:.1f}" if st.session_state.tracking_data else "0")
+    
     st.markdown("---")
-    stats=[]
-    for pid,df in st.session_state.tracking_data.items():
-        d=calculate_distance(df)
-        stats.append({'Player':str(pid),'Distance(m)':round(d,1),'Points':len(df)})
+    st.markdown("### 📊 Confronto Giocatori")
+    
+    stats = []
+    for pid, df in st.session_state.tracking_data.items():
+        d = calculate_distance(df)
+        stats.append({'Player': str(pid), 'Distance(m)': round(d,1), 'Points': len(df)})
+    
     if stats:
-        sdf=pd.DataFrame(stats).sort_values('Distance(m)',ascending=False)
-        fig=px.bar(sdf,x='Player',y='Distance(m)',color='Distance(m)',color_continuous_scale='Blues',text='Distance(m)')
-        fig.update_layout(showlegend=False,height=400)
-        st.plotly_chart(fig,use_container_width=True)
-        st.dataframe(sdf,use_container_width=True)
+        sdf = pd.DataFrame(stats).sort_values('Distance(m)', ascending=False)
+        fig = px.bar(sdf, x='Player', y='Distance(m)', color='Distance(m)', 
+                     color_continuous_scale='Blues', text='Distance(m)')
+        fig.update_layout(showlegend=False, height=400)
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(sdf, use_container_width=True)
+    
     st.markdown("---")
-    pts=[]
+    st.markdown("### 🔥 Heatmap Movimento")
+    
+    pts = []
     for df in st.session_state.tracking_data.values():
         if 'x' in df.columns and 'y' in df.columns:
-            pts.extend([(r['x'],r['y']) for _,r in df.iterrows()])
+            pts.extend([(r['x'], r['y']) for _, r in df.iterrows()])
+    
     if pts:
-        pdf=pd.DataFrame(pts,columns=['x','y'])
-        fig2=go.Figure(data=go.Histogram2d(x=pdf['x'],y=pdf['y'],colorscale='Hot',nbinsx=50,nbinsy=30))
-        fig2.update_layout(title='Heatmap',height=500)
-        st.plotly_chart(fig2,use_container_width=True)
+        pdf = pd.DataFrame(pts, columns=['x', 'y'])
+        fig2 = go.Figure(data=go.Histogram2d(
+            x=pdf['x'], y=pdf['y'], colorscale='Hot', nbinsx=50, nbinsy=30
+        ))
+        fig2.update_layout(title='Team Movement', height=500)
+        st.plotly_chart(fig2, use_container_width=True)
 
 # =================================================================
 # ML
