@@ -12,13 +12,24 @@ import time
 from pathlib import Path
 
  # ============ CHECK OPENCV ============
+CV_AVAILABLE = False
 try:
     import cv2
     CV_AVAILABLE = True
-    print(f"✅ OpenCV {cv2.__version__} disponibile")
-except ImportError:
+    print(f"✅ OpenCV {cv2.__version__} disponibile - Path: {cv2.__file__}")
+except ImportError as e:
     CV_AVAILABLE = False
-    print("⚠️ OpenCV non disponibile")
+    print(f"❌ OpenCV ImportError: {e}")
+    import sys
+    print(f"   Python path: {sys.path}")
+except Exception as e:
+    CV_AVAILABLE = False
+    print(f"❌ OpenCV Exception: {e}")
+
+# Debug: Mostra nell'app se fallisce
+if not CV_AVAILABLE:
+    import streamlit as st
+    st.warning("⚠️ OpenCV non disponibile - Check logs per dettagli")
 # ============ FINE CHECK ============
 
 # ============ AI ADVANCED MODULE ============
