@@ -185,7 +185,7 @@ with cv_tab2:
         st.subheader("🧠 AI Analysis")
         if not AI_ADVANCED_AVAILABLE:
             st.error("❌ AI not available")
-            return
+     return
         st.success("✅ YOLOv8")
         uva=st.file_uploader("Video AI",type=['mp4','avi','mov','mkv'],key="ai")
         if uva:
