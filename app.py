@@ -981,7 +981,7 @@ st.title("🏀 CoachTrack Elite AI v3.1")
 st.markdown("**Complete:** AI + ML + CV + Physical + Nutrition + **Biometrics** + Analytics")
 
 # TABS - Aggiunta Biometrics
-tab1,tab2,tab3,tab4,tab5=st.tabs([
+tab1,tab2,tab3,tab4,tab5,tab6=st.tabs([
     "⚙️ Config",
     "🤖 AI Features",
     "🎥 CV",
