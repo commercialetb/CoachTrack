@@ -339,8 +339,7 @@ def add_analytics_tab():
         up = st.file_uploader("📁 Upload CSV", type=['csv'])
         
         if up:
-            try:
-                # Prova prima con virgola, poi con punto e virgola
+           
 try:
     df = pd.read_csv(up, sep=',')
     if len(df.columns) == 1:  # Se ha solo 1 colonna, delimitatore sbagliato
