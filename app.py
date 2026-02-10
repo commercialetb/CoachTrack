@@ -130,13 +130,17 @@ except ImportError:
     print("⚠️ OpenCV non disponibile")
 
 def add_computer_vision_tab():
-    """Computer Vision tab con AI Analysis"""
-    
-    # Import necessari per tutti i tab
+    """Computer Vision with AI Analysis"""
+    # IMPORT GLOBALI PER TUTTI I TAB
     import pandas as pd
     import plotly.express as px
     from pathlib import Path
-    
+    import json
+    import cv2
+    import os
+    import time
+    import numpy as np
+
     st.header("🎥 Computer Vision")
     
     if not CV_AVAILABLE:
@@ -145,7 +149,6 @@ def add_computer_vision_tab():
         return
     
     st.success("✅ Computer Vision Online")
-
 
     # 3 Sub-tabs
     cv_tab1, cv_tab2, cv_tab3, cv_tab4 = st.tabs([
@@ -160,34 +163,28 @@ def add_computer_vision_tab():
     # ============================================================
     with cv_tab1:
         st.subheader("🎬 Video Info")
-        st.info("📹 Upload video - Usa 'AI Analysis' tab per processing")
-
-        uploaded_video = st.file_uploader("Carica Video", type=['mp4', 'avi', 'mov', 'mkv'], key="basic_video")
-
-        if uploaded_video:
-            import os, cv2, time
-            video_path = f"temp_basic_{uploaded_video.name}"
+        st.info("📹 Upload video - Usa 'AI Analysis' per processing completo")
+        uv = st.file_uploader("Carica Video", type=['mp4','avi','mov','mkv'], key="bv")
+        if uv:
+            vp = f"temp_{uv.name}"
             with st.spinner("📤 Caricamento..."):
-                with open(video_path, 'wb') as f:
-                    f.write(uploaded_video.read())
-            st.success(f"✅ {uploaded_video.name}")
+                with open(vp,'wb') as f: f.write(uv.read())
+            st.success(f"✅ {uv.name}")
             try:
-                cap = cv2.VideoCapture(video_path)
-                fps, fc = int(cap.get(cv2.CAP_PROP_FPS)), int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                dur = fc / fps if fps > 0 else 0
-                w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                cap = cv2.VideoCapture(vp)
+                fps,fc = int(cap.get(cv2.CAP_PROP_FPS)),int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                dur,w,h = fc/fps if fps>0 else 0,int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 cap.release()
-                c1,c2,c3,c4 = st.columns(4)
-                c1.metric("⏱️ Durata", f"{dur:.1f}s")
-                c2.metric("🎞️ FPS", fps)
-                c3.metric("📸 Frame", f"{fc:,}")
-                c4.metric("📐 Res", f"{w}x{h}")
-                st.success("✅ → Vai tab 'AI Analysis' per processing!")
-            except Exception as e:
-                st.error(f"❌ {e}")
+                c1,c2,c3,c4=st.columns(4)
+                c1.metric("⏱️",f"{dur:.1f}s")
+                c2.metric("🎞️",fps)
+                c3.metric("📸",f"{fc:,}")
+                c4.metric("📐",f"{w}x{h}")
+                st.success("✅ Vai tab 'AI Analysis'!")
+            except Exception as e: st.error(f"❌ {e}")
             finally:
-                if os.path.exists(video_path):
-                    try: time.sleep(0.3); os.remove(video_path)
+                if os.path.exists(vp):
+                    try: time.sleep(0.3);os.remove(vp)
                     except: pass
 
     with cv_tab2:
@@ -207,71 +204,48 @@ def add_computer_vision_tab():
             st.image(calibration_image, caption="Campo da calibrare", use_container_width=True)
             st.info("🔧 Feature in sviluppo - Clicca sui 4 angoli del campo")
 
-        # TAB 3: ANALYSIS DASHBOARD
+    # ============================================================
+    # TAB 3: ANALYSIS DASHBOARD
+    # ============================================================
     with cv_tab3:
         st.subheader("📊 Analysis Dashboard")
-        st.info("📈 Visualizza dati tracking da JSON")
-
-        # Upload JSON
-        uploaded_json = st.file_uploader(
-            "📥 Carica JSON", 
-            type=['json'],
-            help="Upload file JSON da AI Analysis",
-            key="json_upload"
-        )
-
-        if uploaded_json:
-            import json
+        uj = st.file_uploader("📥 Carica JSON", type=['json'], key="ju")
+        if uj:
             try:
-                data = json.load(uploaded_json)
-                st.success(f"✅ Caricato: {uploaded_json.name}")
-                
-                # Statistiche
+                data = json.load(uj)
+                st.success(f"✅ {uj.name}")
                 if 'statistics' in data:
-                    stats = data['statistics']
-                    col1, col2, col3 = st.columns(3)
-                    col1.metric("📸 Pose", stats.get('total_poses_detected', 0))
-                    col2.metric("🎯 Actions", stats.get('total_actions', 0))
-                    col3.metric("🏀 Shots", stats.get('total_shots', 0))
-                
+                    s=data['statistics']
+                    c1,c2,c3=st.columns(3)
+                    c1.metric("📸",s.get('total_poses_detected',0))
+                    c2.metric("🎯",s.get('total_actions',0))
+                    c3.metric("🏀",s.get('total_shots',0))
                 st.markdown("---")
-                
-                # Actions
-                if 'actions' in data and len(data['actions']) > 0:
+                if 'actions' in data and len(data['actions'])>0:
                     st.markdown("### 🎯 Actions")
-                    actions_df = pd.DataFrame(data['actions'])
-                    st.dataframe(actions_df, use_container_width=True)
-                
-                # Shots
-                if 'shots' in data and len(data['shots']) > 0:
+                    adf=pd.DataFrame(data['actions'])
+                    st.dataframe(adf,use_container_width=True)
+                    if 'action' in adf.columns:
+                        ac=adf['action'].value_counts()
+                        fig=px.bar(x=ac.index,y=ac.values,labels={'x':'Azione','y':'Conteggio'})
+                        st.plotly_chart(fig,use_container_width=True)
+                if 'shots' in data and len(data['shots'])>0:
                     st.markdown("### 🏀 Shots")
-                    shots_df = pd.DataFrame(data['shots'])
-                    st.dataframe(shots_df, use_container_width=True)
-                    avg_form = shots_df['form_score'].mean()
-                    st.metric("Form Score Medio", f"{avg_form:.1f}/100")
-                
-                # Raw JSON
-                with st.expander("📄 Raw JSON"):
+                    sdf=pd.DataFrame(data['shots'])
+                    st.dataframe(sdf,use_container_width=True)
+                    st.metric("Form",f"{sdf['form_score'].mean():.1f}/100")
+                with st.expander("📄 JSON"):
                     st.json(data)
-                    
-            except Exception as e:
-                st.error(f"❌ Errore: {e}")
+            except Exception as e: st.error(f"❌ {e}")
         else:
-            # Cerca JSON sul server
-            json_files = list(Path('.').glob('*.json'))
-            if json_files:
-                st.info(f"📁 {len(json_files)} file JSON trovati sul server")
-                selected = st.selectbox("Seleziona", [f.name for f in json_files])
+            jf=list(Path('.').glob('*.json'))
+            if jf:
+                st.info(f"📁 {len(jf)} JSON sul server")
+                sel=st.selectbox("Seleziona",[f.name for f in jf])
                 if st.button("📊 Carica"):
-                    with open(selected, 'r') as f:
-                        data = json.load(f)
-                    st.json(data)
-            else:
-                st.warning("⚠️ Nessun JSON. Usa AI Analysis per generarne uno.")
+                    with open(sel,'r') as f: st.json(json.load(f))
+            else: st.warning("⚠️ Usa AI Analysis")
 
-# ============================================================
-    # TAB 4: AI ANALYSIS
-    # ============================================================
     with cv_tab4:
         st.subheader("🧠 AI Advanced Analysis")
         st.markdown("---")
@@ -284,7 +258,7 @@ def add_computer_vision_tab():
             return
 
         # Check MediaPipe
-        st.success("✅ YOLOv8 Pose Analysis attiva!")
+        st.success("✅ YOLOv8 attivo!")
 
         # Info panel
         st.info("🤖 AI Features: Action Recognition + Shot Tracking + Pose Analysis")
@@ -328,69 +302,43 @@ def add_computer_vision_tab():
             st.markdown("---")
 
             # Run analysis button
-            if st.button("🚀 Avvia AI Analysis", type="primary", use_container_width=True):
-
-                # IMPORT FUORI DAL TRY - FIX SCOPE
-                import cv2
-                import json
-                import numpy as np
-                import pandas as pd
-                import plotly.express as px
-                import os
-                import time
-
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-
+            if st.button("🚀 Avvia AI Analysis",type="primary",use_container_width=True):
+                progress_bar=st.progress(0)
+                status_text=st.empty()
                 try:
                     status_text.text("🤖 Inizializzazione AI pipeline...")
                     progress_bar.progress(0.1)
 
 
 
-                    status_text.text("🎬 Processing video con AI...")
+                    status_text.text("🎬 Processing...")
                     progress_bar.progress(0.3)
-
-                    # Run AI analysis con YOLOv8
-                    pipeline = CVAIPipeline()
-                    if not pipeline.initialize():
-                        raise Exception("YOLOv8 init failed")
-
-                    cap = cv2.VideoCapture(video_path)
-                    fps = int(cap.get(cv2.CAP_PROP_FPS))
-                    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-                    results = {
-                        'video_info': {'fps': fps, 'frame_count': frame_count, 'duration': frame_count / fps if fps > 0 else 0},
-                        'actions': [], 'shots': [], 'pose_data': [],
-                        'statistics': {'total_poses_detected': 0, 'total_actions': 0, 'total_shots': 0}
-                    }
-
-                    frame_idx = 0
+                    pipeline=CVAIPipeline()
+                    if not pipeline.initialize(): raise Exception("YOLOv8 fail")
+                    cap=cv2.VideoCapture(video_path)
+                    fps,fc=int(cap.get(cv2.CAP_PROP_FPS)),int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    results={'video_info':{'fps':fps,'frame_count':fc,'duration':fc/fps if fps>0 else 0},'actions':[],'shots':[],'pose_data':[],'statistics':{'total_poses_detected':0,'total_actions':0,'total_shots':0}}
+                    fi=0
                     while cap.isOpened():
-                        ret, frame = cap.read()
-                        if not ret:
-                            break
-                        if frame_idx % 5 == 0:
-                            fr = pipeline.process_frame(frame)
+                        ret,frame=cap.read()
+                        if not ret: break
+                        if fi%5==0:
+                            fr=pipeline.process_frame(frame)
                             if fr:
-                                results['statistics']['total_poses_detected'] += 1
-                                act = fr.get('action', 'unknown')
-                                if act != 'unknown':
-                                    results['actions'].append({'frame': int(frame_idx), 'action': act, 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
-                                    results['statistics']['total_actions'] += 1
-                                if act == 'shooting' and 'shooting_form' in fr:
-                                    form = fr['shooting_form']
-                                    results['shots'].append({'frame': int(frame_idx), 'elbow_angle': float(form['elbow_angle']), 'knee_angle': float(form['knee_angle']), 'form_score': float(form['form_score']), 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
-                                    results['statistics']['total_shots'] += 1
-                        frame_idx += 1
-                        if frame_idx % 100 == 0:
-                            progress_bar.progress(min(0.3 + (frame_idx / frame_count) * 0.7, 1.0))
-
+                                results['statistics']['total_poses_detected']+=1
+                                act=fr.get('action','unknown')
+                                if act!='unknown':
+                                    results['actions'].append({'frame':int(fi),'action':act,'timestamp':float(fi/fps if fps>0 else 0)})
+                                    results['statistics']['total_actions']+=1
+                                if act=='shooting' and 'shooting_form' in fr:
+                                    form=fr['shooting_form']
+                                    results['shots'].append({'frame':int(fi),'elbow_angle':float(form['elbow_angle']),'knee_angle':float(form['knee_angle']),'form_score':float(form['form_score']),'timestamp':float(fi/fps if fps>0 else 0)})
+                                    results['statistics']['total_shots']+=1
+                        fi+=1
+                        if fi%100==0: progress_bar.progress(min(0.3+(fi/fc)*0.7,1.0))
                     cap.release()
-                    with open(output_json, 'w') as f:
-                        json.dump(results, f, indent=2)
-                    result = results
+                    with open(output_json,'w') as f: json.dump(results,f,indent=2)
+                    result=results
 
                     progress_bar.progress(1.0)
                     status_text.text("✅ AI Analysis completata!")
