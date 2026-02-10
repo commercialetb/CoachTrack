@@ -315,7 +315,7 @@ def add_analytics_tab():
     import plotly.graph_objects as go
     
     st.header("📊 Analytics")
-    if not st.session_state.tracking_
+    if not st.session_state.tracking_data:
         st.info("📥 Carica file CSV con dati tracking")
         
         # Formato richiesto
