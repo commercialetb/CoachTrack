@@ -1,9 +1,14 @@
 streamlit
-opencv-python-headless
 numpy
 pandas
-plotly
 ultralytics
 scipy
-fpdf
+streamlit
+pandas
+numpy
+plotly
+sqlite3  # Built-in Python
+opencv-python-headless  # Per cv2 senza GUI (usa headless per Streamlit)
+fpdf2  # Per PDF (non fpdf, usa fpdf2 moderna)
+groq  # SDK ufficiale Groq
 
