@@ -1,9 +1,7 @@
-streamlit==1.38.0  # Ultima stabile
-pandas==2.2.2
-numpy==1.26.4
-plotly==5.22.0
-opencv-python-headless==4.10.0.84
-fpdf2==2.8.1
-groq==0.5.1
-rich==13.7.1  # Pinna rich vecchia per evitare conflict
-markdown-it-py==3.0.0
+streamlit
+pandas
+numpy
+plotly
+opencv-python-headless
+fpdf
+groq
