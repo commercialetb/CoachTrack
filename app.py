@@ -60,10 +60,10 @@ except:
         def predict_next_game(self,f): return {'points':17.5,'assists':5,'rebounds':6,'efficiency':48,'confidence':'MEDIA'}
 
 try:
-    from physical_nutrition import generate_enhanced_nutrition, create_body_composition_viz
-    PHYSICAL_AVAILABLE = True
+    from performance_health_unified import add_performance_health_tab
+    PERFORMANCE_AVAILABLE = True
 except:
-    PHYSICAL_AVAILABLE = False
+    PERFORMANCE_AVAILABLE = False
     def generate_enhanced_nutrition(pid,ph,act,goal):
         w,bmr=ph.get('weight_kg',80),ph.get('bmr',2000)
         cal=int(bmr*1.55)
@@ -963,7 +963,7 @@ with st.sidebar:
         st.success("✅" if ML_AVAILABLE else "❌"); st.caption("ML")
     with col2:
         st.success("✅" if CV_AVAILABLE else "❌"); st.caption("CV")
-        st.success("✅" if PHYSICAL_AVAILABLE else "❌"); st.caption("PH")
+        st.success("✅" if PERFORMANCE_AVAILABLE else "❌"); st.caption("Perf")
     st.markdown("---")
     st.metric("Players",len(st.session_state.tracking_data))
     st.metric("Physical",len(st.session_state.physical_profiles))
@@ -981,13 +981,12 @@ st.title("🏀 CoachTrack Elite AI v3.1")
 st.markdown("**Complete:** AI + ML + CV + Physical + Nutrition + **Biometrics** + Analytics")
 
 # TABS - Aggiunta Biometrics
-tab1,tab2,tab3,tab4,tab5,tab6,tab7=st.tabs([
+tab1,tab2,tab3,tab4,tab5=st.tabs([
     "⚙️ Config",
     "🤖 AI Features",
     "🎥 CV",
     "🧠 ML",
-    "💪 Physical",
-    "⚖️ Biometrics",
+    "⚡ Performance",    # ✅ NUOVO
     "📊 Analytics"
 ])
 
@@ -1183,93 +1182,11 @@ with tab4:
                     with ca: st.metric("Points",f"{pred['points']} pts")
                     with cb: st.metric("Efficiency",pred['efficiency'])
 
-# TAB 5 - PHYSICAL
+# TAB 5 - PERFORMANCE
 with tab5:
-    st.header("💪 Physical & Nutrition")
-    t1,t2,t3=st.tabs(["📋 Physical Data","🍎 Nutrition Plans","📊 Body Composition"])
+    add_performance_health_tab()
 
-    with t1:
-        st.subheader("Physical Data Management")
-        existing=["Nuovo..."]+list(st.session_state.physical_profiles.keys())
-        pname=st.selectbox("Giocatore",existing)
-        if pname=="Nuovo...": pname=st.text_input("Nome",key='new_p')
-
-        with st.form("phys"):
-            st.markdown("### Input Dati Fisici")
-            c1,c2,c3=st.columns(3)
-            with c1:
-                h=st.number_input("Altezza (cm)",150.0,230.0,195.0,0.5)
-                w=st.number_input("Peso (kg)",50.0,150.0,80.0,0.1)
-                age=st.number_input("Età",15,45,25)
-            with c2:
-                bf=st.number_input("Grasso (%)",3.0,40.0,12.0,0.1)
-                water=st.number_input("Acqua (%)",45.0,75.0,60.0,0.1)
-                muscle=st.number_input("Muscoli (%)",25.0,60.0,45.0,0.1)
-            with c3:
-                bone=st.number_input("Ossa (kg)",2.0,5.0,3.2,0.1)
-                hr=st.number_input("HR Riposo",40,100,55)
-                vo2=st.number_input("VO2 Max",30.0,80.0,52.0,0.5)
-
-            if st.form_submit_button("💾 Salva",type="primary",use_container_width=True):
-                if pname and pname!="Nuovo...":
-                    bmi=w/((h/100)**2)
-                    fm=w*(bf/100)
-                    lm=w-fm
-                    bmr=int(10*w+6.25*h-5*age+5)
-                    st.session_state.physical_profiles[pname]={
-                        'date':datetime.now().strftime('%Y-%m-%d'),'height_cm':h,'weight_kg':w,'age':age,
-                        'bmi':round(bmi,1),'body_fat_pct':bf,'lean_mass_kg':round(lm,1),'fat_mass_kg':round(fm,1),
-                        'body_water_pct':water,'muscle_pct':muscle,'bone_mass_kg':bone,'resting_hr':hr,
-                        'vo2_max':vo2,'bmr':bmr,'amr':int(bmr*1.55)}
-                    st.success(f"✅ Salvato {pname}")
-                    st.balloons()
-
-        if st.session_state.physical_profiles:
-            st.markdown("### 📊 Dati Salvati")
-            for pid,data in st.session_state.physical_profiles.items():
-                with st.expander(f"👤 {pid}"):
-                    c1,c2,c3=st.columns(3)
-                    with c1:
-                        st.metric("Peso",f"{data.get('weight_kg')}kg")
-                        st.metric("BMI",data.get('bmi'))
-                    with c2:
-                        st.metric("Fat",f"{data.get('body_fat_pct')}%")
-                        st.metric("Lean",f"{data.get('lean_mass_kg')}kg")
-                    with c3:
-                        st.metric("BMR",f"{data.get('bmr')}kcal")
-
-    with t2:
-        st.subheader("🍎 Nutrition Plans")
-        if st.session_state.physical_profiles:
-            pn=st.selectbox("Player",list(st.session_state.physical_profiles.keys()))
-            c1,c2=st.columns(2)
-            with c1: act=st.selectbox("Activity",["Low (Recovery)","Moderate (Training)","High (Intense)"])
-            with c2: goal=st.selectbox("Goal",["Maintenance","Muscle Gain","Fat Loss"])
-
-            if st.button("🍎 Generate Plan",type="primary",use_container_width=True):
-                plan=generate_enhanced_nutrition(pn,st.session_state.physical_profiles[pn],act,goal)
-                c1,c2,c3,c4=st.columns(4)
-                with c1: st.metric("🔥 Cal",plan['target_calories'])
-                with c2: st.metric("🥩 Prot",f"{plan['protein_g']}g")
-                with c3: st.metric("🍚 Carbs",f"{plan['carbs_g']}g")
-                with c4: st.metric("🥑 Fats",f"{plan['fats_g']}g")
-                st.markdown("#### 💡 Raccomandazioni")
-                for r in plan['recommendations']: st.info(f"• {r}")
-                st.markdown("#### 💊 Integratori")
-                for s in plan['supplements']: st.success(f"✅ {s}")
-
-    with t3:
-        st.subheader("📊 Body Composition")
-        if st.session_state.physical_profiles:
-            pv=st.selectbox("Player",list(st.session_state.physical_profiles.keys()),key='viz_p')
-            fig=create_body_composition_viz(st.session_state.physical_profiles[pv])
-            st.plotly_chart(fig,use_container_width=True)
-
-# TAB 6 - BIOMETRICS (NUOVO)
-with tab6:
-    render_biometric_module()
-
-# TAB 7 - ANALYTICS
+# TAB 6 - ANALYTICS
 with tab7:
     st.header("📊 Analytics Dashboard")
     if st.session_state.tracking_data:
