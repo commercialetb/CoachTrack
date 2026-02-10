@@ -339,8 +339,7 @@ def add_analytics_tab():
         up = st.file_uploader("📁 Upload CSV", type=['csv'])
         
         if up:
-           
-try:
+           try:
     df = pd.read_csv(up, sep=',')
     if len(df.columns) == 1:  # Se ha solo 1 colonna, delimitatore sbagliato
         up.seek(0)  # Reset file pointer
