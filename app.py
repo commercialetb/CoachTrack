@@ -340,7 +340,18 @@ def add_analytics_tab():
         
         if up:
             try:
-                df = pd.read_csv(up)
+                # Prova prima con virgola, poi con punto e virgola
+try:
+    df = pd.read_csv(up, sep=',')
+    if len(df.columns) == 1:  # Se ha solo 1 colonna, delimitatore sbagliato
+        up.seek(0)  # Reset file pointer
+        df = pd.read_csv(up, sep=';')
+except:
+    up.seek(0)
+    df = pd.read_csv(up, sep=';')
+
+st.success(f"✅ CSV caricato con delimitatore: {',' if ',' in df.columns[0] else ';'}")
+
                 
                 # Validazione
                 required = ['player_id', 'timestamp', 'x', 'y']
