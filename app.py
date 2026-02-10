@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import time
 from pathlib import Path
 
- ============ CHECK OPENCV ============
+ # ============ CHECK OPENCV ============
 try:
     import cv2
     CV_AVAILABLE = True
@@ -19,7 +19,7 @@ try:
 except ImportError:
     CV_AVAILABLE = False
     print("⚠️ OpenCV non disponibile")
-
+# ============ FINE CHECK ============
 
 # ============ AI ADVANCED MODULE ============
 try:
