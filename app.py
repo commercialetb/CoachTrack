@@ -11,56 +11,14 @@ from datetime import datetime, timedelta
 import time
 from pathlib import Path
 
-# =================================================================
-# DEBUG MEDIAPIPE - RIMUOVI DOPO IL TEST
-# =================================================================
-print("\n" + "="*70)
-print("🔍 TEST MEDIAPIPE DIRETTO DA APP.PY")
-print("="*70)
-
-# Test 1: Import diretto
+ ============ CHECK OPENCV ============
 try:
-    import mediapipe as mp
-    print(f"✅ MediaPipe importato: v{mp.__version__}")
-    print(f"   Path: {mp.__file__}")
-    
-    # Test 2: Solutions
-    if hasattr(mp, 'solutions'):
-        print("✅ mp.solutions disponibile")
-        
-        # Test 3: Pose
-        if hasattr(mp.solutions, 'pose'):
-            print("✅ mp.solutions.pose disponibile")
-            
-            # Test 4: Init Pose
-            try:
-                test_pose = mp.solutions.pose.Pose()
-                print("✅ Pose() creato con successo!")
-                test_pose.close()
-            except Exception as e:
-                print(f"❌ Errore creazione Pose: {e}")
-        else:
-            print("❌ mp.solutions.pose NON TROVATO")
-    else:
-        print("❌ mp.solutions NON TROVATO")
-        
-except ImportError as e:
-    print(f"❌ Import MediaPipe FALLITO: {e}")
-except Exception as e:
-    print(f"❌ Errore generico: {e}")
-
-# Test 5: Import cv_ai_advanced
-try:
-    from cv_ai_advanced import MEDIAPIPE_AVAILABLE
-    print(f"\n✅ cv_ai_advanced importato")
-    print(f"   MEDIAPIPE_AVAILABLE = {MEDIAPIPE_AVAILABLE}")
-except ImportError as e:
-    print(f"\n❌ cv_ai_advanced import FALLITO: {e}")
-
-print("="*70 + "\n")
-# =================================================================
-# FINE DEBUG
-# =================================================================
+    import cv2
+    CV_AVAILABLE = True
+    print(f"✅ OpenCV {cv2.__version__} disponibile")
+except ImportError:
+    CV_AVAILABLE = False
+    print("⚠️ OpenCV non disponibile")
 
 
 # ============ AI ADVANCED MODULE ============
@@ -130,37 +88,23 @@ except:
         fig.update_layout(title="Body Composition",height=400)
         return fig
 
-CV_AVAILABLE=False
+# ============ CHECK CV ============
+CV_AVAILABLE = False
 try:
-    from cv_processor import CoachTrackVisionProcessor
-    CV_AVAILABLE=True
-except Exception as e:
-    st.error(f"Errore caricamento CV: {e}") # Questo ti dirà cosa manca esattamente
-
+    import cv2
+    CV_AVAILABLE = True
+    print(f"✅ OpenCV disponibile: {cv2.__version__}")
+except ImportError:
+    print("⚠️ OpenCV non disponibile")
 
 def add_computer_vision_tab():
     st.header("🎥 Computer Vision")
     
-    # Check OpenCV (headless o normale)
-    CV_AVAILABLE = False
-    try:
-        import cv2
-        CV_AVAILABLE = True
-    except ImportError:
-        pass
-    
     if not CV_AVAILABLE:
-        st.error("❌ Computer Vision non disponibile")
-        st.error("OpenCV non installato")
-        st.code("pip install opencv-python-headless")
-        st.info("💡 Aggiungi a requirements.txt: opencv-python-headless")
+        st.error("❌ OpenCV non disponibile")
+        st.info("Installa con: pip install opencv-python-headless")
         return
     
-    # CV DISPONIBILE - Mostra interfaccia completa
-    st.success("✅ Computer Vision Online (OpenCV disponibile)")
-
-
-    # CV DISPONIBILE - Mostra interfaccia completa
     st.success("✅ Computer Vision Online")
 
     # 3 Sub-tabs
@@ -1010,6 +954,7 @@ if 'performance_model' not in st.session_state: st.session_state.performance_mod
 with st.sidebar:
     st.title("🏀 CoachTrack")
     st.markdown("---")
+    # Module status
     col1,col2=st.columns(2)
     with col1:
         st.success("✅" if AI_AVAILABLE else "❌"); st.caption("AI")
