@@ -151,54 +151,36 @@ def add_computer_vision_tab():
     # TAB 1: VIDEO PROCESSING
     # ============================================================
     with cv_tab1:
-        st.subheader("🎬 Video Processing Basic")
-        st.info("📹 Upload video per info - Usa tab 'AI Analysis' per processing completo")
+        st.subheader("🎬 Video Info")
+        st.info("📹 Upload video - Usa 'AI Analysis' tab per processing")
 
-        uploaded_video = st.file_uploader(
-            "Carica Video", 
-            type=['mp4', 'avi', 'mov', 'mkv'],
-            key="basic_video_upload"
-        )
+        uploaded_video = st.file_uploader("Carica Video", type=['mp4', 'avi', 'mov', 'mkv'], key="basic_video")
 
         if uploaded_video:
-            import os
-            import cv2
-            import time
-
+            import os, cv2, time
             video_path = f"temp_basic_{uploaded_video.name}"
             with st.spinner("📤 Caricamento..."):
                 with open(video_path, 'wb') as f:
                     f.write(uploaded_video.read())
-
-            st.success(f"✅ Video: {uploaded_video.name}")
-
+            st.success(f"✅ {uploaded_video.name}")
             try:
                 cap = cv2.VideoCapture(video_path)
-                fps = int(cap.get(cv2.CAP_PROP_FPS))
-                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                duration = frame_count / fps if fps > 0 else 0
-                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps, fc = int(cap.get(cv2.CAP_PROP_FPS)), int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                dur = fc / fps if fps > 0 else 0
+                w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 cap.release()
-
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("⏱️ Durata", f"{duration:.1f}s")
-                col2.metric("🎞️ FPS", fps)
-                col3.metric("📸 Frame", f"{frame_count:,}")
-                col4.metric("📐 Risoluzione", f"{width}x{height}")
-
-                st.success("✅ Video pronto! → Vai tab 'AI Analysis' per processing completo")
-
+                c1,c2,c3,c4 = st.columns(4)
+                c1.metric("⏱️ Durata", f"{dur:.1f}s")
+                c2.metric("🎞️ FPS", fps)
+                c3.metric("📸 Frame", f"{fc:,}")
+                c4.metric("📐 Res", f"{w}x{h}")
+                st.success("✅ → Vai tab 'AI Analysis' per processing!")
             except Exception as e:
-                st.error(f"❌ Errore: {e}")
-
+                st.error(f"❌ {e}")
             finally:
                 if os.path.exists(video_path):
-                    try:
-                        time.sleep(0.3)
-                        os.remove(video_path)
-                    except:
-                        pass
+                    try: time.sleep(0.3); os.remove(video_path)
+                    except: pass
 
     with cv_tab2:
         st.subheader("🎯 Court Calibration")
@@ -310,6 +292,16 @@ def add_computer_vision_tab():
 
             # Run analysis button
             if st.button("🚀 Avvia AI Analysis", type="primary", use_container_width=True):
+
+                # IMPORT FUORI DAL TRY - FIX SCOPE
+                import cv2
+                import json
+                import numpy as np
+                import pandas as pd
+                import plotly.express as px
+                import os
+                import time
+
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
@@ -317,19 +309,12 @@ def add_computer_vision_tab():
                     status_text.text("🤖 Inizializzazione AI pipeline...")
                     progress_bar.progress(0.1)
 
-                    # Import pandas if needed
-                    import pandas as pd
-                    import plotly.express as px
+
 
                     status_text.text("🎬 Processing video con AI...")
                     progress_bar.progress(0.3)
 
-                    # Run AI analysis
-                    # AI Analysis con YOLOv8
-                    import cv2
-                    import json
-                    import numpy as np
-
+                    # Run AI analysis con YOLOv8
                     pipeline = CVAIPipeline()
                     if not pipeline.initialize():
                         raise Exception("YOLOv8 init failed")
@@ -350,15 +335,15 @@ def add_computer_vision_tab():
                         if not ret:
                             break
                         if frame_idx % 5 == 0:
-                            frame_result = pipeline.process_frame(frame)
-                            if frame_result:
+                            fr = pipeline.process_frame(frame)
+                            if fr:
                                 results['statistics']['total_poses_detected'] += 1
-                                action = frame_result.get('action', 'unknown')
-                                if action != 'unknown':
-                                    results['actions'].append({'frame': int(frame_idx), 'action': action, 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
+                                act = fr.get('action', 'unknown')
+                                if act != 'unknown':
+                                    results['actions'].append({'frame': int(frame_idx), 'action': act, 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
                                     results['statistics']['total_actions'] += 1
-                                if action == 'shooting' and 'shooting_form' in frame_result:
-                                    form = frame_result['shooting_form']
+                                if act == 'shooting' and 'shooting_form' in fr:
+                                    form = fr['shooting_form']
                                     results['shots'].append({'frame': int(frame_idx), 'elbow_angle': float(form['elbow_angle']), 'knee_angle': float(form['knee_angle']), 'form_score': float(form['form_score']), 'timestamp': float(frame_idx / fps if fps > 0 else 0)})
                                     results['statistics']['total_shots'] += 1
                         frame_idx += 1
