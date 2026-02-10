@@ -34,7 +34,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
-# ✅ MediaPipe check rimosso - YOLOv8 attivo
+# ✅ YOLOv8 ready - MediaPipe debug removed
 # ============ CHECK OPENCV ============
 CV_AVAILABLE = False
 try:
@@ -447,6 +447,13 @@ def add_computer_vision_tab():
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
+                # Import necessari FUORI dal try
+                import cv2
+                import json
+                import numpy as np
+                import os
+                import time
+
                 try:
                     status_text.text("🤖 Inizializzazione AI pipeline...")
                     progress_bar.progress(0.1)
@@ -462,10 +469,6 @@ def add_computer_vision_tab():
                     pipeline = CVAIPipeline()
                     if not pipeline.initialize():
                         raise Exception("Impossibile inizializzare YOLOv8")
-
-                    # Process video frame by frame
-                    import cv2
-                    import json
 
                     cap = cv2.VideoCapture(video_path)
                     fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -493,14 +496,12 @@ def add_computer_vision_tab():
                         if not ret:
                             break
 
-                        # Process ogni 5 frame per velocità
                         if frame_idx % 5 == 0:
                             frame_result = pipeline.process_frame(frame)
 
                             if frame_result:
                                 results['statistics']['total_poses_detected'] += 1
 
-                                # Action
                                 action = frame_result.get('action', 'unknown')
                                 if action != 'unknown':
                                     results['actions'].append({
@@ -510,30 +511,26 @@ def add_computer_vision_tab():
                                     })
                                     results['statistics']['total_actions'] += 1
 
-                                # Shooting form
                                 if action == 'shooting' and 'shooting_form' in frame_result:
                                     form = frame_result['shooting_form']
                                     results['shots'].append({
                                         'frame': frame_idx,
-                                        'elbow_angle': form['elbow_angle'],
-                                        'knee_angle': form['knee_angle'],
-                                        'form_score': form['form_score'],
+                                        'elbow_angle': float(form['elbow_angle']),
+                                        'knee_angle': float(form['knee_angle']),
+                                        'form_score': float(form['form_score']),
                                         'timestamp': frame_idx / fps if fps > 0 else 0
                                     })
                                     results['statistics']['total_shots'] += 1
 
                         frame_idx += 1
 
-                        # Progress update ogni 100 frame
                         if frame_idx % 100 == 0:
                             progress = min(0.3 + (frame_idx / frame_count) * 0.7, 1.0)
                             progress_bar.progress(progress)
 
                     cap.release()
 
-                                       # Save JSON (fix numpy float32 → Python float)
-                    import numpy as np
-                    
+                    # Fix numpy types for JSON
                     def clean_numpy(obj):
                         if isinstance(obj, dict):
                             return {k: clean_numpy(v) for k, v in obj.items()}
@@ -546,14 +543,13 @@ def add_computer_vision_tab():
                         elif isinstance(obj, np.ndarray):
                             return obj.tolist()
                         return obj
-                    
+
                     results_clean = clean_numpy(results)
-                    
+
                     with open(output_json, 'w') as f:
                         json.dump(results_clean, f, indent=2)
-                    
-                    result = results_clean
 
+                    result = results_clean
 
                     progress_bar.progress(1.0)
                     status_text.text("✅ AI Analysis completata!")
