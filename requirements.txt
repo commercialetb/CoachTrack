@@ -1,11 +1,4 @@
 streamlit==1.54.0
 opencv-python-headless==4.13.0.92
-opencv-contrib-python==4.13.0.92
+opencv-contrib
 
-numpy==2.4.2
-pandas==2.3.3
-matplotlib==3.10.8
-scikit-learn==1.8.0
-scipy==1.17.0
-plotly==6.5.2
-ultralytics==8.3.0
