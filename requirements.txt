@@ -8,3 +8,4 @@ matplotlib==3.10.8
 scikit-learn==1.8.0
 scipy==1.17.0
 plotly==6.5.2
+ultralytics==8.3.0
