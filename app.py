@@ -459,8 +459,85 @@ def add_computer_vision_tab():
                     status_text.text("🎬 Processing video con AI...")
                     progress_bar.progress(0.3)
 
-                    # Run AI analysis
-                    result = analyze_video_ai(video_path, output_json)
+                   # Run AI analysis
+pipeline = CVAIPipeline()
+if not pipeline.initialize():
+    raise Exception("Impossibile inizializzare YOLOv8")
+
+# Process video frame by frame
+import cv2
+import json
+
+cap = cv2.VideoCapture(video_path)
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+results = {
+    'video_info': {
+        'fps': fps,
+        'frame_count': frame_count,
+        'duration': frame_count / fps if fps > 0 else 0
+    },
+    'actions': [],
+    'shots': [],
+    'pose_data': [],
+    'statistics': {
+        'total_poses_detected': 0,
+        'total_actions': 0,
+        'total_shots': 0
+    }
+}
+
+frame_idx = 0
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    # Process ogni 5 frame per velocità
+    if frame_idx % 5 == 0:
+        frame_result = pipeline.process_frame(frame)
+        
+        if frame_result:
+            results['statistics']['total_poses_detected'] += 1
+            
+            # Action
+            action = frame_result.get('action', 'unknown')
+            if action != 'unknown':
+                results['actions'].append({
+                    'frame': frame_idx,
+                    'action': action,
+                    'timestamp': frame_idx / fps if fps > 0 else 0
+                })
+                results['statistics']['total_actions'] += 1
+            
+            # Shooting form
+            if action == 'shooting' and 'shooting_form' in frame_result:
+                form = frame_result['shooting_form']
+                results['shots'].append({
+                    'frame': frame_idx,
+                    'elbow_angle': form['elbow_angle'],
+                    'knee_angle': form['knee_angle'],
+                    'form_score': form['form_score'],
+                    'timestamp': frame_idx / fps if fps > 0 else 0
+                })
+                results['statistics']['total_shots'] += 1
+    
+    frame_idx += 1
+    
+    # Progress update ogni 100 frame
+    if frame_idx % 100 == 0:
+        progress = min(0.3 + (frame_idx / frame_count) * 0.7, 1.0)
+        progress_bar.progress(progress)
+
+cap.release()
+
+# Save JSON
+with open(output_json, 'w') as f:
+    json.dump(results, f, indent=2)
+
+result = results
+
 
                     progress_bar.progress(1.0)
                     status_text.text("✅ AI Analysis completata!")
