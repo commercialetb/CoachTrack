@@ -60,13 +60,13 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.ln(5)
     
     sections = {
-        "1. ARCHITETTURA E FILOSOFIA", 
+        "1. ARCHITETTURA E FILOSOFIA": 
         "CoachTrack Oracle non e solo un software di gestione; e un ecosistema decisionale. "
         "Il sistema integra tre pilastri: Visione Artificiale (YOLO), Biometria Avanzata e "
         "Intelligenza Artificiale Generativa (The Oracle). L'obiettivo e minimizzare l'errore "
         "umano nella valutazione della fatica e massimizzare l'efficienza tattica in campo.",
 
-        "2. VIDEO TRACKING (YOLO V8-V11)", 
+        "2. VIDEO TRACKING (YOLO V8-V11)": 
         "A COSA SERVE: Identifica la posizione degli atleti e della palla in tempo reale. "
         "COSA FA: Utilizza reti neurali convoluzionali per mappare lo spacing e il carico motorio. "
         "VERSIONI: YOLO v8 e ottimizzato per la velocita (analisi post-match rapida); "
@@ -74,7 +74,7 @@ def generate_detailed_manual(team_name, logo_path=None):
         "PROCESSO: Caricare il file .mp4, selezionare la 'Confidenza' (0.25 consigliata) "
         "e monitorare la barra di progresso per la sincronizzazione dei frame.",
 
-        "3. BIO-METRIC & BODY COMPOSITION", 
+        "3. BIO-METRIC & BODY COMPOSITION": 
         "A COSA SERVE: Monitoraggio della salute cellulare e strutturale dell'atleta. "
         "METRICHE CHIAVE:\n"
         "- HRV (Heart Rate Variability): Il principale indicatore di stress del sistema nervoso. "
@@ -83,14 +83,14 @@ def generate_detailed_manual(team_name, logo_path=None):
         "Un calo di massa muscolare durante la stagione segnala un deficit proteico o eccesso di cardio.\n"
         "- WATER %: Fondamentale per la prevenzione di crampi e infortuni muscolari.",
 
-        "4. WAR ROOM STRATEGICA", 
+        "4. WAR ROOM STRATEGICA": 
         "A COSA SERVE: Analisi comparativa per le rotazioni (Lineup Optimization). "
         "FUNZIONAMENTO: Il sistema incrocia i dati tecnici (Shot %) con quelli fisici (HRV/Muscolo). "
         "Il Radar Chart permette di vedere visivamente chi e piu pronto per un accoppiamento specifico. "
         "E lo strumento principale per decidere chi parte in quintetto base (Starter) "
         "in base alla freschezza atletica del giorno del match.",
 
-        "5. INTERAZIONE CON THE ORACLE", 
+        "5. INTERAZIONE CON THE ORACLE": 
         "A COSA SERVE: Consulenza immediata su dati complessi. "
         "THE ORACLE agisce come un assistente che ha letto tutti i dati bio e video. "
         "ESEMPI DI COMANDO:\n"
@@ -98,12 +98,12 @@ def generate_detailed_manual(team_name, logo_path=None):
         "- 'Pianifica una dieta di recupero ipercalorica per [Nome] basata sul suo calo di massa muscolare.'\n"
         "- 'Crea uno scouting report tattico basato sui trend di tiro dell'ultimo mese.'",
 
-        "6. GESTIONE DATI E PRIVACY", 
+        "6. GESTIONE DATI E PRIVACY": 
         "Tutti i dati sono isolati per Coach. L'integrazione Smart Scale API permette "
         "l'aggiornamento automatico dei parametri di composizione corporea. "
         "Si consiglia di effettuare un Bulk Import via CSV all'inizio di ogni training camp."
 
-        "7. PROTOCOLLO INJURY PREVENTION", 
+        "7. PROTOCOLLO INJURY PREVENTION": 
         "A COSA SERVE: Identificazione precoce dei segnali di sovraccarico (Overuse) e rischio lesioni. "
         "IL MODELLO PREDITTIVO: Il sistema incrocia HRV (Stress Sistemico), RPE (Carico Percepito) "
         "e Bio-Metrica (Idratazione/Massa Muscolare).\n"
