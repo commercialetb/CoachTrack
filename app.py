@@ -154,13 +154,17 @@ if not st.session_state.logged_in:
 curr_user, team_name = st.session_state.username, st.session_state.team_name
 logo_path = f"logo_{curr_user}.png"
 
-# Sidebar
+# SIDEBAR
 if os.path.exists(logo_path): st.sidebar.image(logo_path, width=100)
 st.sidebar.title(team_name)
+
+# TASTO DOWNLOAD MANUALE (CORRETTO)
 try:
     pdf_file = generate_detailed_manual(team_name, logo_path)
-    st.sidebar.download_button("📘 Scarica Manuale Tecnico", pdf_file, "Manuale.pdf")
-except: pass
+    st.sidebar.download_button(label="📘 Scarica Manuale Tecnico", data=pdf_file, file_name=f"Manuale_{team_name}.pdf", mime="application/pdf")
+except Exception as e:
+    st.sidebar.error(f"Errore Manuale: {e}")
+
 if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
 
 # Recupero Dati
