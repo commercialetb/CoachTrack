@@ -1,4 +1,4 @@
-# 🏀 CoachTrack Oracle v18.0 - Bio-Metric Intelligence
+# 🏀 CoachTrack Oracle v19.0 - Bio-Metric Intelligence
 
 **CoachTrack Oracle** è la piattaforma definitiva per il coaching NBA moderno. Questa versione introduce il monitoraggio avanzato della composizione corporea e un'integrazione profonda con l'intelligenza artificiale per l'ottimizzazione delle performance e della salute degli atleti.
 
