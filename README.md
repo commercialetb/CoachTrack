@@ -1,30 +1,45 @@
-# 🏀 CoachTrack Oracle v18
+# 🏀 CoachTrack Oracle v18.0 - Bio-Metric Intelligence
 
-**CoachTrack Oracle** è una piattaforma avanzata di NBA Front-Office e Tactical Intelligence. Integra analisi video real-time tramite YOLO, monitoraggio biometrico e un assistente IA dedicato chiamato "The Oracle" per supportare le decisioni strategiche del coaching staff.
-
----
-
-## 🚀 Funzionalità Principali
-
-* **🎥 Video YOLO Hub:** Tracking dei giocatori e analisi degli spazi utilizzando i modelli YOLO (v8 e v11).
-* **👤 Player 360°:** Dashboard individuale con storico HRV, efficienza al tiro e scouting report generati dall'IA.
-* **⚔️ War Room:** Strumento di confronto tra atleti per analizzare la sinergia tattica e il fit nelle lineup.
-* **📖 Playbook AI:** Suggerimenti automatici sugli esecutori ideali per schemi specifici (Pick & Roll, Triangolo, ecc.).
-* **💬 THE ORACLE:** Chatbot IA persistente che analizza l'intero database della squadra per rispondere a quesiti tattici complessi.
-* **⌚ Sync Hub:** Integrazione per l'importazione massiva di dati via CSV e predisposizione per bridge API wearable.
+**CoachTrack Oracle** è la piattaforma definitiva per il coaching NBA moderno. Questa versione introduce il monitoraggio avanzato della composizione corporea e un'integrazione profonda con l'intelligenza artificiale per l'ottimizzazione delle performance e della salute degli atleti.
 
 ---
 
-## 🛠️ Installazione e Requisiti
+## 🚀 Novità Versione 18.0
 
-Per avviare l'applicazione localmente o su Streamlit Cloud, assicurati di avere i seguenti file nel repository:
+* **📊 Visual Tracking Progress:** Barra di avanzamento dinamica durante l'analisi video YOLO per monitorare lo stato del processamento in tempo reale.
+* **⚖️ Bio-Metric Architect:** Monitoraggio completo della composizione corporea (Peso, BMI, % Grasso, Massa Muscolare, Massa Ossea, % Acqua).
+* **🥗 AI-Driven Nutrition:** The Oracle genera ora piani alimentari e di recupero ultra-personalizzati basati sui dati impedenziometrici reali.
+* **⚔️ War Room 2.0:** Confronto radar potenziato che incrocia efficienza tecnica (Tiro) e potenza fisica (Massa Muscolare/HRV).
+* **📘 Manuale Integrato:** Documentazione scaricabile in PDF direttamente dalla dashboard per un onboarding rapido.
 
-1. **`app.py`**: Il codice sorgente principale.
-2. **`requirements.txt`**: Dipendenze Python.
-3. **`packages.txt`**: Dipendenze di sistema (Linux/Streamlit Cloud).
+---
 
-### Installazione Locale
-1. Clona il repository.
-2. Installa le dipendenze:
-   ```bash
-   pip install -r requirements.txt
+## 🛠️ Architettura e Pulizia Repository
+
+Per garantire la massima stabilità, il repository è stato ottimizzato eliminando moduli ridondanti. L'app gira esclusivamente sui seguenti file core:
+
+* **`app.py`**: Il motore centrale v18.0.
+* **`requirements.txt`**: Dipendenze (ultralytics, groq, opencv, ecc.).
+* **`packages.txt`**: Librerie di sistema Linux (libgl1, libglib2.0-0).
+* **`.gitignore`**: Esclusione file temporanei e DB locali.
+
+---
+
+## 🤖 The Oracle: Come Interagire
+
+L'AI "The Oracle" ha ora accesso a parametri fisici granulari. Puoi interrogarlo per:
+1. **Analisi del Rischio:** "Controlla se il calo di HRV di [Nome] è legato alla disidratazione."
+2. **Ottimizzazione Peso:** "Suggerisci una dieta per aumentare la massa muscolare senza alterare la velocità di spostamento laterale."
+3. **Pianificazione Tattica:** "Qual è il quintetto più 'fresco' fisicamente per l'ultimo quarto?"
+
+---
+
+## 📦 Deployment Rapido
+
+1. Assicurati che le cartelle `.devcontainer`, `data` e `modules` siano state rimosse.
+2. Carica i file core nel tuo repository.
+3. Configura la tua `GROQ_API_KEY` nei segreti di Streamlit.
+4. Avvia l'app e scarica il manuale dalla sidebar per iniziare.
+
+---
+© 2026 CoachTrack Elite - *Developing the future of NBA coaching.*
