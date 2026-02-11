@@ -49,63 +49,99 @@ def check_hashes(password, hashed_text): return make_hashes(password) == hashed_
 # =================================================================
 def generate_detailed_manual(team_name, logo_path=None):
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    if logo_path and os.path.exists(logo_path):
-        pdf.image(logo_path, 10, 8, 20)
-        pdf.ln(20)
-    pdf.set_font("Arial", 'B', 20)
-    pdf.cell(0, 10, f"MANUALE OPERATIVO: {team_name.upper()}", ln=True)
-    pdf.set_font("Arial", '', 12)
-    pdf.multi_cell(0, 10, "Questo documento descrive le funzioni di monitoraggio bio-atletico, video analisi e strategia AI.")
-    pdf.ln(5)
     
-    sections = {
-        "1. ARCHITETTURA E FILOSOFIA": 
-            "CoachTrack Oracle non e solo un software di gestione; e un ecosistema decisionale. "
-            "Il sistema integra tre pilastri: Visione Artificiale (YOLO), Biometria Avanzata e "
-            "Intelligenza Artificiale Generativa (The Oracle). L'obiettivo e minimizzare l'errore "
-            "umano nella valutazione della fatica e massimizzare l'efficienza tattica in campo.",
+    # --- DESIGN & HEADER ---
+    if logo_path and os.path.exists(logo_path):
+        pdf.image(logo_path, 10, 8, 25)
+        pdf.ln(25)
+    
+    pdf.set_font("Arial", 'B', 24)
+    pdf.set_text_color(0, 32, 96) # Blu Navy Bracciano
+    pdf.cell(0, 15, f"MANUALE TECNICO-STRATEGICO", ln=True, align='C')
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(0, 10, f"SISTEMA ELITE: {team_name.upper()}", ln=True, align='C')
+    pdf.ln(10)
 
-        "2. VIDEO TRACKING (YOLO V8-V11)": 
-            "A COSA SERVE: Identifica la posizione degli atleti e della palla in tempo reale. "
-            "COSA FA: Utilizza reti neurali convoluzionali per mappare lo spacing e il carico motorio. "
-            "VERSIONI: YOLO v8 e ottimizzato per la velocita; YOLO v11 offre una precisione superiore. "
-            "PROCESSO: Caricare il file .mp4, selezionare la Confidenza e monitorare la barra di progresso.",
+    # --- INTRODUZIONE FILOSOFICA ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "1. ARCHITETTURA E FILOSOFIA DECISIONALE", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 5, 
+        "CoachTrack Oracle non e un semplice database, ma un ecosistema decisionale integrato[cite: 7]. "
+        "L'architettura poggia su tre pilastri: Visione Artificiale per il carico esterno, "
+        "Biometria per il carico interno e IA Generativa per la sintesi strategica[cite: 8]. "
+        "L'obiettivo primario e l'oggettivazione della fatica per eliminare l'errore umano[cite: 9].")
+    pdf.ln(5)
 
-        "3. BIO-METRIC & BODY COMPOSITION": 
-            "A COSA SERVE: Monitoraggio della salute cellulare e strutturale dell'atleta. "
-            "METRICHE CHIAVE: HRV (Heart Rate Variability) per lo stress nervoso; "
-            "BODY FAT e MUSCLE MASS per il Power-to-Weight ratio; "
-            "WATER % per la prevenzione di crampi e infortuni muscolari.",
+    # --- MODULO VIDEO: COMPUTER VISION ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "2. VIDEO TRACKING: ANALISI CINEMATICA (YOLO)", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 5, 
+        "Il sistema utilizza algoritmi YOLO (You Only Look Once) per il rilevamento in tempo reale[cite: 11]. "
+        "La versione v8 e ottimizzata per la fluidita, mentre la v11 gestisce le occlusioni tipiche del post-basso. "
+        "Attraverso la mappatura dei frame, il software calcola lo 'Spacing Index': la capacita della squadra "
+        "di mantenere le distanze ottimali per il tiro da tre punti e le penetrazioni. "
+        "Il parametro 'Confidenza' (set standard 0.25) determina la precisione del tracciamento della palla[cite: 14].")
+    pdf.ln(5)
 
-        "4. WAR ROOM STRATEGICA": 
-            "A COSA SERVE: Analisi comparativa per le rotazioni (Lineup Optimization). "
-            "FUNZIONAMENTO: Il sistema incrocia i dati tecnici con quelli fisici. "
-            "Il Radar Chart permette di vedere visivamente chi e piu pronto per un accoppiamento specifico "
-            "in base alla freschezza atletica del giorno del match.",
+    # --- MODULO BIO: LA SCIENZA DEL RECUPERO ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "3. BIO-INTELLIGENCE: METRICHE CELLULARI", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 5, 
+        "Il monitoraggio biogestito si focalizza sulla salute cellulare dell'atleta[cite: 15, 16].\n"
+        "- HRV (Heart Rate Variability): Misura l'attivita del nervo vago. Un calo indica uno shift "
+        "verso il sistema simpatico (stress), rendendo l'atleta meno reattivo.\n"
+        "- Power-to-Weight Ratio: Incrocio tra Massa Muscolare e Peso per determinare l'esplosivita[cite: 17].\n"
+        "- Idratazione (Water %): Un calo sotto il 55% aumenta il rischio di catabolismo e crampi[cite: 17, 29].")
+    
+    # --- TABELLA TECNICA OPERATIVA ---
+    pdf.ln(5)
+    pdf.set_fill_color(0, 32, 96); pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", 'B', 9)
+    pdf.cell(45, 8, "PARAMETRO", 1, 0, 'C', True)
+    pdf.cell(45, 8, "ZONA VERDE", 1, 0, 'C', True)
+    pdf.cell(45, 8, "ZONA GIALLA", 1, 0, 'C', True)
+    pdf.cell(45, 8, "ZONA ROSSA", 1, 1, 'C', True)
+    
+    pdf.set_text_color(0, 0, 0); pdf.set_font("Arial", '', 8)
+    metrics = [
+        ("HRV (Baseline %)", "> 90%", "75-89%", "< 75% [cite: 28]"),
+        ("Idratazione", "> 60%", "56-59%", "< 55% [cite: 29]"),
+        ("RPE (Fatica)", "1 - 4", "5 - 7", "8 - 10 [cite: 28]")
+    ]
+    for m, v, g, r in metrics:
+        pdf.cell(45, 7, m, 1); pdf.cell(45, 7, v, 1); pdf.cell(45, 7, g, 1); pdf.cell(45, 7, r, 1, 1)
+    pdf.ln(5)
 
-        "5. INTERAZIONE CON THE ORACLE": 
-            "A COSA SERVE: Consulenza immediata su dati complessi. "
-            "THE ORACLE agisce come un assistente che analizza dati bio e video. "
-            "ESEMPI: Analisi rischio infortuni, piani di recupero e scouting report tattici.",
+    # --- STRATEGIA E WAR ROOM ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "4. STRATEGY ROOM: LINEUP OPTIMIZATION", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 5, 
+        "Il Radar Chart incrocia l'efficienza di tiro (Shot %) con la freschezza atletica (HRV/Sonno)[cite: 19]. "
+        "Questo permette al Coach di Bracciano Basket di decidere lo starting five non solo su base "
+        "tecnica, ma su base fisiologica, garantendo che i giocatori chiave non 'scoppino' nel finale[cite: 20].")
+    pdf.ln(5)
 
-        "6. GESTIONE DATI E PRIVACY": 
-            "Tutti i dati sono isolati per Coach. L'integrazione Smart Scale API permette "
-            "l'aggiornamento automatico dei parametri. Si consiglia un Bulk Import via CSV "
-            "all'inizio di ogni training camp.",
+    # --- THE ORACLE AI: GUIDA AL PROMPTING ---
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "5. THE ORACLE: INTERAZIONE IA AVANZATA", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 5, 
+        "The Oracle agisce come un assistente senior che ha processato tutti i dati video e bio[cite: 21, 22].\n"
+        "Comandi consigliati:\n"
+        "- 'Analizza il rischio infortuni basato sul trend HRV dell'ultima settimana'[cite: 23].\n"
+        "- 'Pianifica il minutaggio della lineup titolare per massimizzare il recupero'[cite: 23].")
+    pdf.ln(10)
 
-        "7. PROTOCOLLO INJURY PREVENTION": 
-            "A COSA SERVE: Identificazione precoce dei segnali di sovraccarico. "
-            "INDICATORI: ZONA ROSSA (HRV calato del 20% + RPE > 8) indica rischio elevatissimo. "
-            "ZONA GIALLA (Calo massa muscolare o acqua < 55%) indica catabolismo. "
-            "Azione: Riposo totale o integrazione specifica."
-    }
-    for title, desc in sections.items():
-        pdf.set_font("Arial", 'B', 14)
-        pdf.cell(0, 10, title, ln=True)
-        pdf.set_font("Arial", '', 11)
-        pdf.multi_cell(0, 6, desc)
-        pdf.ln(4)
+    # --- CHIUSURA & PRIVACY ---
+    pdf.set_font("Arial", 'I', 9)
+    pdf.multi_cell(0, 5, "I dati sono protetti e isolati per ogni singolo Coach tramite Smart Scale API e database criptati[cite: 25].")
+
     return pdf.output(dest='S').encode('latin-1')
 
 # =================================================================
