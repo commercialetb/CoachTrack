@@ -61,7 +61,7 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.set_text_color(0, 32, 96) # Blu Navy Bracciano
     pdf.cell(0, 15, f"MANUALE TECNICO-STRATEGICO", ln=True, align='C')
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, f"SISTEMA ELITE: {team_name.upper()}", ln=True, align='C')
+    pdf.cell(0, 10, f"Sistema CoachTrack: {team_name.upper()}", ln=True, align='C')
     pdf.ln(10)
 
     # --- INTRODUZIONE FILOSOFICA ---
@@ -69,10 +69,10 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.cell(0, 10, "1. ARCHITETTURA E FILOSOFIA DECISIONALE", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 5, 
-        "CoachTrack Oracle non e un semplice database, ma un ecosistema decisionale integrato[cite: 7]. "
+        "CoachTrack Oracle non e un semplice database, ma un ecosistema decisionale integrato. "
         "L'architettura poggia su tre pilastri: Visione Artificiale per il carico esterno, "
-        "Biometria per il carico interno e IA Generativa per la sintesi strategica[cite: 8]. "
-        "L'obiettivo primario e l'oggettivazione della fatica per eliminare l'errore umano[cite: 9].")
+        "Biometria per il carico interno e IA Generativa per la sintesi strategica. "
+        "L'obiettivo primario e l'oggettivazione della fatica per eliminare l'errore umano.")
     pdf.ln(5)
 
     # --- MODULO VIDEO: COMPUTER VISION ---
@@ -80,11 +80,11 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.cell(0, 10, "2. VIDEO TRACKING: ANALISI CINEMATICA (YOLO)", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 5, 
-        "Il sistema utilizza algoritmi YOLO (You Only Look Once) per il rilevamento in tempo reale[cite: 11]. "
+        "Il sistema utilizza algoritmi YOLO (You Only Look Once) per il rilevamento in tempo reale. "
         "La versione v8 e ottimizzata per la fluidita, mentre la v11 gestisce le occlusioni tipiche del post-basso. "
         "Attraverso la mappatura dei frame, il software calcola lo 'Spacing Index': la capacita della squadra "
         "di mantenere le distanze ottimali per il tiro da tre punti e le penetrazioni. "
-        "Il parametro 'Confidenza' (set standard 0.25) determina la precisione del tracciamento della palla[cite: 14].")
+        "Il parametro 'Confidenza' (set standard 0.25) determina la precisione del tracciamento della palla.")
     pdf.ln(5)
 
     # --- MODULO BIO: LA SCIENZA DEL RECUPERO ---
@@ -92,11 +92,11 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.cell(0, 10, "3. BIO-INTELLIGENCE: METRICHE CELLULARI", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 5, 
-        "Il monitoraggio biogestito si focalizza sulla salute cellulare dell'atleta[cite: 15, 16].\n"
+        "Il monitoraggio biogestito si focalizza sulla salute cellulare dell'atleta.\n"
         "- HRV (Heart Rate Variability): Misura l'attivita del nervo vago. Un calo indica uno shift "
         "verso il sistema simpatico (stress), rendendo l'atleta meno reattivo.\n"
-        "- Power-to-Weight Ratio: Incrocio tra Massa Muscolare e Peso per determinare l'esplosivita[cite: 17].\n"
-        "- Idratazione (Water %): Un calo sotto il 55% aumenta il rischio di catabolismo e crampi[cite: 17, 29].")
+        "- Power-to-Weight Ratio: Incrocio tra Massa Muscolare e Peso per determinare l'esplosivita.\n"
+        "- Idratazione (Water %): Un calo sotto il 55% aumenta il rischio di catabolismo e crampi.")
     
     # --- TABELLA TECNICA OPERATIVA ---
     pdf.ln(5)
@@ -109,9 +109,9 @@ def generate_detailed_manual(team_name, logo_path=None):
     
     pdf.set_text_color(0, 0, 0); pdf.set_font("Arial", '', 8)
     metrics = [
-        ("HRV (Baseline %)", "> 90%", "75-89%", "< 75% [cite: 28]"),
-        ("Idratazione", "> 60%", "56-59%", "< 55% [cite: 29]"),
-        ("RPE (Fatica)", "1 - 4", "5 - 7", "8 - 10 [cite: 28]")
+        ("HRV (Baseline %)", "> 90%", "75-89%", "< 75% "),
+        ("Idratazione", "> 60%", "56-59%", "< 55% "),
+        ("RPE (Fatica)", "1 - 4", "5 - 7", "8 - 10 ")
     ]
     for m, v, g, r in metrics:
         pdf.cell(45, 7, m, 1); pdf.cell(45, 7, v, 1); pdf.cell(45, 7, g, 1); pdf.cell(45, 7, r, 1, 1)
@@ -122,9 +122,9 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.cell(0, 10, "4. STRATEGY ROOM: LINEUP OPTIMIZATION", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 5, 
-        "Il Radar Chart incrocia l'efficienza di tiro (Shot %) con la freschezza atletica (HRV/Sonno)[cite: 19]. "
+        "Il Radar Chart incrocia l'efficienza di tiro (Shot %) con la freschezza atletica (HRV/Sonno). "
         "Questo permette al Coach di Bracciano Basket di decidere lo starting five non solo su base "
-        "tecnica, ma su base fisiologica, garantendo che i giocatori chiave non 'scoppino' nel finale[cite: 20].")
+        "tecnica, ma su base fisiologica, garantendo che i giocatori chiave non 'scoppino' nel finale.")
     pdf.ln(5)
 
     # --- THE ORACLE AI: GUIDA AL PROMPTING ---
@@ -132,15 +132,15 @@ def generate_detailed_manual(team_name, logo_path=None):
     pdf.cell(0, 10, "5. THE ORACLE: INTERAZIONE IA AVANZATA", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 5, 
-        "The Oracle agisce come un assistente senior che ha processato tutti i dati video e bio[cite: 21, 22].\n"
+        "The Oracle agisce come un assistente senior che ha processato tutti i dati video e bio.\n"
         "Comandi consigliati:\n"
-        "- 'Analizza il rischio infortuni basato sul trend HRV dell'ultima settimana'[cite: 23].\n"
-        "- 'Pianifica il minutaggio della lineup titolare per massimizzare il recupero'[cite: 23].")
+        "- 'Analizza il rischio infortuni basato sul trend HRV dell'ultima settimana'.\n"
+        "- 'Pianifica il minutaggio della lineup titolare per massimizzare il recupero'.")
     pdf.ln(10)
 
     # --- CHIUSURA & PRIVACY ---
     pdf.set_font("Arial", 'I', 9)
-    pdf.multi_cell(0, 5, "I dati sono protetti e isolati per ogni singolo Coach tramite Smart Scale API e database criptati[cite: 25].")
+    pdf.multi_cell(0, 5, "I dati sono protetti e isolati per ogni singolo Coach tramite Smart Scale API e database criptati.")
 
     return pdf.output(dest='S').encode('latin-1')
 
