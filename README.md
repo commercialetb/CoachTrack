@@ -1,4 +1,4 @@
-# 🏀 CoachTrack Oracle v17.1
+# 🏀 CoachTrack Oracle v18
 
 **CoachTrack Oracle** è una piattaforma avanzata di NBA Front-Office e Tactical Intelligence. Integra analisi video real-time tramite YOLO, monitoraggio biometrico e un assistente IA dedicato chiamato "The Oracle" per supportare le decisioni strategiche del coaching staff.
 
