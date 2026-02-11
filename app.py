@@ -73,43 +73,89 @@ def make_hashes(password): return hashlib.sha256(str.encode(password)).hexdigest
 def check_hashes(password, hashed_text): return make_hashes(password) == hashed_text
 
 # =================================================================
-# 3. FUNZIONI PDF & MANUALE
+# 3. FUNZIONI PDF & MANUALE PROFESSIONALE AGGIORNATO
 # =================================================================
 def generate_branded_manual(team_name, logo_path=None):
     pdf = FPDF()
     pdf.add_page()
-    # Logo nel PDF
+    
+    # Logo ridotto a 20mm per evitare sovrapposizioni
     if logo_path and os.path.exists(logo_path):
-        try: pdf.image(logo_path, 10, 8, 30); pdf.ln(20)
-        except: pass
+        try:
+            pdf.image(logo_path, 10, 8, 20) 
+            pdf.ln(15) # Spazio dopo il logo piccolo
+        except:
+            pdf.ln(10)
+    else:
+        pdf.ln(10)
         
+    # Titolo Principale
     pdf.set_font("Arial", 'B', 22)
     pdf.set_text_color(44, 62, 80)
-    pdf.cell(0, 15, f"{team_name.upper()} - ORACLE SYSTEM", ln=True, align='C')
-    pdf.set_font("Arial", 'I', 12)
-    pdf.cell(0, 10, "Protocollo Operativo Ufficiale v19", ln=True, align='C')
+    pdf.cell(0, 15, f"{team_name.upper()} - PERFORMANCE PROTOCOL", ln=True, align='C')
+    
+    pdf.set_font("Arial", 'I', 11)
+    pdf.set_text_color(127, 140, 141)
+    pdf.cell(0, 10, "Documento Tecnico Riservato - Versione 19.0 Full Governance", ln=True, align='C')
     pdf.ln(10)
     
     def add_sec(title, body):
-        pdf.set_font("Arial", 'B', 14); pdf.set_fill_color(240, 240, 240)
-        pdf.cell(0, 10, f"  {title}", ln=True, fill=True); pdf.ln(3)
-        pdf.set_font("Arial", size=11); pdf.set_text_color(0,0,0)
-        pdf.multi_cell(0, 7, body.encode('latin-1','ignore').decode('latin-1')); pdf.ln(5)
+        pdf.set_font("Arial", 'B', 12)
+        pdf.set_fill_color(230, 233, 237)
+        pdf.set_text_color(44, 62, 80)
+        pdf.cell(0, 10, f" {title}", ln=True, fill=True)
+        pdf.ln(3)
+        pdf.set_font("Arial", size=10)
+        pdf.set_text_color(0, 0, 0)
+        pdf.multi_cell(0, 6, body.encode('latin-1','ignore').decode('latin-1'))
+        pdf.ln(6)
 
-    add_sec("1. VIDEO TRACKING", "Carica i match in MP4. Usa YOLO v8 per velocità o v11 per precisione.")
-    add_sec("2. SYNC HUB & DATA", "Usa il template CSV per caricare i dati in massa o l'inserimento manuale completo (Peso, Ossa, Acqua, Muscoli).")
-    add_sec("3. PREVENZIONE INFORTUNI", "Monitora il semaforo nel Tab Bio. Rosso = Stop. Giallo = Attenzione.")
-    add_sec("4. THE ORACLE", "Usa la chat per analisi tattiche e nutrizionali basate sui dati caricati.")
+    # 1. VIDEO ANALYSIS
+    add_sec("1. VIDEO TRACKING & SPACING (YOLO AI)", 
+            "Il sistema utilizza Computer Vision avanzata per mappare il campo. Caricare i match in formato .mp4. "
+            "YOLO v8: Ottimizzato per velocita, ideale per feedback immediato post-gara. "
+            "YOLO v11: Massima precisione nelle linee di tiro e contatti in area. Monitorare lo spacing "
+            "per ottimizzare i flussi offensivi definiti nel Playbook.")
+
+    # 2. SYNC HUB
+    add_sec("2. SYNC HUB: GESTIONE DATI INTEGRATA", 
+            "L'integrità dei dati è garantita dal caricamento via CSV (usare il Template scaricabile) o "
+            "inserimento manuale. Parametri monitorati: Peso, Body Fat (%), Massa Muscolare, Idratazione "
+            "e Massa Ossea. Questi dati alimentano l'algoritmo di calcolo del Metabolismo Basale per l'AI.")
+
+    # 3. PREVENZIONE INFORTUNI
+    add_sec("3. PROTOCOLLO PREVENZIONE INFORTUNI (IP)", 
+            "Il sistema valuta il rischio in tempo reale incrociando HRV e RPE.\n"
+            "- ZONA VERDE: Atleta in stato omeostatico. Disponibile per pieno carico.\n"
+            "- ZONA GIALLA: Segnali di affaticamento o disidratazione (Water % < 55). Ridurre il volume di allenamento.\n"
+            "- ZONA ROSSA: Rischio lesione elevato (HRV < 45ms o Sonno < 6h). Stop cautelativo obbligatorio.")
     
+    
+
+    # 4. BIO-METRICS & COMPOSIZIONE
+    add_sec("4. ANALISI DELLA COMPOSIZIONE CORPOREA", 
+            "A differenza del semplice peso, monitoriamo la qualita dei tessuti. Un calo della Massa Muscolare "
+            "associato a un calo della Massa Ossea suggerisce uno stato di catabolismo da stress eccessivo. "
+            "L'AI suggerisce correzioni proteiche e di integrazione specifiche.")
+
+    # 5. THE ORACLE AI
+    add_sec("5. THE ORACLE: INTELLIGENZA GENERATIVA", 
+            "L'AI Oracle analizza l'intero database. Coach, puoi richiedere report specifici come: "
+            "'Pianifica dieta di recupero post-trasferta' o 'Analizza sinergia difensiva Player A/B'. "
+            "L'AI apprende dai trend storici per migliorare le predizioni stagionali.")
+
     return pdf.output(dest='S').encode('latin-1')
 
 def oracle_chat(prompt, context=""):
-    if not client: return "⚠️ THE ORACLE offline."
-    full_p = f"Sei THE ORACLE (NBA Assistant). Team: {st.session_state.get('team_name')}. Context: {context}. Rispondi: {prompt}"
+    if not client: return "⚠️ THE ORACLE offline. Inserisci API Key."
+    # Prompt migliorato per essere più professionale
+    full_p = f"Sei THE ORACLE, l'AI analista della squadra NBA {st.session_state.get('team_name')}. " \
+             f"Usa un tono professionale, da Head Coach. Dati attuali: {context}. Domanda: {prompt}"
     try:
         res = client.chat.completions.create(messages=[{"role":"user","content":full_p}], model="llama3-8b-8192")
         return res.choices[0].message.content
     except Exception as e: return f"Errore AI: {e}"
+
 
 # =================================================================
 # 4. LOGIN & REGISTRAZIONE
