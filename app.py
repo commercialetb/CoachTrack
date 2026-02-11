@@ -48,37 +48,43 @@ def check_hashes(password, hashed_text): return make_hashes(password) == hashed_
 # 3. GENERAZIONE MANUALE PDF PROFESSIONALE
 # =================================================================
 def generate_detailed_manual(team_name, logo_path=None):
-    # Definizione interna di una classe per gestire il footer in automatico
     class PDF(FPDF):
         def footer(self):
-            # Posizionamento a 1.5 cm dal fondo
             self.set_y(-15)
-            self.set_font('Arial', 'I', 8)
-            self.set_text_color(100)
-            # Testo del piè di pagina richiesto
-            footer_text = "I dati sono protetti e isolati per ogni singolo Coach tramite Smart Scale API e database criptati."
+            self.set_font('Arial', 'I', 7)
+            self.set_text_color(120)
+            # Piè di pagina potenziato con Patent Pending e dicitura legale
+            footer_text = (
+                f"© CoachTrack Elite - Patent Pending. "
+                "Documento Confidenziale. Vietata la riproduzione e la divulgazione non autorizzata. "
+                "Dati protetti tramite Smart Scale API e database criptati."
+            )
             self.cell(0, 10, footer_text.encode('latin-1', 'ignore').decode('latin-1'), 0, 0, 'C')
 
     pdf = PDF()
     pdf.set_auto_page_break(auto=True, margin=25)
     pdf.add_page()
     
-    # --- LOGO PICCOLO E CENTRATO ---
-    # Larghezza pagina A4 = 210mm. Logo fissato a 20mm. (210-20)/2 = 95
+    # --- LOGO CENTRATO ---
     if logo_path and os.path.exists(logo_path):
         pdf.image(logo_path, x=95, y=10, w=20)
         pdf.ln(25)
-    else:
-        pdf.ln(15)
     
-    # --- HEADER TITOLO ---
+    # --- TITOLO E PATENT PENDING ---
     pdf.set_font("Arial", 'B', 22)
-    pdf.set_text_color(0, 51, 102) # Blu Navy Bracciano
-    pdf.cell(0, 15, f"Manuale CoachTrack", ln=True, align='C')
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 15, "PROTOCOLLO OPERATIVO ELITE", ln=True, align='C')
+    
+    pdf.set_font("Arial", 'I', 10)
+    pdf.set_text_color(150, 0, 0) # Rosso per enfatizzare il Patent Pending
+    pdf.cell(0, 5, "SISTEMA PROTETTO DA PATENT PENDING", ln=True, align='C')
+    
     pdf.set_font("Arial", 'B', 14)
-    pdf.cell(0, 8, team_name.upper(), ln=True, align='C')
-    pdf.ln(10)
-
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 10, team_name.upper(), ln=True, align='C')
+    pdf.ln(5)
+    
+   # FUNZIONI DI FORMATTAZIONE (NON TOCCARE)
     def chapter_title(title):
         pdf.set_font("Arial", 'B', 13)
         pdf.set_fill_color(240, 240, 240)
@@ -198,6 +204,21 @@ except Exception as e:
     st.sidebar.error(f"Errore Manuale: {e}")
 
 if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
+
+# --- AVVISO LEGALE IN SIDEBAR ---
+st.sidebar.markdown("---")
+st.sidebar.caption("🔒 **CoachTrack™ Security Hub**")
+st.sidebar.image("https://img.icons8.com/ios-filled/50/000000/shield.png", width=20) # Iconcina scudo opzionale
+st.sidebar.markdown(
+    """
+    <div style="font-size: 0.75rem; color: gray; line-height: 1.2;">
+        <b>PATENT PENDING SYSTEM</b><br>
+        Tutti i diritti riservati. I dati e gli algoritmi sono protetti. 
+        La divulgazione non autorizzata è soggetta a sanzioni legali.
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
 
 # Recupero Dati
 df_team = pd.read_sql_query(f"SELECT * FROM player_data WHERE owner = '{curr_user}'", db_conn)
