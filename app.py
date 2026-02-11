@@ -74,7 +74,7 @@ def generate_detailed_manual(team_name, logo_path=None):
     # --- HEADER TITOLO ---
     pdf.set_font("Arial", 'B', 22)
     pdf.set_text_color(0, 51, 102) # Blu Navy Bracciano
-    pdf.cell(0, 15, f"PROTOCOLLO OPERATIVO ELITE", ln=True, align='C')
+    pdf.cell(0, 15, f"Manuale CoachTrack", ln=True, align='C')
     pdf.set_font("Arial", 'B', 14)
     pdf.cell(0, 8, team_name.upper(), ln=True, align='C')
     pdf.ln(10)
