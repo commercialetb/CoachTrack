@@ -47,30 +47,93 @@ def check_hashes(password, hashed_text): return make_hashes(password) == hashed_
 # =================================================================
 # 3. GENERAZIONE MANUALE PDF PROFESSIONALE
 # =================================================================
-def generate_detailed_manual(team_name, logo_path=None):
+def generate_user_manual():
+    """Genera il Manuale Operativo Professionale CoachTrack Oracle v21"""
     pdf = FPDF()
     pdf.add_page()
     if logo_path and os.path.exists(logo_path):
         pdf.image(logo_path, 10, 8, 20)
         pdf.ln(20)
-    pdf.set_font("Arial", 'B', 20)
-    pdf.cell(0, 10, f"MANUALE OPERATIVO: {team_name.upper()}", ln=True)
-    pdf.set_font("Arial", '', 12)
-    pdf.multi_cell(0, 10, "Questo documento descrive le funzioni di monitoraggio bio-atletico, video analisi e strategia AI.")
-    pdf.ln(5)
     
-    sections = {
-        "BIO-INTELLIGENCE": "Monitoraggio HRV (recupero), Massa Muscolare e Ossea per prevenire infortuni.",
-        "VIDEO LAB": "Tracking YOLO per lo spacing e analisi dei flussi di gioco in tempo reale.",
-        "THE ORACLE": "Integrazione Groq Llama-3 per scouting report e consigli nutrizionali.",
-        "SYNC HUB": "Gestione database tramite importazione CSV e inserimento manuale."
-    }
-    for title, desc in sections.items():
+    # Copertina e Titolo
+    pdf.set_font("Arial", 'B', 20)
+    pdf.cell(0, 20, "COACHTRACK ORACLE v21", ln=True, align='C')
+    pdf.set_font("Arial", 'I', 12)
+    pdf.cell(0, 10, "Protocollo Operativo di Performance Intelligence", ln=True, align='C')
+    pdf.ln(20)
+
+    def add_section(title, body):
         pdf.set_font("Arial", 'B', 14)
-        pdf.cell(0, 10, title, ln=True)
-        pdf.set_font("Arial", '', 11)
-        pdf.multi_cell(0, 6, desc)
+        pdf.set_fill_color(230, 230, 230)
+        pdf.cell(0, 10, title, ln=True, fill=True)
         pdf.ln(4)
+        pdf.set_font("Arial", size=11)
+        # Pulizia testo per encoding PDF
+        clean_body = body.encode('latin-1', 'ignore').decode('latin-1')
+        pdf.multi_cell(0, 7, clean_body)
+        pdf.ln(10)
+
+    # SEZIONE 1: FILOSOFIA DEL SISTEMA
+    add_section("1. ARCHITETTURA E FILOSOFIA", 
+        "CoachTrack Oracle non e solo un software di gestione; e un ecosistema decisionale. "
+        "Il sistema integra tre pilastri: Visione Artificiale (YOLO), Biometria Avanzata e "
+        "Intelligenza Artificiale Generativa (The Oracle). L'obiettivo e minimizzare l'errore "
+        "umano nella valutazione della fatica e massimizzare l'efficienza tattica in campo.")
+
+    # SEZIONE 2: ANALISI VIDEO YOLO
+    add_section("2. VIDEO TRACKING (YOLO V8-V11)", 
+        "A COSA SERVE: Identifica la posizione degli atleti e della palla in tempo reale. "
+        "COSA FA: Utilizza reti neurali convoluzionali per mappare lo spacing e il carico motorio. "
+        "VERSIONI: YOLO v8 e ottimizzato per la velocita (analisi post-match rapida); "
+        "YOLO v11 offre una precisione superiore sui contatti in area e sulle linee di tiro. "
+        "PROCESSO: Caricare il file .mp4, selezionare la 'Confidenza' (0.25 consigliata) "
+        "e monitorare la barra di progresso per la sincronizzazione dei frame.")
+    
+    # SEZIONE 3: BIO-METRIC ARCHITECT
+    add_section("3. BIO-METRIC & BODY COMPOSITION", 
+        "A COSA SERVE: Monitoraggio della salute cellulare e strutturale dell'atleta. "
+        "METRICHE CHIAVE:\n"
+        "- HRV (Heart Rate Variability): Il principale indicatore di stress del sistema nervoso. "
+        "Valori bassi indicano necessita di riposo (Red Flag).\n"
+        "- BODY FAT & MUSCLE MASS: Essenziali per calcolare il Power-to-Weight ratio. "
+        "Un calo di massa muscolare durante la stagione segnala un deficit proteico o eccesso di cardio.\n"
+        "- WATER %: Fondamentale per la prevenzione di crampi e infortuni muscolari.")
+
+    # SEZIONE 4: WAR ROOM & SINERGIE
+    add_section("4. WAR ROOM STRATEGICA", 
+        "A COSA SERVE: Analisi comparativa per le rotazioni (Lineup Optimization). "
+        "FUNZIONAMENTO: Il sistema incrocia i dati tecnici (Shot %) con quelli fisici (HRV/Muscolo). "
+        "Il Radar Chart permette di vedere visivamente chi e piu pronto per un accoppiamento specifico. "
+        "E lo strumento principale per decidere chi parte in quintetto base (Starter) "
+        "in base alla freschezza atletica del giorno del match.")
+    
+    # SEZIONE 5: THE ORACLE (IA TATTICA)
+    add_section("5. INTERAZIONE CON THE ORACLE", 
+        "A COSA SERVE: Consulenza immediata su dati complessi. "
+        "THE ORACLE agisce come un assistente che ha letto tutti i dati bio e video. "
+        "ESEMPI DI COMANDO:\n"
+        "- 'Analizza il rischio infortuni della lineup titolare.'\n"
+        "- 'Pianifica una dieta di recupero ipercalorica per [Nome] basata sul suo calo di massa muscolare.'\n"
+        "- 'Crea uno scouting report tattico basato sui trend di tiro dell'ultimo mese.'")
+
+    # SEZIONE 6: SYNC HUB & API
+    add_section("6. GESTIONE DATI E PRIVACY", 
+        "Tutti i dati sono isolati per Coach. L'integrazione Smart Scale API permette "
+        "l'aggiornamento automatico dei parametri di composizione corporea. "
+        "Si consiglia di effettuare un Bulk Import via CSV all'inizio di ogni training camp.")
+
+    # SEZIONE 7: PROTOCOLLO PREVENZIONE INFORTUNI (NEW)
+    add_section("7. PROTOCOLLO INJURY PREVENTION", 
+        "A COSA SERVE: Identificazione precoce dei segnali di sovraccarico (Overuse) e rischio lesioni. "
+        "IL MODELLO PREDITTIVO: Il sistema incrocia HRV (Stress Sistemico), RPE (Carico Percepito) "
+        "e Bio-Metrica (Idratazione/Massa Muscolare).\n"
+        "INDICATORI DI ALLERTA:\n"
+        "- ZONA ROSSA: HRV calato del 20% + RPE > 8. Rischio lesione muscolare elevatissimo. "
+        "Azione consigliata: Riposo totale o scarico attivo.\n"
+        "- ZONA GIALLA: Calo della massa muscolare o acqua corporea < 55%. Indica catabolismo. "
+        "Azione consigliata: Integrazione specifica e riduzione minutaggio.\n"
+        "THE ORACLE può analizzare questi pattern su base settimanale per prevedere i 'breakdown' fisici prima che avvengano.")
+
     return pdf.output(dest='S').encode('latin-1')
 
 # =================================================================
