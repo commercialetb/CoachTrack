@@ -178,14 +178,50 @@ with tabs[2]:
         st.plotly_chart(fig)
     else: st.warning("Necessari almeno 2 atleti per il confronto.")
 
-# --- TAB 4: THE ORACLE (IA CHAT) ---
+# --- TAB 4: THE ORACLE (CON FEEDBACK ATTIVAZIONE) ---
 with tabs[3]:
-    st.header("The Oracle AI")
-    api_k = st.text_input("Inserisci Groq API Key", type="password")
-    prompt = st.chat_input("Chiedi all'Oracolo (es: Analizza il rischio infortuni della squadra)")
-    if prompt:
-        st.write(f"Coach, sto analizzando i dati per rispondere a: '{prompt}'")
-        # Logica Groq qui...
+    st.header("🧠 The Oracle AI Assistant")
+    
+    # Inserimento Chiave
+    api_k = st.text_input("Configurazione: Inserisci Groq API Key", type="password", help="Inserisci la tua chiave Groq per attivare l'assistente.")
+    
+    if api_k:
+        # FEEDBACK VISIVO RICHIESTO
+        st.success(f"✅ Connessione stabilita con successo! Ciao Coach {curr_user.capitalize()}, sono a tua disposizione. Chiedimi qualsiasi analisi tattica o biometrica.")
+        
+        # Inizializzazione Client
+        client = Groq(api_key=api_k)
+        
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        if prompt := st.chat_input("Chiedi a The Oracle..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            with st.chat_message("assistant"):
+                try:
+                    # Passiamo i dati della squadra come contesto
+                    context = df_team.to_string() if not df_team.empty else "Nessun dato disponibile."
+                    response = client.chat.completions.create(
+                        model="llama3-8b-8192",
+                        messages=[
+                            {"role": "system", "content": f"Sei l'assistente tecnico del team {team_name}. Analizza i dati e rispondi in modo professionale."},
+                            {"role": "user", "content": f"Contesto Squadra:\n{context}\n\nDomanda Coach: {prompt}"}
+                        ]
+                    )
+                    full_res = response.choices[0].message.content
+                    st.markdown(full_res)
+                    st.session_state.messages.append({"role": "assistant", "content": full_res})
+                except Exception as e:
+                    st.error(f"Errore durante l'analisi: {e}")
+    else:
+        st.warning("⚠️ L'intelligenza di The Oracle è attualmente in standby. Inserisci la tua API Key sopra per attivarla.")
 
 # --- TAB 5: SYNC & SETTINGS (TEMPLATE, UPLOAD CSV, FORM MANUALE) ---
 with tabs[4]:
