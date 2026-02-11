@@ -16,7 +16,7 @@ from PIL import Image
 # =================================================================
 # 1. CONFIGURAZIONE E LIBRERIE AI
 # =================================================================
-st.set_page_config(page_title="CoachTrack Oracle v18.6", layout="wide", page_icon="🏀")
+st.set_page_config(page_title="CoachTrack Oracle v18.7", layout="wide", page_icon="🏀")
 
 try:
     from ultralytics import YOLO
@@ -24,7 +24,6 @@ try:
 except ImportError:
     YOLO_AVAILABLE = False
 
-# Gestione API Groq
 if "GROQ_API_KEY" in st.secrets:
     groq_key = st.secrets["GROQ_API_KEY"]
 else:
@@ -33,13 +32,23 @@ else:
 client = Groq(api_key=groq_key) if groq_key else None
 
 # =================================================================
-# 2. DATABASE & SICUREZZA
+# 2. DATABASE & SICUREZZA (RIPRISTINO NOME ORIGINALE)
 # =================================================================
 def init_db():
-    conn = sqlite3.connect('coachtrack_v18_6.db', check_same_thread=False)
+    # Usiamo il nome database che avevi inizialmente per recuperare i tuoi dati
+    conn = sqlite3.connect('coachtrack_v17.db', check_same_thread=False)
     c = conn.cursor()
+    # Tabella Utenti (aggiunto team_name se mancante)
     c.execute('''CREATE TABLE IF NOT EXISTS users 
                  (username TEXT PRIMARY KEY, password TEXT, team_name TEXT)''')
+    # Tabella Dati (assicuriamoci che esistano le nuove colonne biometriche)
+    try:
+        c.execute("ALTER TABLE player_data ADD COLUMN body_fat REAL")
+        c.execute("ALTER TABLE player_data ADD COLUMN muscle_mass REAL")
+        c.execute("ALTER TABLE player_data ADD COLUMN water_perc REAL")
+    except:
+        pass # Le colonne esistono già
+    
     c.execute('''CREATE TABLE IF NOT EXISTS player_data 
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT, player_name TEXT, 
                   timestamp TEXT, hrv REAL, rpe INTEGER, shot_efficiency REAL, 
@@ -54,7 +63,7 @@ def make_hashes(password): return hashlib.sha256(str.encode(password)).hexdigest
 def check_hashes(password, hashed_text): return make_hashes(password) == hashed_text
 
 # =================================================================
-# 3. LOGICA MANUALI E REPORT PDF
+# 3. FUNZIONI PDF & AI
 # =================================================================
 def generate_branded_manual(team_name, logo_path=None):
     pdf = FPDF()
@@ -62,43 +71,32 @@ def generate_branded_manual(team_name, logo_path=None):
     if logo_path and os.path.exists(logo_path):
         try: pdf.image(logo_path, 10, 8, 30); pdf.ln(20)
         except: pass
-    
     pdf.set_font("Arial", 'B', 22)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 15, f"{team_name.upper()} - ORACLE SYSTEM", ln=True, align='C')
-    pdf.set_font("Arial", 'I', 12)
-    pdf.cell(0, 10, "Protocollo di Performance Intelligence & Prevenzione Infortuni", ln=True, align='C')
-    pdf.ln(15)
-
-    def add_sec(title, content):
-        pdf.set_font("Arial", 'B', 14); pdf.set_fill_color(240, 240, 240)
-        pdf.cell(0, 10, f"  {title}", ln=True, fill=True); pdf.ln(3)
-        pdf.set_font("Arial", size=11); pdf.set_text_color(0, 0, 0)
-        pdf.multi_cell(0, 7, content.encode('latin-1', 'ignore').decode('latin-1')); pdf.ln(8)
-
-    add_sec("1. VIDEO TRACKING YOLO", "Analisi spaziale tramite Computer Vision (v8/v11). Monitorare lo spacing e il carico motorio.")
-    add_sec("2. BIOMETRIA & COMPOSIZIONE", "Monitoraggio di Massa Muscolare, Body Fat, Idratazione e HRV per il calcolo del Power-to-Weight ratio.")
-    add_sec("3. PROTOCOLLO INFORTUNI", "Semaforo Rosso: HRV basso + RPE alto = Stop immediato. Semaforo Giallo: Deidratazione = Carico ridotto.")
-    add_sec("4. THE ORACLE AI", "Assistente per diete personalizzate e analisi tattiche avanzate basate su dati storici.")
-    
+    pdf.ln(10)
+    pdf.set_font("Arial", size=11)
+    content = "MANUALE TECNICO: Tracking Video, Biometria Avanzata e Prevenzione Infortuni."
+    pdf.multi_cell(0, 10, content)
     return pdf.output(dest='S').encode('latin-1')
 
 def oracle_chat(prompt, context=""):
-    if not client: return "⚠️ THE ORACLE offline. Inserisci API Key."
-    full_p = f"Sei THE ORACLE (NBA Assist). Team: {st.session_state.get('team_name')}. Context: {context}. Rispondi: {prompt}"
+    if not client: return "⚠️ THE ORACLE offline."
+    full_p = f"Sei THE ORACLE (NBA Assist). Team: {st.session_state.get('team_name')}. Context: {context}. Rispondi breve: {prompt}"
     try:
         res = client.chat.completions.create(messages=[{"role":"user","content":full_p}], model="llama3-8b-8192")
         return res.choices[0].message.content
-    except Exception as e: return f"Errore AI: {e}"
+    except: return "Errore AI."
 
 # =================================================================
-# 4. GESTIONE AUTENTICAZIONE
+# 4. GESTIONE AUTENTICAZIONE (CORRETTA)
 # =================================================================
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.title("🏀 CoachTrack Oracle v18.6")
-    auth_tabs = st.tabs(["Login", "Registra Squadra"])
+    st.title("🏀 CoachTrack Oracle v18.7")
+    auth_tabs = st.tabs(["Login Coach", "Registrazione Team"])
+    
     with auth_tabs[0]:
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
@@ -109,24 +107,30 @@ if not st.session_state.logged_in:
             if data and check_hashes(p, data[0]):
                 st.session_state.logged_in = True
                 st.session_state.username = u
-                st.session_state.team_name = data[1]
+                st.session_state.team_name = data[1] if data[1] else "Mio Team"
                 st.rerun()
-            else: st.error("Credenziali errate")
+            else: st.error("Dati non corretti o utente non trovato.")
+            
     with auth_tabs[1]:
-        nu = st.text_input("Nuovo Coach User")
-        nt = st.text_input("Nome Team")
-        np = st.text_input("Password Team", type="password")
-        if st.button("Crea Franchise"):
-            try:
-                c = db_conn.cursor()
-                c.execute("INSERT INTO users VALUES (?,?,?)", (nu, make_hashes(np), nt))
-                db_conn.commit()
-                st.success("Squadra registrata!")
-            except: st.error("User già esistente.")
+        nu = st.text_input("Scegli Username")
+        nt = st.text_input("Nome Squadra (es. Lakers)")
+        np = st.text_input("Scegli Password", type="password")
+        if st.button("Registra Squadra"):
+            if nu and nt and np:
+                try:
+                    c = db_conn.cursor()
+                    c.execute("INSERT INTO users (username, password, team_name) VALUES (?,?,?)", 
+                              (nu, make_hashes(np), nt))
+                    db_conn.commit()
+                    st.success("Registrazione completata! Ora puoi fare il Login.")
+                except Exception as e:
+                    st.error(f"Errore: L'utente esiste già o database occupato. {e}")
+            else:
+                st.warning("Riempi tutti i campi!")
     st.stop()
 
 # =================================================================
-# 5. DASHBOARD & SIDEBAR BRANDING
+# 5. DASHBOARD OPERATIVA
 # =================================================================
 curr_user = st.session_state.username
 team_name = st.session_state.team_name
@@ -136,90 +140,54 @@ st.sidebar.title(f"🏟️ {team_name}")
 if os.path.exists(logo_path):
     st.sidebar.image(logo_path, use_container_width=True)
 
-try:
-    man_pdf = generate_branded_manual(team_name, logo_path if os.path.exists(logo_path) else None)
-    st.sidebar.download_button("📘 Scarica Protocollo Ufficiale", man_pdf, f"Protocollo_{team_name}.pdf")
-except: st.sidebar.warning("Errore PDF")
-
-if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("🚪 Esci"):
     st.session_state.logged_in = False
     st.rerun()
 
+# Recupero Dati
 df_team = pd.read_sql_query(f"SELECT * FROM player_data WHERE owner = '{curr_user}'", db_conn)
 
-tabs = st.tabs(["🎥 Video Tracking", "👤 Bio 360°", "⚔️ War Room", "📖 Playbook", "💬 The Oracle", "⚙️ Sync & Logo"])
+tabs = st.tabs(["🎥 Video Tracking", "👤 Bio 360°", "⚔️ War Room", "💬 The Oracle", "⚙️ Sync & Logo"])
 
-# --- TAB 1: VIDEO ---
+# --- TAB VIDEO ---
 with tabs[0]:
     st.header("Analisi Video YOLO")
-    if not YOLO_AVAILABLE: st.error("Libreria Ultralytics mancante.")
+    if not YOLO_AVAILABLE: st.error("Libreria YOLO non caricata.")
     else:
         v_file = st.file_uploader("Carica Match", type=['mp4'])
-        if v_file and st.checkbox("Avvia Tracking"):
+        if v_file and st.checkbox("Esegui Tracking"):
             with open("temp.mp4", "wb") as f: f.write(v_file.read())
             model = YOLO("yolov8n.pt")
             cap = cv2.VideoCapture("temp.mp4")
-            total_f = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            bar = st.progress(0); fr_text = st.empty(); st_img = st.empty()
-            curr_f = 0
+            st_img = st.empty()
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret: break
-                curr_f += 1
-                if curr_f % 5 == 0:
-                    bar.progress(min(curr_f/total_f, 1.0))
-                    fr_text.text(f"Frame: {curr_f}/{total_f}")
                 res = model.predict(frame, verbose=False, conf=0.3)
                 st_img.image(res[0].plot(), channels="BGR", use_container_width=True)
             cap.release()
 
-# --- TAB 2: BIO 360 & PREVENZIONE ---
+# --- TAB BIO ---
 with tabs[1]:
-    st.header("Injury Prevention & Bio Analysis")
+    st.header("Injury Prevention")
     if not df_team.empty:
         sel_p = st.selectbox("Seleziona Atleta", df_team['player_name'].unique())
         p = df_team[df_team['player_name'] == sel_p].iloc[-1]
         
-        # Logica Semaforo
-        col_s, col_m = st.columns([1, 3])
-        if p['hrv'] < 45 or p['rpe'] > 8: 
-            col_s.error("🔴 RISCHIO ELEVATO"); adv = "STOP E RECUPERO."
-        elif p['hrv'] < 55 or p['water_perc'] < 58: 
-            col_s.warning("🟡 ATTENZIONE"); adv = "CARICO RIDOTTO."
-        else: 
-            col_s.success("🟢 DISPONIBILE"); adv = "CARICO FULL."
-        
-        col_m.info(f"**Protocollo:** {adv}")
-        
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Massa Muscolare", f"{p['muscle_mass']} kg")
-        c2.metric("Body Fat", f"{p['body_fat']}%")
-        c3.metric("HRV", f"{p['hrv']} ms")
-        c4.metric("Acqua", f"{p['water_perc']}%")
-
-        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Massa Muscolare", f"{p.get('muscle_mass', 0)} kg")
+        c2.metric("HRV", f"{p.get('hrv', 0)} ms")
+        c3.metric("Body Fat", f"{p.get('body_fat', 0)}%")
         
         fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(r=[p['shot_efficiency'], p['hrv'], (11-p['rpe'])*10, p['water_perc']], 
-                                      theta=['Tiro', 'Recupero', 'Freschezza', 'Idratazione'], fill='toself'))
+        fig.add_trace(go.Scatterpolar(r=[p['shot_efficiency'], p['hrv'], p.get('body_fat', 10)], 
+                                      theta=['Tiro', 'Recupero', 'Grasso'], fill='toself'))
         st.plotly_chart(fig)
-    else: st.info("Inserisci dati nel Tab Sync.")
+    else: st.info("Nessun dato trovato.")
 
-# --- TAB 3: WAR ROOM ---
-with tabs[2]:
-    if len(df_team['player_name'].unique()) >= 2:
-        p1 = st.selectbox("Giocatore 1", df_team['player_name'].unique(), key="p1")
-        p2 = st.selectbox("Giocatore 2", df_team['player_name'].unique(), key="p2")
-        if st.button("Analizza Fit"):
-            st.write(oracle_chat(f"Analizza sinergia tra {p1} e {p2}", df_team.to_string()))
-        
-
-# --- TAB 5: THE ORACLE ---
-with tabs[4]:
+# --- TAB THE ORACLE ---
+with tabs[3]:
     st.header("💬 The Oracle AI")
-    with st.expander("💡 Prompt Suggeriti"):
-        st.write("- 'Crea una dieta per [Atleta] per recuperare massa muscolare.'")
-        st.write("- 'Chi è più a rischio infortunio oggi?'")
     if "msgs" not in st.session_state: st.session_state.msgs = []
     for m in st.session_state.msgs:
         with st.chat_message(m["role"]): st.write(m["content"])
@@ -230,29 +198,21 @@ with tabs[4]:
         st.session_state.msgs.append({"role":"assistant", "content":r})
         with st.chat_message("assistant"): st.write(r)
 
-# --- TAB 6: SYNC & LOGO SETTINGS ---
-with tabs[5]:
-    st.header("⚙️ Settings & Data Sync")
-    c_l, c_d = st.columns(2)
-    with c_l:
-        st.subheader("Team Branding")
-        up_logo = st.file_uploader("Carica Logo (PNG)", type=['png', 'jpg'])
-        if up_logo:
-            Image.open(up_logo).save(logo_path)
-            st.success("Logo salvato! Ricarica l'app.")
-            if st.button("Applica"): st.rerun()
-    with c_d:
-        st.subheader("Input Biometrico Manuale")
-        with st.form("add_player"):
-            name = st.text_input("Nome Atleta")
-            w = st.number_input("Peso", 60.0, 150.0, 95.0)
-            bf = st.number_input("Body Fat %", 3.0, 25.0, 10.0)
-            mm = st.number_input("Massa Muscolare kg", 30.0, 100.0, 65.0)
-            wa = st.number_input("Acqua %", 40.0, 80.0, 60.0)
-            hr = st.number_input("HRV", 20, 150, 60)
-            if st.form_submit_button("Salva Atleta"):
-                c = db_conn.cursor()
-                c.execute("INSERT INTO player_data (owner, player_name, timestamp, weight, body_fat, muscle_mass, water_perc, hrv) VALUES (?,?,?,?,?,?,?,?)",
-                          (curr_user, name, datetime.now().strftime("%Y-%m-%d"), w, bf, mm, wa, hr))
-                db_conn.commit()
-                st.rerun()
+# --- TAB SETTINGS ---
+with tabs[4]:
+    st.header("⚙️ Settings")
+    up_logo = st.file_uploader("Carica Logo Team", type=['png', 'jpg'])
+    if up_logo:
+        Image.open(up_logo).save(logo_path)
+        st.success("Logo salvato! Ricarica per vedere le modifiche.")
+    
+    with st.form("manual"):
+        nm = st.text_input("Nome Atleta")
+        hr = st.number_input("HRV", 20, 150, 60)
+        bf = st.number_input("Body Fat %", 5, 25, 10)
+        if st.form_submit_button("Salva Dati"):
+            c = db_conn.cursor()
+            c.execute("INSERT INTO player_data (owner, player_name, timestamp, hrv, body_fat) VALUES (?,?,?,?,?)",
+                      (curr_user, nm, datetime.now().strftime("%Y-%m-%d"), hr, bf))
+            db_conn.commit()
+            st.rerun()
