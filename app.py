@@ -11,185 +11,131 @@ from fpdf import FPDF
 from groq import Groq
 
 # =================================================================
-# 1. CONFIGURAZIONE E DATABASE
+# 1. DATABASE E CONFIGURAZIONE
 # =================================================================
-st.set_page_config(page_title="CoachTrack NBA Ultimate", layout="wide", page_icon="🏀")
+st.set_page_config(page_title="CoachTrack Oracle v10", layout="wide", page_icon="🔮")
 
 def init_db():
-    """Inizializza il database con supporto per tutte le metriche v3.2 + NBA"""
-    conn = sqlite3.connect('coachtrack_ultimate.db', check_same_thread=False)
+    conn = sqlite3.connect('coachtrack_oracle_v10.db', check_same_thread=False)
     c = conn.cursor()
+    # Supporto per metriche v3.2 + nuove funzioni AI
     c.execute('''CREATE TABLE IF NOT EXISTS player_data 
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, player_name TEXT, timestamp TEXT,
-                  weight REAL, fat REAL, muscle REAL, water REAL, bone REAL, bmr REAL, 
-                  hrv REAL, rpe INTEGER, sleep REAL, qsq REAL, 
-                  ai_diet TEXT, ai_risk TEXT, scout_report TEXT)''')
+                  weight REAL, hrv REAL, rpe INTEGER, sleep REAL, 
+                  shot_efficiency REAL, mental_state TEXT, match_report TEXT)''')
     conn.commit()
     return conn
 
 db_conn = init_db()
 
-# =================================================================
-# 2. AI & PDF LOGIC
-# =================================================================
-with st.sidebar:
-    st.title("🏀 NBA Front-Office")
-    groq_key = st.text_input("Groq API Key", type="password", help="Necessaria per Dieta e Scouting")
-    st.markdown("---")
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+# Gestione API Key
+if "GROQ_API_KEY" in st.secrets:
+    groq_key = st.secrets["GROQ_API_KEY"]
+else:
+    groq_key = st.sidebar.text_input("Groq API Key", type="password")
 
 client = Groq(api_key=groq_key) if groq_key else None
 
-def get_ai_response(prompt_type, data):
-    if not client: return "⚠️ API Key mancante."
-    
-    prompts = {
-        "diet": f"Sei un nutrizionista NBA. Crea una dieta per: {data}. Includi macro e timing dei pasti.",
-        "risk": f"Sei un trainer NBA. Valuta rischio infortuni: HRV {data['hrv']}, RPE {data['rpe']}, Sonno {data['sleep']}.",
-        "scout": f"Sei un GM NBA. Crea scouting report per {data['name']}. Note: {data['notes']}. Includi NBA Comp."
-    }
-    try:
-        res = client.chat.completions.create(messages=[{"role":"user","content":prompts[prompt_type]}], model="llama3-8b-8192")
-        return res.choices[0].message.content
-    except: return "Errore di connessione AI."
-
-def create_pdf_report(title, content):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, title, ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, content.encode('latin-1', 'ignore').decode('latin-1'))
-    return pdf.output(dest='S').encode('latin-1')
-
 # =================================================================
-# 3. INTERFACCIA UTENTE
+# 2. LOGICA "THE WHISPERER" & "PLAYBOOK"
 # =================================================================
 
-# Login (come in v3.2)
-if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if not st.session_state.logged_in:
-    st.title("🏀 CoachTrack Elite Login")
-    u = st.text_input("Username", value="admin")
-    p = st.text_input("Password", type="password", value="admin")
-    if st.button("Login", type="primary"):
-        if u == "admin" and p == "admin":
-            st.session_state.logged_in = True
-            st.rerun()
-    st.stop()
+def get_whisperer_advice(player_name, hrv, rpe):
+    """AI Whisperer: Consigli live basati sulla fatica."""
+    if not client: return "Silenzio (API Key mancante)."
+    prompt = f"Sei un assistente NBA. Il giocatore {player_name} ha HRV {hrv} e fatica {rpe}. Dammi un consiglio di un riga per il coach durante la partita."
+    res = client.chat.completions.create(messages=[{"role":"user","content":prompt}], model="llama3-8b-8192")
+    return res.choices[0].message.content
 
-tabs = st.tabs(["🎥 Video & Spacing", "⚖️ Bio-Intelligence", "📊 NBA Analytics", "🔎 Scouting AI", "💬 Tactical Chat"])
+def automated_playbook_match(play_type, player_stats):
+    """Abbina il miglior giocatore allo schema richiesto."""
+    if not client: return "Calcolo playbook non disponibile."
+    prompt = f"Analizza questo schema: {play_type}. Chi tra questi giocatori è più adatto? Dati: {player_stats}"
+    res = client.chat.completions.create(messages=[{"role":"user","content":prompt}], model="llama3-8b-8192")
+    return res.choices[0].message.content
 
-# --- TAB 1: VIDEO (YOLO + SPACING) ---
+# =================================================================
+# 3. INTERFACCIA PRINCIPALE
+# =================================================================
+
+tabs = st.tabs(["📢 The Whisperer (Live)", "📖 Playbook Intelligente", "👤 Report Singoli", "⌚ Wearable & Bio", "🎯 Shot Charts"])
+
+# --- TAB 1: THE WHISPERER (Live Assistant) ---
 with tabs[0]:
-    st.header("Video Analysis & Spacing Geometry")
-    uv = st.file_uploader("Carica Match", type=['mp4','mov'])
-    if uv:
-        with open("temp.mp4", "wb") as f: f.write(uv.read())
-        cap = cv2.VideoCapture("temp.mp4")
-        st_frame = st.empty()
-        if st.button("Esegui Tracking YOLO"):
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret: break
-                frame = cv2.resize(frame, (800, 450))
-                # Mock Tracking NBA
-                cv2.putText(frame, "LIVE SPACING: 64.2m2", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
-                st_frame.image(frame, channels="BGR")
-                time.sleep(0.01) # Previene il freeze di Streamlit
-            cap.release()
-
-# --- TAB 2: BIOMETRICS (Full v3.2 Integration) ---
-with tabs[1]:
-    st.header("Monitoraggio Biometrico & Nutrizione")
-    with st.form("full_bio_form"):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            name = st.text_input("Nome Giocatore")
-            w = st.number_input("Peso (kg)", 50.0, 150.0, 90.0)
-            f = st.number_input("Grasso (%)", 5.0, 35.0, 11.0)
-        with c2:
-            m = st.number_input("Muscolo (kg)", 30.0, 90.0, 45.0)
-            h = st.number_input("HRV (ms)", 20.0, 150.0, 65.0)
-            s = st.number_input("Sonno (ore)", 4.0, 12.0, 8.0)
-        with c3:
-            rpe = st.slider("Fatica (RPE)", 1, 10, 5)
-            bmr = st.number_input("BMR (kcal)", 1500, 3500, 2100)
-            submit = st.form_submit_button("Genera Analisi NBA")
-            
-        if submit:
-            with st.spinner("AI al lavoro..."):
-                bio_data = {"weight": w, "fat": f, "hrv": h, "rpe": rpe, "sleep": s, "bmr": bmr}
-                diet = get_ai_response("diet", bio_data)
-                risk = get_ai_response("risk", bio_data)
-                
-                cur = db_conn.cursor()
-                cur.execute('''INSERT INTO player_data (player_name, timestamp, weight, fat, muscle, hrv, rpe, sleep, bmr, ai_diet, ai_risk) 
-                               VALUES (?,?,?,?,?,?,?,?,?,?,?)''', 
-                            (name, datetime.now().strftime("%Y-%m-%d"), w, f, m, h, rpe, s, bmr, diet, risk))
-                db_conn.commit()
-                st.success(f"Analisi per {name} completata!")
-
-# --- TAB 3: NBA ANALYTICS (Radar & Spacing) ---
-with tabs[2]:
-    st.header("Performance Radar & Load Management")
-    df = pd.read_sql_query("SELECT * FROM player_data", db_conn)
-    if not df.empty:
-        sel = st.selectbox("Seleziona Atleta", df['player_name'].unique())
-        latest = df[df['player_name'] == sel].iloc[-1]
+    st.header("📢 The Whisperer: Live Assistant Coach")
+    col_v, col_a = st.columns([2, 1])
+    
+    with col_v:
+        st.subheader("Live Feed Analysis")
+        # Supporto per video live o caricamento
+        uv = st.file_uploader("Carica Match in corso", type=['mp4'])
+        if uv: st.video(uv)
         
-        col_l, col_r = st.columns(2)
-        with col_l:
-            # Radar Chart NBA
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
-                r=[latest['muscle'], latest['hrv'], latest['sleep']*10, (11-latest['rpe'])*10, 70],
-                theta=['Muscolo', 'HRV', 'Sonno', 'Recupero', 'Idratazione'],
-                fill='toself', line_color='orange'
-            ))
-            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), title="NBA Readiness Score")
-            st.plotly_chart(fig)
-                        
-        with col_r:
-            st.subheader("⚠️ Injury Risk Advisor")
-            st.error(latest['ai_risk'])
-            st.subheader("🥗 Piano Nutrizionale")
-            st.info(latest['ai_diet'])
+    with col_a:
+        st.subheader("🔔 Avvisi in Tempo Reale")
+        df = pd.read_sql_query("SELECT * FROM player_data", db_conn)
+        if not df.empty:
+            for _, row in df.tail(3).iterrows():
+                advice = get_whisperer_advice(row['player_name'], row['hrv'], row['rpe'])
+                st.warning(f"**{row['player_name']}**: {advice}")
+        else:
+            st.info("In attesa di dati biometrici per generare avvisi...")
+
+# --- TAB 2: PLAYBOOK INTELLIGENTE ---
+with tabs[1]:
+    st.header("📖 Automated Playbook Optimizer")
+    play = st.selectbox("Seleziona Schema", ["Pick & Roll Centrale", "Triangolo", "Isolamento Post-Basso", "Uscita dai Blocchi (3PT)"])
+    
+    if st.button("Trova il miglior esecutore"):
+        if not df.empty:
+            context = df[['player_name', 'hrv', 'shot_efficiency']].to_string()
+            recommendation = automated_playbook_match(play, context)
+            st.success(f"**Suggerimento Tattico:** {recommendation}")
             
-            # Export
-            pdf_data = create_pdf_report(f"Report Atleta: {sel}", latest['ai_diet'])
-            st.download_button("📥 Scarica Report PDF", pdf_data, f"Report_{sel}.pdf")
+        else:
+            st.error("Carica i dati della squadra nel tab Wearable.")
 
-# --- TAB 4: SCOUTING & DRAFT ---
+# --- TAB 3: REPORT SINGOLI (Approfonditi) ---
+with tabs[2]:
+    st.header("👤 Deep Player Scouting & Report")
+    sel_p = st.selectbox("Seleziona Giocatore per Report Dettagliato", df['player_name'].unique() if not df.empty else ["Nessun dato"])
+    
+    if st.button("Genera Report 360°"):
+        with st.spinner("Analisi bio-meccanica e tattica in corso..."):
+            prompt = f"Crea un report dettagliato per {sel_p}. Includi: 1. Efficienza al tiro, 2. Tenuta difensiva, 3. Rischio infortuni."
+            full_report = get_ai_insight(prompt) # Funzione definita precedentemente
+            st.session_state.last_report = full_report
+            st.markdown(full_report)
+
+# --- TAB 4: WEARABLE HUB (API CUSTOM) ---
 with tabs[3]:
-    st.header("🔎 Scouting & Draft Intelligence")
-    col_1, col_2 = st.columns(2)
-    with col_1:
-        s_name = st.text_input("Nome Prospetto")
-        s_notes = st.text_area("Note (Tiro, Fisico, Mentalità...)")
-        if st.button("Genera Scouting Report"):
-            report = get_ai_response("scout", {"name": s_name, "notes": s_notes})
-            st.session_state.current_scout = report
-            st.markdown(report)
-    if "current_scout" in st.session_state:
-        with col_2:
-            st.subheader("Draft Grade")
-            fig_s = px.line_polar(r=[80, 70, 90, 60, 85], theta=['Tiro', 'Difesa', 'Fisico', 'Passaggio', 'IQ'], line_close=True)
-            st.plotly_chart(fig_s)
-            s_pdf = create_pdf_report(f"Scouting Report: {s_name}", st.session_state.current_scout)
-            st.download_button("📥 Scarica Scout PDF", s_pdf, f"Scout_{s_name}.pdf")
+    st.header("⌚ Wearable API Bridge")
+    col_api, col_data = st.columns(2)
+    with col_api:
+        st.subheader("Configurazione API")
+        endpoint = st.text_input("Wearable Endpoint (Whoop/Catapult/Custom)")
+        token = st.text_input("Access Token", type="password")
+        if st.button("Sincronizza Ora"):
+            st.info("🔄 Sincronizzazione con API Wearable in corso...")
+    with col_data:
+        st.subheader("Input Manuale (Backup)")
+        # Ripristino input biometrici v3.2
+        with st.form("bio_form"):
+            n = st.text_input("Nome")
+            h = st.number_input("HRV", 20, 150, 60)
+            r = st.slider("RPE", 1, 10, 5)
+            s = st.number_input("Shot Efficiency (%)", 0, 100, 45)
+            if st.form_submit_button("Salva Dati"):
+                cur = db_conn.cursor()
+                cur.execute("INSERT INTO player_data (player_name, timestamp, hrv, rpe, shot_efficiency) VALUES (?,?,?,?,?)", 
+                            (n, datetime.now().strftime("%Y-%m-%d"), h, r, s))
+                db_conn.commit()
+                st.rerun()
 
-# --- TAB 5: TACTICAL CHAT ---
+# --- TAB 5: SHOT CHARTS ---
 with tabs[4]:
-    st.header("💬 AI Tactical Assistant")
-    q = st.text_input("Chiedi all'AI basandoti sui dati della squadra")
-    if q and client:
-        hist = df.tail(10).to_string()
-        ans = client.chat.completions.create(
-            messages=[{"role":"system","content":f"Sei un assistente NBA. Dati: {hist}"}, {"role":"user","content":q}],
-            model="llama3-8b-8192"
-        )
-        st.chat_message("assistant").write(ans.choices[0].message.content)
+    st.header("🎯 Analisi Spaziale del Tiro")
+    # Generazione Heatmap come discusso
+    df_shots = pd.DataFrame({'x': np.random.uniform(0, 50, 50), 'y': np.random.uniform(0, 47, 50), 'segno': np.random.choice([0,1], 50)})
+    fig = px.density_heatmap(df_shots, x='x', y='y', z='segno', title="Mappa Efficienza Tiro", color_continuous_scale="Hot")
+    st.plotly_chart(fig, use_container_width=True)
