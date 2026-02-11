@@ -61,59 +61,44 @@ def generate_detailed_manual(team_name, logo_path=None):
     
     sections = {
         "1. ARCHITETTURA E FILOSOFIA": 
-        "CoachTrack Oracle non e solo un software di gestione; e un ecosistema decisionale. "
-        "Il sistema integra tre pilastri: Visione Artificiale (YOLO), Biometria Avanzata e "
-        "Intelligenza Artificiale Generativa (The Oracle). L'obiettivo e minimizzare l'errore "
-        "umano nella valutazione della fatica e massimizzare l'efficienza tattica in campo.",
+            "CoachTrack Oracle non e solo un software di gestione; e un ecosistema decisionale. "
+            "Il sistema integra tre pilastri: Visione Artificiale (YOLO), Biometria Avanzata e "
+            "Intelligenza Artificiale Generativa (The Oracle). L'obiettivo e minimizzare l'errore "
+            "umano nella valutazione della fatica e massimizzare l'efficienza tattica in campo.",
 
         "2. VIDEO TRACKING (YOLO V8-V11)": 
-        "A COSA SERVE: Identifica la posizione degli atleti e della palla in tempo reale. "
-        "COSA FA: Utilizza reti neurali convoluzionali per mappare lo spacing e il carico motorio. "
-        "VERSIONI: YOLO v8 e ottimizzato per la velocita (analisi post-match rapida); "
-        "YOLO v11 offre una precisione superiore sui contatti in area e sulle linee di tiro. "
-        "PROCESSO: Caricare il file .mp4, selezionare la 'Confidenza' (0.25 consigliata) "
-        "e monitorare la barra di progresso per la sincronizzazione dei frame.",
+            "A COSA SERVE: Identifica la posizione degli atleti e della palla in tempo reale. "
+            "COSA FA: Utilizza reti neurali convoluzionali per mappare lo spacing e il carico motorio. "
+            "VERSIONI: YOLO v8 e ottimizzato per la velocita; YOLO v11 offre una precisione superiore. "
+            "PROCESSO: Caricare il file .mp4, selezionare la Confidenza e monitorare la barra di progresso.",
 
         "3. BIO-METRIC & BODY COMPOSITION": 
-        "A COSA SERVE: Monitoraggio della salute cellulare e strutturale dell'atleta. "
-        "METRICHE CHIAVE:\n"
-        "- HRV (Heart Rate Variability): Il principale indicatore di stress del sistema nervoso. "
-        "Valori bassi indicano necessita di riposo (Red Flag).\n"
-        "- BODY FAT & MUSCLE MASS: Essenziali per calcolare il Power-to-Weight ratio. "
-        "Un calo di massa muscolare durante la stagione segnala un deficit proteico o eccesso di cardio.\n"
-        "- WATER %: Fondamentale per la prevenzione di crampi e infortuni muscolari.",
+            "A COSA SERVE: Monitoraggio della salute cellulare e strutturale dell'atleta. "
+            "METRICHE CHIAVE: HRV (Heart Rate Variability) per lo stress nervoso; "
+            "BODY FAT e MUSCLE MASS per il Power-to-Weight ratio; "
+            "WATER % per la prevenzione di crampi e infortuni muscolari.",
 
         "4. WAR ROOM STRATEGICA": 
-        "A COSA SERVE: Analisi comparativa per le rotazioni (Lineup Optimization). "
-        "FUNZIONAMENTO: Il sistema incrocia i dati tecnici (Shot %) con quelli fisici (HRV/Muscolo). "
-        "Il Radar Chart permette di vedere visivamente chi e piu pronto per un accoppiamento specifico. "
-        "E lo strumento principale per decidere chi parte in quintetto base (Starter) "
-        "in base alla freschezza atletica del giorno del match.",
+            "A COSA SERVE: Analisi comparativa per le rotazioni (Lineup Optimization). "
+            "FUNZIONAMENTO: Il sistema incrocia i dati tecnici con quelli fisici. "
+            "Il Radar Chart permette di vedere visivamente chi e piu pronto per un accoppiamento specifico "
+            "in base alla freschezza atletica del giorno del match.",
 
         "5. INTERAZIONE CON THE ORACLE": 
-        "A COSA SERVE: Consulenza immediata su dati complessi. "
-        "THE ORACLE agisce come un assistente che ha letto tutti i dati bio e video. "
-        "ESEMPI DI COMANDO:\n"
-        "- 'Analizza il rischio infortuni della lineup titolare.'\n"
-        "- 'Pianifica una dieta di recupero ipercalorica per [Nome] basata sul suo calo di massa muscolare.'\n"
-        "- 'Crea uno scouting report tattico basato sui trend di tiro dell'ultimo mese.'",
+            "A COSA SERVE: Consulenza immediata su dati complessi. "
+            "THE ORACLE agisce come un assistente che analizza dati bio e video. "
+            "ESEMPI: Analisi rischio infortuni, piani di recupero e scouting report tattici.",
 
         "6. GESTIONE DATI E PRIVACY": 
-        "Tutti i dati sono isolati per Coach. L'integrazione Smart Scale API permette "
-        "l'aggiornamento automatico dei parametri di composizione corporea. "
-        "Si consiglia di effettuare un Bulk Import via CSV all'inizio di ogni training camp."
+            "Tutti i dati sono isolati per Coach. L'integrazione Smart Scale API permette "
+            "l'aggiornamento automatico dei parametri. Si consiglia un Bulk Import via CSV "
+            "all'inizio di ogni training camp.",
 
         "7. PROTOCOLLO INJURY PREVENTION": 
-        "A COSA SERVE: Identificazione precoce dei segnali di sovraccarico (Overuse) e rischio lesioni. "
-        "IL MODELLO PREDITTIVO: Il sistema incrocia HRV (Stress Sistemico), RPE (Carico Percepito) "
-        "e Bio-Metrica (Idratazione/Massa Muscolare).\n"
-        "INDICATORI DI ALLERTA:\n"
-        "- ZONA ROSSA: HRV calato del 20% + RPE > 8. Rischio lesione muscolare elevatissimo. "
-        "Azione consigliata: Riposo totale o scarico attivo.\n"
-        "- ZONA GIALLA: Calo della massa muscolare o acqua corporea < 55%. Indica catabolismo. "
-        "Azione consigliata: Integrazione specifica e riduzione minutaggio.\n"
-        "THE ORACLE può analizzare questi pattern su base settimanale per prevedere i 'breakdown' fisici prima che avvengano."
-
+            "A COSA SERVE: Identificazione precoce dei segnali di sovraccarico. "
+            "INDICATORI: ZONA ROSSA (HRV calato del 20% + RPE > 8) indica rischio elevatissimo. "
+            "ZONA GIALLA (Calo massa muscolare o acqua < 55%) indica catabolismo. "
+            "Azione: Riposo totale o integrazione specifica."
     }
     for title, desc in sections.items():
         pdf.set_font("Arial", 'B', 14)
