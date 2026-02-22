@@ -14,7 +14,7 @@ from PIL import Image
 # =================================================================
 # 1. SETUP & STYLE (FUTURA & PROFESSIONAL ICONS)
 # =================================================================
-st.set_page_config(page_title="CoachTrack Elite v21", layout="wide", page_icon="🏀")
+st.set_page_config(page_title="CoachTrack", layout="wide", page_icon="🏀")
 
 st.markdown("""
     <style>
@@ -55,7 +55,7 @@ def generate_detailed_manual(team_name, logo_path=None):
             self.set_text_color(120)
             # Piè di pagina potenziato con Patent Pending e dicitura legale
             footer_text = (
-                f"© CoachTrack Elite - Patent Pending. "
+                f"© CoachTrack - Patent Pending. "
                 "Documento Confidenziale. Vietata la riproduzione e la divulgazione non autorizzata. "
                 "Dati protetti tramite Smart Scale API e database criptati."
             )
@@ -167,7 +167,7 @@ def generate_detailed_manual(team_name, logo_path=None):
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.title("🏀 CoachTrack Elite v21")
+    st.title("🏀 CoachTrack")
     t_auth1, t_auth2 = st.tabs(["🎯 Login", "📝 Registrazione"])
     with t_auth1:
         u, p = st.text_input("Username"), st.text_input("Password", type="password")
